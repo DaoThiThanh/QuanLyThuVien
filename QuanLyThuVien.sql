@@ -1,24 +1,22 @@
--- Tạo Database
 CREATE DATABASE QuanLyThuVien;
 GO
-
 USE QuanLyThuVien;
 GO
 
 -- ==========================================
--- NHÓM 1: QUẢN TRỊ HỆ THỐNG & NGƯỜI DÙNG
+-- NHÓM 1: CẤU HÌNH & NGƯỜI DÙNG
 -- ==========================================
 
--- 1. Bảng Cấu hình tham số
+-- 1. Bảng Tham số (Lưu quy định để dễ thay đổi mà không cần sửa code)
 CREATE TABLE ThamSoQuyDinh (
     Id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
-    SoSachMuonToiDa INT NOT NULL,
-    SoNgayMuonToiDa INT NOT NULL,
-    PhiPhatTreHan DECIMAL(10,2) NOT NULL,
+    SoSachMuonToiDa INT NOT NULL DEFAULT 5,
+    SoNgayMuonToiDa INT NOT NULL DEFAULT 14,
+    PhiPhatTreHanMoiNgay DECIMAL(10, 2) NOT NULL DEFAULT 5000,
     NgayCapNhat DATETIME DEFAULT GETDATE()
 );
 
--- 2. Bảng Người dùng (Admin, Thủ thư, Độc giả)
+-- 2. Bảng Người dùng
 CREATE TABLE NguoiDung (
     Id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
     HoTen NVARCHAR(100) NOT NULL,
@@ -26,35 +24,34 @@ CREATE TABLE NguoiDung (
     MatKhau VARCHAR(255) NOT NULL,
     SoDienThoai VARCHAR(15),
     VaiTro INT NOT NULL, -- 1: Admin, 2: Thủ thư, 3: Độc giả
-    TrangThai INT NOT NULL DEFAULT 1, -- 1: Hoạt động, 0: Bị khóa
-    TaoLuc DATETIME DEFAULT GETDATE()
+    TrangThai INT NOT NULL DEFAULT 1, -- 1: Hoạt động, 0: Khóa
+    NgayTao DATETIME DEFAULT GETDATE()
 );
 
 -- ==========================================
--- NHÓM 2: QUẢN LÝ SÁCH & DANH MỤC
+-- NHÓM 2: QUẢN LÝ ĐẦU SÁCH & KHO SÁCH
 -- ==========================================
 
--- 3. Bảng Danh mục (Thể loại)
-CREATE TABLE DanhMucSach (
-    Id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
-    TenDanhMuc NVARCHAR(100) NOT NULL,
-    MoTa NVARCHAR(MAX)
-);
-
--- 4. Bảng Tác giả
+-- 3. Tác giả
 CREATE TABLE TacGia (
     Id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
     TenTacGia NVARCHAR(100) NOT NULL,
-    GioiThieu NVARCHAR(MAX)
+    TieuSu NVARCHAR(MAX)
 );
 
--- 5. Bảng Nhà xuất bản
+-- 4. Nhà xuất bản
 CREATE TABLE NhaXuatBan (
     Id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
     TenNXB NVARCHAR(100) NOT NULL
 );
 
--- 6. Bảng Đầu sách (Thông tin chung về sách)
+-- 5. Danh mục
+CREATE TABLE DanhMucSach (
+    Id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
+    TenDanhMuc NVARCHAR(100) NOT NULL
+);
+
+-- 6. Đầu sách (Thông tin chung - Title)
 CREATE TABLE DauSach (
     Id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
     TenSach NVARCHAR(255) NOT NULL,
@@ -63,66 +60,66 @@ CREATE TABLE DauSach (
     NxbId UNIQUEIDENTIFIER FOREIGN KEY REFERENCES NhaXuatBan(Id),
     NamXuatBan INT,
     HinhAnh VARCHAR(255),
-    MoTa NVARCHAR(MAX)
+    SoLuongTon INT DEFAULT 0
 );
 
--- 7. Bảng Cuốn sách (Bản sao vật lý cụ thể)
+-- 7. Cuốn sách (Thực thể vật lý - Copy)
 CREATE TABLE CuonSach (
     Id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
     DauSachId UNIQUEIDENTIFIER FOREIGN KEY REFERENCES DauSach(Id),
-    MaVach VARCHAR(50) UNIQUE NOT NULL, -- Mã vạch thực tế dán trên sách (VD: CS001) để thủ thư dễ quét/nhập tay
-    TinhTrangVatLy NVARCHAR(100) NOT NULL, -- Mới, Cũ, Rách bìa...
-    TrangThaiMuon INT NOT NULL DEFAULT 1 -- 1: Sẵn sàng, 2: Đang cho mượn, 3: Đã mất, 4: Hỏng/Đang bảo trì
+    MaVach VARCHAR(50) UNIQUE NOT NULL, -- Quét mã này để mượn/trả
+    TinhTrangVatLy NVARCHAR(100) NOT NULL, -- Mới, Cũ, Hỏng
+    TrangThaiMuon INT NOT NULL DEFAULT 1 -- 1: Sẵn sàng, 2: Đang mượn, 3: Đã mất
 );
 
 -- ==========================================
--- NHÓM 3: QUẢN LÝ MƯỢN TRẢ & VI PHẠM
+-- NHÓM 3: MƯỢN TRẢ ONLINE & TRỰC TIẾP (CÁCH 1)
 -- ==========================================
 
--- 8. Bảng Yêu cầu mượn trực tuyến
+-- 8. Yêu cầu mượn (Dành cho đăng ký ONLINE trên web)
 CREATE TABLE YeuCauMuon (
     Id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
     DocGiaId UNIQUEIDENTIFIER FOREIGN KEY REFERENCES NguoiDung(Id),
     NgayYeuCau DATETIME DEFAULT GETDATE(),
     NgayHenNhan DATE,
-    TrangThai INT NOT NULL DEFAULT 0 -- 0: Chờ duyệt, 1: Đã duyệt, 2: Bị từ chối, 3: Đã hủy
+    TrangThai INT DEFAULT 0 -- 0: Chờ duyệt, 1: Đã duyệt, 2: Đã hủy
 );
 
--- 9. Bảng Chi tiết yêu cầu mượn
+-- 9. Chi tiết yêu cầu (Độc giả đăng ký mượn đầu sách nào)
 CREATE TABLE ChiTietYeuCau (
     YeuCauId UNIQUEIDENTIFIER FOREIGN KEY REFERENCES YeuCauMuon(Id),
     DauSachId UNIQUEIDENTIFIER FOREIGN KEY REFERENCES DauSach(Id),
     PRIMARY KEY (YeuCauId, DauSachId)
 );
 
--- 10. Bảng Phiếu mượn thực tế
+-- 10. Phiếu mượn (Bảng trung tâm quản lý giao dịch)
 CREATE TABLE PhieuMuon (
     Id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
     DocGiaId UNIQUEIDENTIFIER FOREIGN KEY REFERENCES NguoiDung(Id),
     ThuThuId UNIQUEIDENTIFIER FOREIGN KEY REFERENCES NguoiDung(Id),
-    YeuCauId UNIQUEIDENTIFIER NULL FOREIGN KEY REFERENCES YeuCauMuon(Id), -- Có thể NULL nếu độc giả đến mượn trực tiếp
+    YeuCauId UNIQUEIDENTIFIER NULL FOREIGN KEY REFERENCES YeuCauMuon(Id), -- NULL nế mượn tại quầy
+    KenhMuon INT DEFAULT 1, -- 1: Tại quầy (Direct), 2: Online (Web)
     NgayMuon DATETIME DEFAULT GETDATE(),
-    NgayPhaiTra DATETIME NOT NULL,
-    TrangThai INT NOT NULL DEFAULT 1 -- 1: Đang mượn, 2: Đã trả đủ, 3: Đã trả nợ phạt
+    HanTra DATE NOT NULL,
+    TrangThai INT DEFAULT 1 -- 1: Đang mượn, 2: Hoàn thành, 3: Quá hạn
 );
 
--- 11. Bảng Chi tiết phiếu mượn
+-- 11. Chi tiết phiếu mượn (Ghi nhận Cuốn sách cụ thể nào được lấy đi)
 CREATE TABLE ChiTietPhieuMuon (
+    Id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
     PhieuMuonId UNIQUEIDENTIFIER FOREIGN KEY REFERENCES PhieuMuon(Id),
     CuonSachId UNIQUEIDENTIFIER FOREIGN KEY REFERENCES CuonSach(Id),
     NgayTraThucTe DATETIME NULL,
-    TinhTrangKhiMuon NVARCHAR(255),
-    TinhTrangKhiTra NVARCHAR(255) NULL,
-    TrangThaiTra INT NOT NULL DEFAULT 0, -- 0: Chưa trả, 1: Đã trả bình thường, 2: Trả trễ, 3: Làm mất/hỏng
-    PRIMARY KEY (PhieuMuonId, CuonSachId)
+    TinhTrangKhiTra NVARCHAR(255),
+    TienPhat DECIMAL(10, 2) DEFAULT 0
 );
 
--- 12. Bảng Phiếu phạt
-CREATE TABLE PhieuPhat (
+-- 12. Phiếu thu tiền phạt
+CREATE TABLE PhieuThuPhat (
     Id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
-    PhieuMuonId UNIQUEIDENTIFIER FOREIGN KEY REFERENCES PhieuMuon(Id),
     DocGiaId UNIQUEIDENTIFIER FOREIGN KEY REFERENCES NguoiDung(Id),
-    LyDoPhat NVARCHAR(255) NOT NULL,
-    TongTienPhat DECIMAL(10,2) NOT NULL,
-    TrangThaiThanhToan INT NOT NULL DEFAULT 0 -- 0: Chưa đóng, 1: Đã đóng
+    PhieuMuonId UNIQUEIDENTIFIER FOREIGN KEY REFERENCES PhieuMuon(Id),
+    SoTienThu DECIMAL(10, 2) NOT NULL,
+    NgayThu DATETIME DEFAULT GETDATE(),
+    NoiDung NVARCHAR(255)
 );

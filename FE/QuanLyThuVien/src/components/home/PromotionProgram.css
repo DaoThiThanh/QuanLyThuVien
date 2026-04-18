@@ -1,0 +1,100 @@
+.promotion-program-section {
+    padding: 24px 0;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.promotion-container {
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    border-radius: 12px;
+    padding: 32px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    color: white;
+}
+
+.promotion-content {
+    flex: 1;
+    z-index: 2;
+    max-width: 65%;
+}
+
+.promotion-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 6px 12px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+}
+
+.promotion-icon {
+    font-size: 14px;
+}
+
+.promotion-title {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 12px 0;
+    line-height: 1.2;
+    color: #ffffff;
+}
+
+.promotion-description {
+    font-size: 15px;
+    margin: 0;
+    opacity: 0.9;
+    line-height: 1.5;
+}
+
+.promotion-action {
+    z-index: 2;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.promotion-btn {
+    background-color: white;
+    color: #059669;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.promotion-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    background-color: #f8fafc;
+}
+
+.promotion-watermark {
+    position: absolute;
+    right: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 200px;
+    font-weight: 900;
+    opacity: 0.05;
+    z-index: -1;
+    font-family: serif;
+    user-select: none;
+    pointer-events: none;
+}
