@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './RegisterPage.css';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { registerApi } from '../services/modules/authService';
 
 const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +11,9 @@ const RegisterPage: React.FC = () => {
     matKhau: '',
     xacNhanMatKhau: '',
   });
+  const [errorMsg, setErrorMsg] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -19,10 +23,29 @@ const RegisterPage: React.FC = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Registering with:', formData);
-    // TODO: Connect to authentication API
+    setErrorMsg('');
+    if (formData.matKhau !== formData.xacNhanMatKhau) {
+      setErrorMsg('Mật khẩu xác nhận không khớp.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await registerApi({
+        hoten: formData.hoTen,
+        email: formData.email,
+        sodienthoai: formData.soDienThoai,
+        matkhau: formData.matKhau
+      });
+      alert('Đăng ký thành công! Vui lòng đăng nhập.');
+      navigate('/login');
+    } catch (error: any) {
+      setErrorMsg(error.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -80,6 +103,8 @@ const RegisterPage: React.FC = () => {
             <p className="form-subtitle">
               Đã có tài khoản? <Link to="/login" className="login-link">Đăng nhập ngay</Link>
             </p>
+
+            {errorMsg && <div className="error-message" style={{ color: '#dc3545', marginBottom: '15px', padding: '10px', backgroundColor: '#f8d7da', borderRadius: '5px', border: '1px solid #f5c6cb' }}>{errorMsg}</div>}
 
             <form className="register-form" onSubmit={handleSubmit}>
               <div className="form-group">
@@ -168,7 +193,9 @@ const RegisterPage: React.FC = () => {
                 <label htmlFor="terms">Tôi đồng ý với các <a href="#">Điều khoản sử dụng</a> và <a href="#">Chính sách bảo mật</a></label>
               </div>
 
-              <button type="submit" className="btn-register">Tạo tài khoản</button>
+              <button type="submit" className="btn-register" disabled={loading} style={{ opacity: loading ? 0.7 : 1 }}>
+                {loading ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}
+              </button>
             </form>
           </div>
         </div>

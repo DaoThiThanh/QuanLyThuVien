@@ -2,7 +2,8 @@ import axiosClient from "../api/axiosClient";
 import type {
     ApiResponse,
     LoginRequest,
-    LoginResponse
+    LoginResponse,
+    RegisterRequest
 } from "../../types/auth";
 
 export function getToken(): string | null {
@@ -46,4 +47,9 @@ export async function loginApi(payload: LoginRequest, remember: boolean = false)
     }, remember);
 
     return data.data;
+}
+
+export async function registerApi(payload: RegisterRequest): Promise<any> {
+    const response = await axiosClient.post<ApiResponse<any>>('/auth/register', payload);
+    return response.data;
 }
