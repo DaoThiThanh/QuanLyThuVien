@@ -31,5 +31,22 @@ namespace QuanLyThuVien.Controllers
                 return StatusCode(500, $"Lỗi server: {ex.Message}");
             }
         }
+
+        [HttpGet("moi-bo-sung")]
+        public async Task<IActionResult> GetSachMoiBoSung([FromQuery] int top = 10)
+        {
+            try
+            {
+                if (top <= 0) top = 10;
+
+                var result = await _sachRepository.GetSachMoiBoSungAsync(top);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi server: {ex.Message}");
+            }
+        }
     }
 }
