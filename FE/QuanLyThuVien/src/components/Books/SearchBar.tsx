@@ -3,7 +3,7 @@ import "./SearchBar.css";
 
 type SearchBarProps = {
     value: string;
-    onchange: (value: string) => void;
+    onChange: (value: string) => void;
     onFilterClick: () => void;
 };
 
@@ -12,12 +12,12 @@ function SearchBar(props: SearchBarProps) {
         <div className="search-bar-container">
             <div className="search-input-wrapper">
                 <FiSearch className="search-icon" size={20} />
-                <input 
-                    className="search-bar-input" 
+                <input
+                    className="search-bar-input"
                     type="text"
                     value={props.value}
-                    onChange={(e) => props.onchange(e.target.value)}
-                    placeholder="Tìm kiếm sách, tác giả..." 
+                    onChange={(e) => props.onChange(e.target.value)}
+                    placeholder="Tìm kiếm sách, tác giả..."
                 />
             </div>
             <button className="filter-button" onClick={(e) => props.onFilterClick()}>

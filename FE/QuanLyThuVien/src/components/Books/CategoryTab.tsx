@@ -1,6 +1,4 @@
 import "./CategoryTab.css";
-
-// ❌ String[] → phải là string[]
 type CategoryTabProps = {
     categories: string[];
     activeCategory: string;
