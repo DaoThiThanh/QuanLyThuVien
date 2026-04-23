@@ -3,9 +3,12 @@ import Footer from "../components/layout/Footer";
 import PageTitle from "../components/Books/PageTitle";
 import SearchBar from "../components/Books/SearchBar";
 import { useState } from "react";
+import CategoryTab from "../components/Books/CategoryTab";
 
 function BooksPage() {
     const [search, setSearch] = useState("");
+    const categories = ["Tất cả", "Lập trình", "Toán học", "Kinh tế", "Văn học", "Trí tuệ nhân tạo", "Công nghệ thông tin", "Lịch sử", "Khoa học", "Kinh tế"];
+    const [activeCategory, setActiveCategory] = useState("Tất cả");
     return (
         <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
             <Header />
@@ -18,6 +21,11 @@ function BooksPage() {
                     value={search}
                     onchange={setSearch}
                     onFilterClick={() => { }}
+                />
+                <CategoryTab
+                    categories={categories}
+                    activeCategory={activeCategory}
+                    onChange={setActiveCategory}
                 />
             </main>
             <Footer />

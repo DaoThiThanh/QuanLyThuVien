@@ -1,0 +1,48 @@
+.category-tabs {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 8px 0;
+    margin-bottom: 24px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.category-tabs::-webkit-scrollbar {
+    height: 6px;
+    display: none; /* Hide scrollbar for cleaner look */
+}
+
+.category-tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 20px;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 9999px; /* Pill shape as seen in the image */
+    color: #475569;
+    font-weight: 600; /* Bold text */
+    font-size: 15px; /* Larger text */
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.category-tab:hover {
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #0f172a;
+}
+
+.category-tab:active {
+    transform: translateY(1px);
+}
+
+.category-tab-active,
+.category-tab-active:hover {
+    background-color: #3b82f6; /* Deep blue from the image */
+    border-color: #3b82f6;
+    color: #ffffff;
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2); /* Subtle shadow */
+}
