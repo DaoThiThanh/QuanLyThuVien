@@ -48,5 +48,23 @@ namespace QuanLyThuVien.Controllers
                 return StatusCode(500, $"Lỗi server: {ex.Message}");
             }
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetDanhSach([FromQuery] int page = 1, [FromQuery] int pageSize = 12)
+        {
+            try
+            {
+                if (page <= 0) page = 1;
+                if (pageSize <= 0) pageSize = 12;
+
+                var result = await _sachRepository.GetDanhSachSachAsync(page, pageSize);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi server: {ex.Message}");
+            }
+        }
     }
 }
