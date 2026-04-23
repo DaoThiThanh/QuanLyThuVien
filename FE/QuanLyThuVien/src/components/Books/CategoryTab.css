@@ -9,7 +9,8 @@
 
 .category-tabs::-webkit-scrollbar {
     height: 6px;
-    display: none; /* Hide scrollbar for cleaner look */
+    display: none;
+    /* Hide scrollbar for cleaner look */
 }
 
 .category-tab {
@@ -19,10 +20,13 @@
     padding: 8px 20px;
     background-color: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 9999px; /* Pill shape as seen in the image */
+    border-radius: 9999px;
+    /* Pill shape as seen in the image */
     color: #475569;
-    font-weight: 600; /* Bold text */
-    font-size: 15px; /* Larger text */
+    font-weight: 600;
+    /* Bold text */
+    font-size: 15px;
+    /* Larger text */
     cursor: pointer;
     transition: all 0.2s ease;
     white-space: nowrap;
@@ -41,8 +45,10 @@
 
 .category-tab-active,
 .category-tab-active:hover {
-    background-color: #3b82f6; /* Deep blue from the image */
+    background-color: #3b82f6;
+    /* Deep blue from the image */
     border-color: #3b82f6;
     color: #ffffff;
-    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2); /* Subtle shadow */
+    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2);
+    /* Subtle shadow */
 }

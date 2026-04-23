@@ -1,0 +1,19 @@
+.result-infor-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+.result-infor-text {
+    font-size: 16px;
+    color: #64748b;
+    margin: 0;
+    font-weight: 400;
+}
+
+.result-infor-text strong {
+    color: #0f172a;
+    font-weight: 600;
+}

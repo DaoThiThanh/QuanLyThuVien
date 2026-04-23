@@ -4,11 +4,17 @@ import PageTitle from "../components/Books/PageTitle";
 import SearchBar from "../components/Books/SearchBar";
 import { useState } from "react";
 import CategoryTab from "../components/Books/CategoryTab";
-
+import ResultInfor from "../components/Books/ResultInfor";
 function BooksPage() {
     const [search, setSearch] = useState("");
-    const categories = ["Tất cả", "Lập trình", "Toán học", "Kinh tế", "Văn học", "Trí tuệ nhân tạo", "Công nghệ thông tin", "Lịch sử", "Khoa học", "Kinh tế"];
+    const categories = ["Tất cả", "Công nghệ thông tin", "Toán học", "Kinh tế", "Văn học", "Trí tuệ nhân tạo", "Lịch sử", "Khoa học"];
     const [activeCategory, setActiveCategory] = useState("Tất cả");
+    const books = [
+        { id: 1, title: "C++", Category: "Công nghệ thông tin", Author: "" },
+        { id: 2, title: "Giải tích", Category: "Toán học", Author: "" },
+        { id: 3, title: "Vật lý đại cương", Category: "Vật lý", Author: "" },
+    ]
+    const [filteredBooks] = useState(books)
     return (
         <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
             <Header />
@@ -26,6 +32,9 @@ function BooksPage() {
                     categories={categories}
                     activeCategory={activeCategory}
                     onChange={setActiveCategory}
+                />
+                <ResultInfor
+                    count={filteredBooks.length}
                 />
             </main>
             <Footer />
