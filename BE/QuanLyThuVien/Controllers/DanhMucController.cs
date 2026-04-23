@@ -6,24 +6,21 @@ namespace QuanLyThuVien.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class SachController : ControllerBase
+    public class DanhMucController : ControllerBase
     {
-        private readonly ISachRepository _sachRepository;
+        private readonly IDanhMucRepository _danhMucRepository;
 
-        public SachController(ISachRepository sachRepository)
+        public DanhMucController(IDanhMucRepository danhMucRepository)
         {
-            _sachRepository = sachRepository;
+            _danhMucRepository = danhMucRepository;
         }
 
-        [HttpGet("noi-bat")]
-        public async Task<IActionResult> GetSachNoiBat([FromQuery] int top = 10)
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
         {
             try
             {
-                if (top <= 0) top = 10;
-
-                var result = await _sachRepository.GetSachNoiBatAsync(top);
-
+                var result = await _danhMucRepository.GetAllDanhMucAsync();
                 return Ok(result);
             }
             catch (Exception ex)
