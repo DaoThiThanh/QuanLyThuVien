@@ -1,0 +1,21 @@
+.borrowed-title {
+    margin-bottom: 28px;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+.borrowed-title-text {
+    font-size: 30px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 8px 0;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+}
+
+.borrowed-title-subtitle {
+    font-size: 18px;
+    color: #6b7280;
+    margin: 0;
+    line-height: 1.6;
+    font-weight: 400;
+}

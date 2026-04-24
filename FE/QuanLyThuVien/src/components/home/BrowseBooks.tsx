@@ -3,7 +3,7 @@ import './BrowseBooks.css';
 import { FiBookOpen, FiGrid, FiList } from 'react-icons/fi';
 import { GetDanhSachSach } from '../../services/modules/bookService';
 import type { PaginatedBookItem } from '../../types/book';
-import BookGrid from '../Books/BookGrid';
+
 
 const BrowseBooks: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all');

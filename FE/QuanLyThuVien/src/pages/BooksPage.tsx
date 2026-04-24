@@ -48,8 +48,8 @@ function BooksPage() {
     }, []);
 
     const filteredBooks = booksData.filter(book => {
-        const matchSearch = book.title.toLowerCase().includes(search.toLowerCase()) || 
-                            book.author.toLowerCase().includes(search.toLowerCase());
+        const matchSearch = book.title.toLowerCase().includes(search.toLowerCase()) ||
+            book.author.toLowerCase().includes(search.toLowerCase());
         const matchCategory = activeCategory === "Tất cả" || book.category === activeCategory;
         return matchSearch && matchCategory;
     });
@@ -99,18 +99,18 @@ function BooksPage() {
                                 books={paginatedBooks}
                                 onViewDetail={handleViewDetail}
                             />
-                            
+
                             {/* Phân trang */}
                             {totalPages > 1 && (
                                 <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '40px' }}>
-                                    <button 
+                                    <button
                                         disabled={currentPage === 1}
                                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                        style={{ 
-                                            padding: '8px 16px', 
-                                            borderRadius: '8px', 
-                                            border: '1px solid #e2e8f0', 
-                                            background: currentPage === 1 ? '#f8fafc' : 'white', 
+                                        style={{
+                                            padding: '8px 16px',
+                                            borderRadius: '8px',
+                                            border: '1px solid #e2e8f0',
+                                            background: currentPage === 1 ? '#f8fafc' : 'white',
                                             color: currentPage === 1 ? '#94a3b8' : '#1e293b',
                                             cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
                                             fontWeight: 500
@@ -118,17 +118,17 @@ function BooksPage() {
                                     >
                                         Trước
                                     </button>
-                                    
+
                                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                                         <button
                                             key={page}
                                             onClick={() => setCurrentPage(page)}
-                                            style={{ 
-                                                padding: '8px 16px', 
-                                                borderRadius: '8px', 
+                                            style={{
+                                                padding: '8px 16px',
+                                                borderRadius: '8px',
                                                 border: '1px solid',
                                                 borderColor: currentPage === page ? '#3b82f6' : '#e2e8f0',
-                                                background: currentPage === page ? '#3b82f6' : 'white', 
+                                                background: currentPage === page ? '#3b82f6' : 'white',
                                                 color: currentPage === page ? 'white' : '#1e293b',
                                                 cursor: 'pointer',
                                                 fontWeight: 500
@@ -137,15 +137,15 @@ function BooksPage() {
                                             {page}
                                         </button>
                                     ))}
-                                    
-                                    <button 
+
+                                    <button
                                         disabled={currentPage === totalPages}
                                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                        style={{ 
-                                            padding: '8px 16px', 
-                                            borderRadius: '8px', 
-                                            border: '1px solid #e2e8f0', 
-                                            background: currentPage === totalPages ? '#f8fafc' : 'white', 
+                                        style={{
+                                            padding: '8px 16px',
+                                            borderRadius: '8px',
+                                            border: '1px solid #e2e8f0',
+                                            background: currentPage === totalPages ? '#f8fafc' : 'white',
                                             color: currentPage === totalPages ? '#94a3b8' : '#1e293b',
                                             cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
                                             fontWeight: 500

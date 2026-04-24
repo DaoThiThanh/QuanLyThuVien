@@ -1,0 +1,20 @@
+.overdue-warning-banner {
+    background-color: #ffebeb;
+    border: 1px solid #ffc4c4;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+.overdue-warning-title {
+    color: #9f3232;
+    font-weight: 500;
+}
+
+.overdue-warning-desc {
+    color: #ff6262;
+}
