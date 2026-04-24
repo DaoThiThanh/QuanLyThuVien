@@ -11,7 +11,7 @@
   align-items: center;
 }
 
-.header-container {
+.library-header .header-container {
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
@@ -21,14 +21,14 @@
 }
 
 /* Logo */
-.header-logo {
+.library-header .header-logo {
   display: flex;
   align-items: center;
   gap: 12px;
   cursor: pointer;
 }
 
-.logo-icon {
+.library-header .logo-icon {
   background-color: #3b82f6; /* Blue */
   color: white;
   width: 36px;
@@ -39,20 +39,20 @@
   justify-content: center;
 }
 
-.logo-text {
+.library-header .logo-text {
   font-weight: 700;
   font-size: 18px;
   color: #1f2937; /* Dark gray */
 }
 
 /* Navigation */
-.header-nav {
+.library-header .header-nav {
   display: flex;
   align-items: center;
   gap: 16px;
 }
 
-.nav-item {
+.library-header .nav-item {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -65,28 +65,28 @@
   transition: all 0.2s ease;
 }
 
-.nav-item:hover {
+.library-header .nav-item:hover {
   background-color: #f3f4f6;
   color: #1f2937;
 }
 
-.nav-item.active {
+.library-header .nav-item.active {
   background-color: #eff6ff; /* Light blue bg */
   color: #2563eb; /* Blue text */
 }
 
-.nav-item.active svg {
+.library-header .nav-item.active svg {
   color: #2563eb;
 }
 
 /* Actions */
-.header-actions {
+.library-header .header-actions {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.action-btn {
+.library-header .action-btn {
   background: none;
   border: none;
   cursor: pointer;
@@ -100,16 +100,16 @@
   transition: background-color 0.2s;
 }
 
-.action-btn:hover {
+.library-header .action-btn:hover {
   background-color: #f3f4f6;
   color: #1f2937;
 }
 
-.notif-btn {
+.library-header .notif-btn {
   position: relative;
 }
 
-.notif-badge {
+.library-header .notif-badge {
   position: absolute;
   top: 6px;
   right: 8px;
@@ -120,12 +120,12 @@
   border: 2px solid #ffffff;
 }
 
-.notif-badge:empty {
+.library-header .notif-badge:empty {
   display: block;
 }
 
 /* User Profile */
-.user-profile {
+.library-header .user-profile {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -135,11 +135,11 @@
   transition: background-color 0.2s;
 }
 
-.user-profile:hover {
+.library-header .user-profile:hover {
   background-color: #f3f4f6;
 }
 
-.avatar {
+.library-header .avatar {
   background-color: #3b82f6;
   color: white;
   width: 32px;
@@ -152,21 +152,21 @@
   font-size: 14px;
 }
 
-.user-name {
+.library-header .user-name {
   font-weight: 500;
   font-size: 14px;
   color: #374151;
 }
 
 /* Auth Actions */
-.auth-actions {
+.library-header .auth-actions {
   display: flex;
   align-items: center;
   gap: 12px;
   margin-left: 8px;
 }
 
-.btn-auth {
+.library-header .btn-auth {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -179,26 +179,26 @@
   transition: all 0.2s ease;
 }
 
-.btn-login-outline {
+.library-header .btn-login-outline {
   color: #3b82f6;
   background-color: transparent;
   border: 1px solid #3b82f6;
 }
 
-.btn-login-outline:hover {
+.library-header .btn-login-outline:hover {
   background-color: #eff6ff;
   border-color: #2563eb;
   color: #2563eb;
 }
 
-.btn-register-solid {
+.library-header .btn-register-solid {
   background-color: #3b82f6;
   color: white;
   border: 1px solid transparent;
   box-shadow: 0 1px 2px rgba(59, 130, 246, 0.4);
 }
 
-.btn-register-solid:hover {
+.library-header .btn-register-solid:hover {
   background-color: #2563eb;
   transform: translateY(-1px);
   box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.4);

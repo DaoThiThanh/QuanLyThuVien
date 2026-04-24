@@ -52,14 +52,14 @@
   left: 40%;
 }
 
-.register-container {
+.register-page .register-container {
   position: relative;
   z-index: 2;
   width: 100%;
   max-width: 1000px;
 }
 
-.register-card {
+.register-page .register-card {
   background-color: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-radius: 24px;
@@ -71,7 +71,7 @@
 }
 
 /* Left side */
-.register-left {
+.register-page .register-left {
   flex: 1;
   padding: 48px;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
@@ -80,14 +80,14 @@
   flex-direction: column;
 }
 
-.register-left .brand-logo {
+.register-page .register-left .brand-logo {
   display: flex;
   align-items: center;
   gap: 12px;
   margin-bottom: 64px;
 }
 
-.register-left .logo-icon {
+.register-page .register-left .logo-icon {
   width: 40px;
   height: 40px;
   background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
@@ -99,14 +99,14 @@
   box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
 }
 
-.register-left .brand-text {
+.register-page .register-left .brand-text {
   font-size: 20px;
   font-weight: 700;
   color: #1e293b;
   letter-spacing: -0.5px;
 }
 
-.register-title {
+.register-page .register-title {
   font-size: 36px;
   font-weight: 800;
   color: #0f172a;
@@ -114,25 +114,25 @@
   margin-bottom: 16px;
 }
 
-.register-title .highlight-text {
+.register-page .register-title .highlight-text {
   color: #3b82f6;
 }
 
-.register-description {
+.register-page .register-description {
   font-size: 15px;
   color: #64748b;
   line-height: 1.6;
   margin-bottom: 48px;
 }
 
-.feature-list {
+.register-page .feature-list {
   display: flex;
   flex-direction: column;
   gap: 20px;
   margin-top: auto;
 }
 
-.feature-item {
+.register-page .feature-item {
   display: flex;
   align-items: center;
   gap: 16px;
@@ -141,7 +141,7 @@
   font-size: 15px;
 }
 
-.feature-icon {
+.register-page .feature-icon {
   width: 32px;
   height: 32px;
   border-radius: 10px;
@@ -150,23 +150,23 @@
   justify-content: center;
 }
 
-.icon-blue {
+.register-page .icon-blue {
   background-color: #eff6ff;
   color: #3b82f6;
 }
 
-.icon-purple {
+.register-page .icon-purple {
   background-color: #f5f3ff;
   color: #8b5cf6;
 }
 
-.icon-green {
+.register-page .icon-green {
   background-color: #ecfdf5;
   color: #10b981;
 }
 
 /* Right side */
-.register-right {
+.register-page .register-right {
   flex: 1.2;
   padding: 48px;
   background-color: #ffffff;
@@ -175,67 +175,67 @@
   justify-content: center;
 }
 
-.register-right .form-title {
+.register-page .register-right .form-title {
   font-size: 28px;
   font-weight: 700;
   color: #0f172a;
   margin-bottom: 8px;
 }
 
-.register-right .form-subtitle {
+.register-page .register-right .form-subtitle {
   font-size: 15px;
   color: #64748b;
   margin-bottom: 32px;
 }
 
-.login-link {
+.register-page .login-link {
   color: #3b82f6;
   font-weight: 600;
   text-decoration: none;
 }
 
-.login-link:hover {
+.register-page .login-link:hover {
   text-decoration: underline;
 }
 
-.register-form {
+.register-page .register-form {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.form-row {
+.register-page .form-row {
   display: flex;
   gap: 20px;
 }
 
-.register-form .form-group {
+.register-page .register-form .form-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
   flex: 1;
 }
 
-.register-form label {
+.register-page .register-form label {
   font-size: 14px;
   font-weight: 600;
   color: #334155;
 }
 
-.input-with-icon {
+.register-page .input-with-icon {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-.input-icon {
+.register-page .input-icon {
   position: absolute;
   left: 16px;
   color: #94a3b8;
   pointer-events: none;
 }
 
-.register-form .input-with-icon input {
+.register-page .register-form .input-with-icon input {
   width: 100%;
   padding: 14px 16px 14px 44px;
   border: 1px solid #cbd5e1;
@@ -249,24 +249,24 @@
   box-sizing: border-box;
 }
 
-.register-form .input-with-icon input:focus {
+.register-page .register-form .input-with-icon input:focus {
   border-color: #6366f1;
   background-color: #ffffff;
   box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }
 
-.register-form .input-with-icon input:focus+.input-icon {
+.register-page .register-form .input-with-icon input:focus+.input-icon {
   color: #6366f1;
 }
 
-.form-terms {
+.register-page .form-terms {
   display: flex;
   align-items: flex-start;
   gap: 12px;
   margin-top: 8px;
 }
 
-.form-terms input[type="checkbox"] {
+.register-page .form-terms input[type="checkbox"] {
   margin-top: 3px;
   width: 16px;
   height: 16px;
@@ -274,23 +274,23 @@
   cursor: pointer;
 }
 
-.form-terms label {
+.register-page .form-terms label {
   font-size: 14px;
   color: #64748b;
   line-height: 1.5;
 }
 
-.form-terms a {
+.register-page .form-terms a {
   color: #3b82f6;
   font-weight: 500;
   text-decoration: none;
 }
 
-.form-terms a:hover {
+.register-page .form-terms a:hover {
   text-decoration: underline;
 }
 
-.btn-register {
+.register-page .btn-register {
   margin-top: 16px;
   width: 100%;
   padding: 14px;
@@ -305,33 +305,33 @@
   transition: all 0.2s ease;
 }
 
-.btn-register:hover {
+.register-page .btn-register:hover {
   background-color: #2563eb;
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(59, 130, 246, 0.25);
 }
 
-.btn-register:active {
+.register-page .btn-register:active {
   transform: translateY(0);
 }
 
 /* Responsive */
 @media (max-width: 800px) {
-  .register-card {
+  .register-page .register-card {
     flex-direction: column;
   }
 
-  .register-left {
+  .register-page .register-left {
     padding: 32px;
     border-right: none;
     border-bottom: 1px solid #e2e8f0;
   }
 
-  .register-right {
+  .register-page .register-right {
     padding: 32px;
   }
 
-  .form-row {
+  .register-page .form-row {
     flex-direction: column;
     gap: 20px;
   }

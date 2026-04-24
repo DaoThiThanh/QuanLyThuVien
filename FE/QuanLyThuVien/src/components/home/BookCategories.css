@@ -17,7 +17,7 @@
   gap: 16px;
 }
 
-.icon-grid {
+.categories-section .icon-grid {
   width: 48px;
   height: 48px;
   border-radius: 12px;
@@ -41,13 +41,13 @@
   margin: 0;
 }
 
-.categories-grid {
+.categories-section .categories-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   gap: 16px;
 }
 
-.category-card {
+.categories-section .category-card {
   background-color: #ffffff;
   border-radius: 16px;
   padding: 24px 16px;
@@ -62,13 +62,13 @@
   text-decoration: none;
 }
 
-.category-card:hover {
+.categories-section .category-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   border-color: #e2e8f0;
 }
 
-.category-icon-wrapper {
+.categories-section .category-icon-wrapper {
   width: 56px;
   height: 56px;
   border-radius: 16px;
@@ -79,17 +79,17 @@
   font-size: 28px;
 }
 
-.icon-cntt { background-color: #e0f2fe; }
-.icon-toan { background-color: #f1f5f9; }
-.icon-vatly { background-color: #fce7f3; }
-.icon-lichsu { background-color: #ffedd5; }
-.icon-kinhte { background-color: #dcfce7; }
-.icon-ngoaingu { background-color: #e0e7ff; }
-.icon-vanhoc { background-color: #fee2e2; }
-.icon-hoahoc { background-color: #ccfbf1; }
-.icon-triethoc { background-color: #fef3c7; }
+.categories-section .icon-cntt { background-color: #e0f2fe; }
+.categories-section .icon-toan { background-color: #f1f5f9; }
+.categories-section .icon-vatly { background-color: #fce7f3; }
+.categories-section .icon-lichsu { background-color: #ffedd5; }
+.categories-section .icon-kinhte { background-color: #dcfce7; }
+.categories-section .icon-ngoaingu { background-color: #e0e7ff; }
+.categories-section .icon-vanhoc { background-color: #fee2e2; }
+.categories-section .icon-hoahoc { background-color: #ccfbf1; }
+.categories-section .icon-triethoc { background-color: #fef3c7; }
 
-.category-title {
+.categories-section .category-title {
   font-size: 14px;
   font-weight: 600;
   color: #334155;
@@ -97,7 +97,7 @@
   line-height: 1.4;
 }
 
-.category-count {
+.categories-section .category-count {
   font-size: 12px;
   color: #94a3b8;
   margin: 0;

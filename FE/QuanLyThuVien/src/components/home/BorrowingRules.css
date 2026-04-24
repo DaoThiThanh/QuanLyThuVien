@@ -4,14 +4,54 @@
     margin: 0 auto;
 }
 
-.rules-grid {
+.borrowing-rules-section .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.borrowing-rules-section .header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.borrowing-rules-section .header-titles {
+  display: flex;
+  flex-direction: column;
+}
+
+.borrowing-rules-section .section-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 4px 0;
+}
+
+.borrowing-rules-section .section-subtitle {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+.borrowing-rules-section .icon-fire {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.borrowing-rules-section .rules-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 24px;
     margin-top: 24px;
 }
 
-.rule-card {
+.borrowing-rules-section .rule-card {
     background-color: white;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
@@ -21,13 +61,13 @@
     flex-direction: column;
 }
 
-.rule-card:hover {
+.borrowing-rules-section .rule-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     border-color: #cbd5e1;
 }
 
-.rule-icon-wrapper {
+.borrowing-rules-section .rule-icon-wrapper {
     width: 48px;
     height: 48px;
     border-radius: 12px;
@@ -37,18 +77,18 @@
     margin-bottom: 20px;
 }
 
-.rule-icon {
+.borrowing-rules-section .rule-icon {
     font-size: 24px;
 }
 
-.rule-title {
+.borrowing-rules-section .rule-title {
     font-size: 16px;
     font-weight: 600;
     color: #1e293b;
     margin: 0 0 12px 0;
 }
 
-.rule-desc {
+.borrowing-rules-section .rule-desc {
     font-size: 14px;
     color: #64748b;
     line-height: 1.6;
@@ -56,13 +96,13 @@
 }
 
 @media (max-width: 1024px) {
-    .rules-grid {
+    .borrowing-rules-section .rules-grid {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
 @media (max-width: 640px) {
-    .rules-grid {
+    .borrowing-rules-section .rules-grid {
         grid-template-columns: 1fr;
     }
 }
