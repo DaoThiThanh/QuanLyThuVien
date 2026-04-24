@@ -23,14 +23,14 @@
 }
 
 .borrowing-rules-section .section-title {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
   color: #1e293b;
   margin: 0 0 4px 0;
 }
 
 .borrowing-rules-section .section-subtitle {
-  font-size: 14px;
+  font-size: 16px;
   color: #64748b;
   margin: 0;
 }
@@ -78,18 +78,18 @@
 }
 
 .borrowing-rules-section .rule-icon {
-    font-size: 24px;
+    font-size: 28px;
 }
 
 .borrowing-rules-section .rule-title {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
     color: #1e293b;
     margin: 0 0 12px 0;
 }
 
 .borrowing-rules-section .rule-desc {
-    font-size: 14px;
+    font-size: 16px;
     color: #64748b;
     line-height: 1.6;
     margin: 0;

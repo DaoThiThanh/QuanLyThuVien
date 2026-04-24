@@ -23,14 +23,14 @@
 }
 
 .browse-books-section .section-title {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
   color: #1e293b;
   margin: 0 0 4px 0;
 }
 
 .browse-books-section .section-subtitle {
-  font-size: 14px;
+  font-size: 16px;
   color: #64748b;
   margin: 0;
 }
@@ -75,7 +75,7 @@
   background-color: #f1f5f9;
   border: 1px solid #e2e8f0;
   border-radius: 20px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   color: #64748b;
   cursor: pointer;
@@ -97,7 +97,7 @@
   background-color: rgba(0, 0, 0, 0.05);
   padding: 2px 6px;
   border-radius: 12px;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .browse-books-section .tab-btn.active .count {
@@ -125,7 +125,7 @@
 }
 
 .browse-books-section .select-group label {
-  font-size: 12px;
+  font-size: 14px;
   color: #64748b;
   font-weight: 500;
 }
@@ -134,7 +134,7 @@
   padding: 8px 32px 8px 12px;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 16px;
   color: #334155;
   background-color: white;
   outline: none;
@@ -153,7 +153,7 @@
 }
 
 .browse-books-section .view-label {
-  font-size: 13px;
+  font-size: 15px;
   color: #64748b;
   margin-right: 4px;
 }
@@ -183,7 +183,7 @@
 }
 
 .browse-books-section .results-count {
-  font-size: 13px;
+  font-size: 15px;
   color: #64748b;
   margin-bottom: 16px;
 }
@@ -238,7 +238,7 @@
 }
 
 .browse-books-section .badge {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   padding: 4px 8px;
   border-radius: 4px;
@@ -276,7 +276,7 @@
 }
 
 .browse-books-section .book-category {
-  font-size: 12px;
+  font-size: 14px;
   color: #3b82f6;
   font-weight: 500;
   background-color: #eff6ff;
@@ -285,7 +285,7 @@
 }
 
 .browse-books-section .book-title {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 600;
   color: #1e293b;
   margin: 0 0 6px 0;
@@ -299,7 +299,7 @@
 }
 
 .browse-books-section .book-author {
-  font-size: 13px;
+  font-size: 15px;
   color: #64748b;
   margin: 0 0 16px 0;
 }
@@ -315,7 +315,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 500;
   color: #475569;
 }
@@ -330,7 +330,7 @@
   border: none;
   padding: 6px 12px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s;
@@ -358,7 +358,7 @@
   border: 1px solid #bfdbfe;
   padding: 10px 24px;
   border-radius: 20px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;

@@ -79,18 +79,18 @@
   padding: 6px 16px;
   border-radius: 24px;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 16px;
   margin-bottom: 24px;
   gap: 8px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .hero-section .wave-icon {
-  font-size: 16px;
+  font-size: 18px;
 }
 
 .hero-section .hero-title {
-  font-size: 48px;
+  font-size: 54px;
   line-height: 1.2;
   font-weight: 700;
   margin: 0 0 20px 0;
@@ -103,7 +103,7 @@
 }
 
 .hero-section .hero-description {
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.9);
   margin-bottom: 40px;
@@ -135,7 +135,7 @@
   border: none;
   background: transparent;
   width: 100%;
-  font-size: 16px;
+  font-size: 18px;
   color: #374151;
   outline: none;
 }
@@ -151,7 +151,7 @@
   border-radius: 8px;
   padding: 12px 24px;
   font-weight: 600;
-  font-size: 15px;
+  font-size: 17px;
   cursor: pointer;
   transition: background-color 0.2s;
 }
@@ -167,7 +167,7 @@
 }
 
 .hero-section .quick-links-label {
-  font-size: 14px;
+  font-size: 16px;
   color: rgba(255, 255, 255, 0.8);
   font-weight: 500;
 }
@@ -182,7 +182,7 @@
   background: rgba(255, 255, 255, 0.15);
   padding: 6px 14px;
   border-radius: 16px;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 500;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
@@ -227,19 +227,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
 }
 
 .hero-section .user-name-large {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
   margin: 0 0 4px 0;
   color: white;
 }
 
 .hero-section .user-id {
-  font-size: 13px;
+  font-size: 15px;
   color: rgba(255, 255, 255, 0.7);
 }
 
@@ -261,7 +261,7 @@
 }
 
 .hero-section .stat-number {
-  font-size: 26px;
+  font-size: 30px;
   font-weight: 700;
   margin-bottom: 4px;
 }
@@ -271,7 +271,7 @@
 }
 
 .hero-section .stat-label {
-  font-size: 13px;
+  font-size: 15px;
   color: #ffffff !important;
 }
 
@@ -292,7 +292,7 @@
   color: white;
   cursor: pointer;
   transition: all 0.2s;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 500;
 }
 
@@ -396,14 +396,14 @@
 }
 
 .hero-section .stat-card-value {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   margin: 0 0 2px 0;
   line-height: 1.2;
 }
 
 .hero-section .stat-card-label {
-  font-size: 12px;
+  font-size: 14px;
   color: #6b7280;
 }
 
@@ -430,7 +430,7 @@
 
 @media (max-width: 768px) {
   .hero-section .hero-title {
-    font-size: 32px;
+    font-size: 36px;
   }
   .hero-section .bottom-stats-grid {
     grid-template-columns: repeat(2, 1fr);

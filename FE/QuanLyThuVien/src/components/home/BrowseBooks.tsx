@@ -3,10 +3,11 @@ import './BrowseBooks.css';
 import { FiBookOpen, FiGrid, FiList } from 'react-icons/fi';
 import { GetDanhSachSach } from '../../services/modules/bookService';
 import type { PaginatedBookItem } from '../../types/book';
+import BookGrid from '../Books/BookGrid';
 
 const BrowseBooks: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all');
-  
+
   const [books, setBooks] = useState<PaginatedBookItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -132,7 +133,7 @@ const BrowseBooks: React.FC = () => {
                 </div>
                 <h3 className="book-title">{book.tenSach}</h3>
                 <p className="book-author">{book.tenTacGia}</p>
-                
+
                 <div className="book-footer">
                   <div className="book-rating">
                     <span className="star">★</span> 5.0

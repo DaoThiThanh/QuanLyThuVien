@@ -29,14 +29,14 @@
 }
 
 .categories-section .section-title {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
   color: #1e293b;
   margin: 0 0 4px 0;
 }
 
 .categories-section .section-subtitle {
-  font-size: 14px;
+  font-size: 16px;
   color: #64748b;
   margin: 0;
 }
@@ -76,7 +76,7 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 16px;
-  font-size: 28px;
+  font-size: 32px;
 }
 
 .categories-section .icon-cntt { background-color: #e0f2fe; }
@@ -90,7 +90,7 @@
 .categories-section .icon-triethoc { background-color: #fef3c7; }
 
 .categories-section .category-title {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: #334155;
   margin: 0 0 8px 0;
@@ -98,7 +98,7 @@
 }
 
 .categories-section .category-count {
-  font-size: 12px;
+  font-size: 14px;
   color: #94a3b8;
   margin: 0;
 }
