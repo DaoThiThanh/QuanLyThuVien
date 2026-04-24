@@ -15,7 +15,7 @@ const PopularBooks: React.FC = () => {
         // Kiểm tra nếu API trả về mảng trực tiếp
         if (Array.isArray(response)) {
           setBooks(response);
-        } 
+        }
         // Hoặc nếu API trả về cục { data: [...] }
         else if (response && response.data) {
           setBooks(response.data);
@@ -52,7 +52,7 @@ const PopularBooks: React.FC = () => {
           <div className="loading-state">Đang tải sách nổi bật...</div>
         ) : books.length > 0 ? (
           books.map((book) => (
-            <div className="book-card" key={book.id}>
+            <div className="book-card-popular" key={book.id}>
               <div
                 className="book-image-bg"
                 style={{ backgroundImage: `url(${book.hinhAnh})` }}

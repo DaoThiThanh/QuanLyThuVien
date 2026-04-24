@@ -1,4 +1,6 @@
 .book-card {
+    width: auto !important;
+    height: 420px !important;
     background-color: #ffffff;
     border: 1px solid #f3f4f6;
     border-radius: 16px;
@@ -40,7 +42,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .status-dot {
@@ -51,11 +53,13 @@
 }
 
 .book-card-status-available {
-    background-color: #10b981; /* Emerald green */
+    background-color: #10b981;
+    /* Emerald green */
 }
 
 .book-card-status-unavailable {
-    background-color: #6b7280; /* Gray */
+    background-color: #6b7280;
+    /* Gray */
 }
 
 .book-card-content {
@@ -69,8 +73,10 @@
     display: inline-block;
     padding: 4px 10px;
     border-radius: 999px;
-    background-color: #eff6ff; /* blue-50 */
-    color: #3b82f6; /* blue-500 */
+    background-color: #eff6ff;
+    /* blue-50 */
+    color: #3b82f6;
+    /* blue-500 */
     font-size: 12px;
     font-weight: 500;
     margin-bottom: 12px;
@@ -80,7 +86,8 @@
 .book-card-title {
     font-size: 16px;
     font-weight: 600;
-    color: #1f2937; /* gray-800 */
+    color: #1f2937;
+    /* gray-800 */
     margin: 0 0 6px 0;
     line-height: 1.4;
     display: -webkit-box;
@@ -88,12 +95,14 @@
     line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    min-height: 44px; /* Ensure consistent height even if title is 1 line */
+    min-height: 44px;
+    /* Ensure consistent height even if title is 1 line */
 }
 
 .book-card-author {
     font-size: 14px;
-    color: #6b7280; /* gray-500 */
+    color: #6b7280;
+    /* gray-500 */
     margin: 0 0 16px 0;
 }
 
@@ -101,12 +110,14 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: auto; /* Push to bottom */
+    margin-top: auto;
+    /* Push to bottom */
 }
 
 .book-card-year {
     font-size: 13px;
-    color: #9ca3af; /* gray-400 */
+    color: #9ca3af;
+    /* gray-400 */
 }
 
 .book-card-button {
@@ -115,7 +126,8 @@
     gap: 6px;
     padding: 8px 16px;
     border: none;
-    border-radius: 8px; /* Slightly rounded button */
+    border-radius: 8px;
+    /* Slightly rounded button */
     background-color: #3b82f6;
     color: white;
     font-weight: 500;

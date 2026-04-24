@@ -1,27 +1,36 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './BookCategories.css';
+import { GetCategories } from '../../services/modules/bookService';
+import type { CategoryItem } from '../../types/book';
 
-interface Category {
-  id: string;
-  title: string;
-  count: number;
-  icon: string;
-  iconClass: string;
-}
-
-const categories: Category[] = [
-  { id: 'cntt', title: 'Công nghệ thông tin', count: 3, icon: '💻', iconClass: 'icon-cntt' },
-  { id: 'toan', title: 'Toán học', count: 1, icon: '📐', iconClass: 'icon-toan' },
-  { id: 'vatly', title: 'Vật lý', count: 1, icon: '⚛️', iconClass: 'icon-vatly' },
-  { id: 'lichsu', title: 'Lịch sử', count: 1, icon: '📜', iconClass: 'icon-lichsu' },
-  { id: 'kinhte', title: 'Kinh tế', count: 2, icon: '📊', iconClass: 'icon-kinhte' },
-  { id: 'ngoaingu', title: 'Ngoại ngữ', count: 1, icon: '🌍', iconClass: 'icon-ngoaingu' },
-  { id: 'vanhoc', title: 'Văn học', count: 1, icon: '📝', iconClass: 'icon-vanhoc' },
-  { id: 'hoahoc', title: 'Hóa học', count: 1, icon: '🧪', iconClass: 'icon-hoahoc' },
-  { id: 'triethoc', title: 'Triết học', count: 1, icon: '🧠', iconClass: 'icon-triethoc' },
+const colorClasses = [
+  'icon-cntt', 'icon-toan', 'icon-vatly', 'icon-lichsu',
+  'icon-kinhte', 'icon-ngoaingu', 'icon-vanhoc', 'icon-hoahoc', 'icon-triethoc'
 ];
 
 const BookCategories: React.FC = () => {
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await GetCategories();
+        if (Array.isArray(data)) {
+          setCategories(data);
+        } else if (data && data.data) {
+          setCategories(data.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
   return (
     <div className="categories-section">
       <div className="section-header">
@@ -36,19 +45,29 @@ const BookCategories: React.FC = () => {
         </div>
       </div>
 
-      <div className="categories-grid">
-        {categories.map((category) => (
-          <div className="category-card" key={category.id}>
-            <div className={`category-icon-wrapper ${category.iconClass}`}>
-              <span className="category-emoji" role="img" aria-label={category.title}>
-                {category.icon}
-              </span>
-            </div>
-            <h3 className="category-title">{category.title}</h3>
-            <p className="category-count">{category.count} sách</p>
-          </div>
-        ))}
-      </div>
+      {loading ? (
+        <div className="categories-grid" style={{ minHeight: '150px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+          <p>Đang tải danh mục...</p>
+        </div>
+      ) : (
+        <div className="categories-grid">
+          {categories.map((category, index) => {
+            const iconClass = colorClasses[index % colorClasses.length];
+            const icon = category.icon || '📚';
+            return (
+              <div className="category-card" key={category.id}>
+                <div className={`category-icon-wrapper ${iconClass}`}>
+                  <span className="category-emoji" role="img" aria-label={category.tenDanhMuc}>
+                    {icon}
+                  </span>
+                </div>
+                <h3 className="category-title">{category.tenDanhMuc}</h3>
+                <p className="category-count">Khám phá</p>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

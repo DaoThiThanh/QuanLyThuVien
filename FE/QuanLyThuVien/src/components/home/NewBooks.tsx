@@ -1,22 +1,33 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './NewBooks.css';
-
-interface Book {
-  id: number;
-  title: string;
-  category: string;
-  isNew: boolean;
-  status: 'available' | 'borrowed';
-  image: string;
-}
-
-const newBooks: Book[] = [
-  { id: 1, title: 'Kinh tế vi mô - Nguyên lý và ứng dụng', category: 'Kinh tế', isNew: true, status: 'available', image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&q=80&w=400' },
-  { id: 2, title: 'Cấu trúc dữ liệu và giải thuật', category: 'Công nghệ thông tin', isNew: true, status: 'available', image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=400' },
-  { id: 3, title: 'Nhập môn Trí tuệ nhân tạo', category: 'Công nghệ thông tin', isNew: true, status: 'available', image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=400' },
-];
+import { GetNewBooks } from '../../services/modules/bookService';
+import type { NewBookItem } from '../../types/book';
 
 const NewBooks: React.FC = () => {
+  const [newBooks, setNewBooks] = useState<NewBookItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchNewBooks = async () => {
+      try {
+        const data = await GetNewBooks();
+        if (Array.isArray(data)) {
+          setNewBooks(data);
+        } else if (data && data.data) {
+          setNewBooks(data.data);
+        }
+      } catch (err: any) {
+        console.error('Failed to fetch new books:', err);
+        setError(err.message || 'Có lỗi khi lấy danh sách sách mới.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNewBooks();
+  }, []);
+
   return (
     <div className="new-books-container">
       <div className="section-header">
@@ -26,7 +37,7 @@ const NewBooks: React.FC = () => {
           </div>
           <div className="header-titles">
             <h2 className="section-title">Sách mới bổ sung</h2>
-            <p className="section-subtitle">Cập nhật tháng 3/2026</p>
+            <p className="section-subtitle">Cập nhật gần đây</p>
           </div>
         </div>
         <a href="#" className="view-all-link">
@@ -34,23 +45,45 @@ const NewBooks: React.FC = () => {
         </a>
       </div>
 
-      <div className="new-books-list">
-        {newBooks.map((book) => (
-          <div className="new-book-card" key={book.id}>
-            <div className="book-cover-wrapper">
-              <img src={book.image} alt={book.title} className="book-cover-image" />
-              {book.isNew && <div className="badge-new-blue">MỚI</div>}
-              {book.status === 'available' && (
-                <div className="badge-status online">• Có sẵn</div>
-              )}
-            </div>
-            <div className="book-info">
-              <span className="book-category">{book.category}</span>
-              <h3 className="book-title">{book.title}</h3>
-            </div>
-          </div>
-        ))}
-      </div>
+      {loading ? (
+        <div className="new-books-list" style={{ display: 'flex', justifyContent: 'center', width: '100%', padding: '2rem 0' }}>
+          <p>Đang tải sách mới...</p>
+        </div>
+      ) : error ? (
+        <div className="new-books-list" style={{ display: 'flex', justifyContent: 'center', width: '100%', padding: '2rem 0', color: 'red' }}>
+          <p>{error}</p>
+        </div>
+      ) : newBooks.length === 0 ? (
+        <div className="new-books-list" style={{ display: 'flex', justifyContent: 'center', width: '100%', padding: '2rem 0' }}>
+          <p>Chưa có sách mới nào.</p>
+        </div>
+      ) : (
+        <div className="new-books-list">
+          {newBooks.map((book) => {
+            // Handle both PascalCase and camelCase if backend serialization differs from interface
+            const title = book.TenSach || (book as any).tenSach;
+            const image = book.HinhAnh || (book as any).hinhAnh;
+            const soLuongTon = book.SoLuongTon ?? (book as any).soLuongTon ?? 0;
+            const namXuatBan = book.NamXuatBan ?? (book as any).namXuatBan ?? '';
+
+            return (
+              <div className="new-book-card" key={book.id}>
+                <div className="book-cover-wrapper">
+                  <img src={image || 'https://via.placeholder.com/150'} alt={title} className="book-cover-image" />
+                  <div className="badge-new-blue">MỚI</div>
+                  {soLuongTon > 0 && (
+                    <div className="badge-status online">• Có sẵn</div>
+                  )}
+                </div>
+                <div className="book-info">
+                  <span className="book-category">{namXuatBan ? `Năm XB: ${namXuatBan}` : 'Sách mới'}</span>
+                  <h3 className="book-title">{title}</h3>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

@@ -86,9 +86,9 @@
   display: none;
 }
 
-.book-card {
+.book-card-popular {
   flex: 0 0 auto;
-  width: 200px;
+  width: 200px !important;
   height: 280px;
   border-radius: 16px;
   overflow: hidden;
