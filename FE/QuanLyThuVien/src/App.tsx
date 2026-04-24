@@ -5,6 +5,7 @@ import { Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import BooksPage from './pages/BooksPage';
+import BorrowedBooksPage from './pages/BorrowedBooksPage';
 
 function App() {
 
@@ -16,6 +17,7 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/book-detail" element={<BooksPage />} />
+          <Route path="/borrowed-books" element={<BorrowedBooksPage />} />
         </Routes>
       </BrowserRouter>
     </>
