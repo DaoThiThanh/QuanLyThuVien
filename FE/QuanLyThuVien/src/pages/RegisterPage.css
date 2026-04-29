@@ -80,7 +80,7 @@
   flex-direction: column;
 }
 
-.register-page .register-left .brand-logo {
+.register-page .register-left .brand-logo-register {
   display: flex;
   align-items: center;
   gap: 12px;

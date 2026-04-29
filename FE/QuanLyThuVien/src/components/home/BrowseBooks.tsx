@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import './BrowseBooks.css';
-import { FiBookOpen, FiGrid, FiList } from 'react-icons/fi';
+import { FiBookOpen, FiGrid, FiList, FiEye } from 'react-icons/fi';
 import { GetDanhSachSach } from '../../services/modules/bookService';
 import type { PaginatedBookItem } from '../../types/book';
+import { useNavigate } from 'react-router-dom';
 
 
 const BrowseBooks: React.FC = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('all');
 
   const [books, setBooks] = useState<PaginatedBookItem[]>([]);
@@ -42,6 +44,15 @@ const BrowseBooks: React.FC = () => {
 
   const handleLoadMore = () => {
     setPage(prev => prev + 1);
+  };
+
+  const handleCollapse = () => {
+    setPage(1);
+    // Optional: Scroll back to the top of the section
+    const section = document.querySelector('.browse-books-section');
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   return (
@@ -138,9 +149,17 @@ const BrowseBooks: React.FC = () => {
                   <div className="book-rating">
                     <span className="star">★</span> 5.0
                   </div>
-                  <button className={`borrow-btn ${book.soLuongTon <= 0 ? 'disabled' : ''}`} disabled={book.soLuongTon <= 0}>
-                    Mượn sách
-                  </button>
+                  <div className="book-actions-btns">
+                    <button 
+                      className="view-detail-btn"
+                      onClick={() => navigate(`/book-detail/${book.id}`)}
+                    >
+                      <FiEye /> Chi tiết
+                    </button>
+                    <button className={`borrow-btn ${book.soLuongTon <= 0 ? 'disabled' : ''}`} disabled={book.soLuongTon <= 0}>
+                      Mượn
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -152,15 +171,21 @@ const BrowseBooks: React.FC = () => {
         <div style={{ textAlign: 'center', padding: '1rem' }}>Đang tải...</div>
       )}
 
-      {!loading && books.length < totalItems && (
-        <div className="load-more-container">
+      <div className="load-more-container">
+        {!loading && books.length < totalItems && (
           <button className="load-more-btn" onClick={handleLoadMore}>
             Tải thêm sách
           </button>
-        </div>
-      )}
+        )}
+        {!loading && books.length > pageSize && (
+          <button className="collapse-btn" onClick={handleCollapse}>
+            Thu gọn lại
+          </button>
+        )}
+      </div>
     </section>
   );
 };
+
 
 export default BrowseBooks;

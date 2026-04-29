@@ -79,7 +79,7 @@
   flex-direction: column;
 }
 
-.login-page .login-left .brand-logo {
+.login-page .login-left .brand-logo-login {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -232,7 +232,7 @@
   box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }
 
-.login-page .login-form .input-with-icon input:focus + .input-icon {
+.login-page .login-form .input-with-icon input:focus+.input-icon {
   color: #6366f1;
 }
 
@@ -303,17 +303,17 @@
   .login-page .login-card {
     flex-direction: column;
   }
-  
+
   .login-page .login-left {
     padding: 32px;
     border-right: none;
     border-bottom: 1px solid #e2e8f0;
   }
-  
+
   .login-page .login-right {
     padding: 32px;
   }
-  
+
   .login-page .stats-container {
     margin-top: 32px;
   }

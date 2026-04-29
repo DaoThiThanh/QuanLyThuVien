@@ -324,14 +324,40 @@
   color: #fbbf24;
 }
 
+.browse-books-section .book-actions-btns {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.browse-books-section .view-detail-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #eff6ff;
+  color: #3b82f6;
+  border: 1px solid #bfdbfe;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.browse-books-section .view-detail-btn:hover {
+  background-color: #dbeafe;
+  border-color: #3b82f6;
+}
+
 .browse-books-section .borrow-btn {
   background-color: #3b82f6;
   color: white;
   border: none;
-  padding: 6px 12px;
+  padding: 6px 10px;
   border-radius: 6px;
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s;
 }
@@ -345,6 +371,7 @@
   color: #94a3b8;
   cursor: not-allowed;
 }
+
 
 .browse-books-section .load-more-container {
   display: flex;
@@ -368,6 +395,26 @@
   background-color: #eff6ff;
   border-color: #3b82f6;
 }
+
+.browse-books-section .collapse-btn {
+  background-color: white;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  padding: 10px 24px;
+  border-radius: 20px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-left: 12px;
+}
+
+.browse-books-section .collapse-btn:hover {
+  background-color: #f8fafc;
+  border-color: #94a3b8;
+  color: #334155;
+}
+
 
 @media (max-width: 1024px) {
   .browse-books-section .browse-books-grid {

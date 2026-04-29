@@ -5,6 +5,7 @@ const LibraryHero: React.FC = () => {
   return (
     <section className="hero-section">
       <div className="hero-background">
+        <div className="hero-image-bg"></div>
         <div className="circle circle-1"></div>
         <div className="circle circle-2"></div>
         <div className="circle circle-3"></div>
