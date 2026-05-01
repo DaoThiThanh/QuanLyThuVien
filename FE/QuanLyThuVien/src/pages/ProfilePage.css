@@ -160,7 +160,7 @@
   gap: 20px;
 }
 
-.stat-card {
+.profile-stats-container .stat-card {
   background-color: #ffffff;
   border-radius: 16px;
   padding: 20px;
@@ -172,7 +172,7 @@
   border: 1px solid #f3f4f6;
 }
 
-.stat-icon {
+.profile-stats-container .stat-icon {
   width: 48px;
   height: 48px;
   border-radius: 12px;
@@ -182,29 +182,29 @@
   margin-bottom: 12px;
 }
 
-.stat-icon.total {
+.profile-stats-container .stat-icon.total {
   background-color: #eff6ff;
   color: #3b82f6;
 }
 
-.stat-icon.borrowing {
+.profile-stats-container .stat-icon.borrowing {
   background-color: #fff7ed;
   color: #f97316;
 }
 
-.stat-icon.returned {
+.profile-stats-container .stat-icon.returned {
   background-color: #ecfdf5;
   color: #10b981;
 }
 
-.stat-value {
+.profile-stats-container .stat-value {
   font-size: 28px;
   font-weight: 700;
   color: #111827;
   margin: 0 0 4px 0;
 }
 
-.stat-label {
+.profile-stats-container .stat-label {
   font-size: 15px;
   color: #6b7280;
   margin: 0;
