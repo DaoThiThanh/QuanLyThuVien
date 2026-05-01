@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage';
 import BooksPage from './pages/BooksPage';
 import BorrowedBooksPage from './pages/BorrowedBooksPage';
 import BookDetailPage from './pages/BookDetailPage';
+import ProfilePage from './pages/ProfilePage';
 
 function App() {
 
@@ -20,6 +21,7 @@ function App() {
           <Route path="/books" element={<BooksPage />} />
           <Route path="/book-detail/:id" element={<BookDetailPage />} />
           <Route path="/borrowed-books" element={<BorrowedBooksPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Routes>
       </BrowserRouter>
     </>

@@ -3,6 +3,7 @@ import Footer from "../components/layout/Footer";
 import PageTitle from "../components/Books/PageTitle";
 import SearchBar from "../components/Books/SearchBar";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import CategoryTab from "../components/Books/CategoryTab";
 import ResultInfor from "../components/Books/ResultInfor";
 import type { BookItem } from "../components/Books/BookGrid";
@@ -10,6 +11,7 @@ import BookGrid from "../components/Books/BookGrid";
 import { GetDanhSachSach } from "../services/modules/bookService";
 
 function BooksPage() {
+    const navigate = useNavigate();
     const [search, setSearch] = useState("");
     const categories = ["Tất cả", "Công nghệ thông tin", "Toán học", "Kinh tế", "Văn học", "Trí tuệ nhân tạo", "Lịch sử", "Khoa học"];
     const [activeCategory, setActiveCategory] = useState("Tất cả");
@@ -64,8 +66,9 @@ function BooksPage() {
     const startIndex = (currentPage - 1) * pageSize;
     const paginatedBooks = filteredBooks.slice(startIndex, startIndex + pageSize);
     const handleViewDetail = (book: BookItem) => {
-        console.log("Sách được chọn: ", book);
+        navigate(`/book-detail/${book.id}`);
     }
+
     return (
         <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
             <Header />
