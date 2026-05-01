@@ -13,6 +13,7 @@ namespace QuanLyThuVien
             builder.Services.AddControllers();
             builder.Services.AddScoped<ISachRepository, SachRepository>();
             builder.Services.AddScoped<IDanhMucRepository, DanhMucRepository>();
+            builder.Services.AddScoped<IPhieuMuonRepository, PhieuMuonRepository>();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
