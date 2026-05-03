@@ -1,6 +1,11 @@
 import React from 'react';
+import { type ProfileData } from '../../services/modules/authService';
 
-const PersonalInfo: React.FC = () => {
+interface PersonalInfoProps {
+  profile: ProfileData | null;
+}
+
+const PersonalInfo: React.FC<PersonalInfoProps> = ({ profile }) => {
   return (
     <div className="profile-card">
       <h3 className="profile-card-title">Thông tin cá nhân</h3>
@@ -14,7 +19,7 @@ const PersonalInfo: React.FC = () => {
           Họ và tên
         </label>
         <div className="info-input-wrapper">
-          <input type="text" className="info-input" defaultValue="Nguyễn Minh Tuấn" readOnly />
+          <input type="text" className="info-input" value={profile?.hoTen || ''} readOnly />
         </div>
       </div>
 
@@ -27,7 +32,7 @@ const PersonalInfo: React.FC = () => {
           Email
         </label>
         <div className="info-input-wrapper">
-          <input type="email" className="info-input" defaultValue="tuan.nguyen@student.edu.vn" readOnly />
+          <input type="email" className="info-input" value={profile?.email || ''} readOnly />
         </div>
       </div>
 
@@ -39,7 +44,7 @@ const PersonalInfo: React.FC = () => {
           Số điện thoại
         </label>
         <div className="info-input-wrapper">
-          <input type="tel" className="info-input" defaultValue="0912 345 678" readOnly />
+          <input type="tel" className="info-input" value={profile?.soDienThoai || 'Chưa cập nhật'} readOnly />
         </div>
       </div>
 
@@ -49,10 +54,10 @@ const PersonalInfo: React.FC = () => {
             <rect width="20" height="14" x="2" y="5" rx="2"/>
             <line x1="2" x2="22" y1="10" y2="10"/>
           </svg>
-          Mã sinh viên
+          Mã định danh
         </label>
         <div className="info-input-wrapper">
-          <input type="text" className="info-input" defaultValue="SV2021001" readOnly />
+          <input type="text" className="info-input" value={profile?.id || ''} readOnly />
           <span className="input-suffix">(Không thể thay đổi)</span>
         </div>
       </div>

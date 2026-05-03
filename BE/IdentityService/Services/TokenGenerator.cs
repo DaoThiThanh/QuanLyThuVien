@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
@@ -18,7 +18,7 @@ namespace IdentityService.Services
             _config = config;
         }
 
-        public string GenerateToken(Guid userId, string email, int role)
+        public string GenerateToken(Guid userId, string email, int role, string hoten)
         {
             // 1. Lấy thông tin từ appsettings.json
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
@@ -29,7 +29,8 @@ namespace IdentityService.Services
             {
                 new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, email),
-                new Claim("Role", role.ToString()), // Role: CANDIDATE hoặc RECRUITER
+                new Claim("Role", role.ToString()),
+                new Claim("HoTen", hoten),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) // ID duy nhất của Token
             };
 

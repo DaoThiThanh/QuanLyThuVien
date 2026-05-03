@@ -1,4 +1,4 @@
-﻿using IdentityService.Models;
+using IdentityService.Models;
 using IdentityService.Repositories;
 using IdentityService.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -19,21 +19,22 @@ namespace IdentityService.Controllers
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginRequest request)
         {
-            bool isValid = _userRepo.ValidateUser(request.Email, request.MatKhau, out int role, out Guid userid);
+            bool isValid = _userRepo.ValidateUser(request.Email, request.MatKhau, out int role, out Guid userid, out string hoten);
 
             if (!isValid)
             {
                 return Unauthorized(ResultRepository<object>.Fail("Sai email, mật khẩu hoặc tài khoản bị khóa!"));
             }
 
-            // 2. Nếu đúng, tạo Token (sẽ code phần này sau)
-            string tokenString =  _tokenGen.GenerateToken(userid, request.Email, role);
+            // 2. Nếu đúng, tạo Token
+            string tokenString =  _tokenGen.GenerateToken(userid, request.Email, role, hoten);
             // string token = _tokenGen.GenerateToken(request.Username, "Candidate");
 
             var responseData = new { 
                 token = tokenString,
                 userid = userid,
-                role = role
+                role = role,
+                HoTen = hoten
             };
             return Ok(ResultRepository<object>.Ok(responseData, "Đăng nhập thành công!"));
         }
@@ -58,6 +59,17 @@ namespace IdentityService.Controllers
 
             // 3. Trả về thành công
             return Ok(ResultRepository<object>.Ok(null, "Đăng ký tài khoản thành công!"));
+        }
+
+        [HttpGet("profile/{id}")]
+        public IActionResult GetProfile(Guid id)
+        {
+            var user = _userRepo.GetUserById(id);
+            if (user == null)
+            {
+                return NotFound(ResultRepository<object>.Fail("Không tìm thấy người dùng"));
+            }
+            return Ok(ResultRepository<object>.Ok(user, "Lấy thông tin thành công"));
         }
     }
 }

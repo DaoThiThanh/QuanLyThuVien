@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Data.SqlTypes;
 namespace IdentityService.Repositories
 {
@@ -11,15 +11,16 @@ namespace IdentityService.Repositories
             _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
         //ktra đăng nhập
-        public bool ValidateUser(string email, string matkhau, out int role, out Guid userid)
+        public bool ValidateUser(string email, string matkhau, out int role, out Guid userid, out string hoten)
         {
             bool isValid = false;
             role = 0;
             userid = Guid.Empty;
+            hoten = "";
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
 
-                string query = "SELECT Id, VaiTro FROM NguoiDung WHERE Email = @Email AND MatKhau = @MatKhau  AND TrangThai = 1;";
+                string query = "SELECT Id, VaiTro, HoTen FROM NguoiDung WHERE Email = @Email AND MatKhau = @MatKhau  AND TrangThai = 1;";
                 SqlCommand cmd = new SqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@Email", email);
                 cmd.Parameters.AddWithValue("@MatKhau", matkhau);
@@ -29,12 +30,42 @@ namespace IdentityService.Repositories
                     if (reader.Read())
                     {
                         isValid = true;
-                        userid = reader.GetGuid(0);
-                        role = reader.GetInt32(1);
+                        userid = reader.GetGuid(reader.GetOrdinal("Id"));
+                        role = reader.GetInt32(reader.GetOrdinal("VaiTro"));
+                        hoten = reader["HoTen"].ToString() ?? "";
                     }
                 }
             }
             return isValid;
+        }
+
+        // Lấy thông tin người dùng theo ID
+        public object GetUserById(Guid id)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string query = "SELECT Id, HoTen, Email, SoDienThoai, VaiTro, TrangThai, NgayTao FROM NguoiDung WHERE Id = @Id";
+                SqlCommand cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@Id", id);
+                conn.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return new
+                        {
+                            Id = reader.GetGuid(0),
+                            HoTen = reader.GetString(1),
+                            Email = reader.GetString(2),
+                            SoDienThoai = reader.IsDBNull(3) ? null : reader.GetString(3),
+                            VaiTro = reader.GetInt32(4),
+                            TrangThai = reader.GetInt32(5),
+                            NgayTao = reader.GetDateTime(6)
+                        };
+                    }
+                }
+            }
+            return null;
         }
 
         //Đăng ký
@@ -85,6 +116,75 @@ namespace IdentityService.Repositories
                 }
             }
 
+            return isSuccess;
+        }
+        // Lấy danh sách người dùng (hỗ trợ lọc theo VaiTro)
+        public object GetAllUsers(int? role = null)
+        {
+            var users = new List<object>();
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                string query = "SELECT Id, HoTen, Email, SoDienThoai, VaiTro, TrangThai, NgayTao FROM NguoiDung";
+                if (role.HasValue)
+                {
+                    query += " WHERE VaiTro = @Role";
+                }
+                query += " ORDER BY NgayTao DESC";
+
+                SqlCommand cmd = new SqlCommand(query, conn);
+                if (role.HasValue)
+                {
+                    cmd.Parameters.AddWithValue("@Role", role.Value);
+                }
+
+                conn.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        users.Add(new
+                        {
+                            Id = reader.GetGuid(0),
+                            HoTen = reader.GetString(1),
+                            Email = reader.GetString(2),
+                            SoDienThoai = reader.IsDBNull(3) ? null : reader.GetString(3),
+                            VaiTro = reader.GetInt32(4),
+                            TrangThai = reader.GetInt32(5),
+                            NgayTao = reader.GetDateTime(6)
+                        });
+                    }
+                }
+            }
+            return users;
+        }
+
+        // Phân quyền người dùng (Cập nhật VaiTro)
+        public bool UpdateUserRole(Guid id, int newRole, out string message)
+        {
+            bool isSuccess = false;
+            message = "";
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+
+                string query = "UPDATE NguoiDung SET VaiTro = @VaiTro WHERE Id = @Id";
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@VaiTro", newRole);
+                    cmd.Parameters.AddWithValue("@Id", id);
+
+                    int rowsAffected = cmd.ExecuteNonQuery();
+                    if (rowsAffected > 0)
+                    {
+                        isSuccess = true;
+                        message = "Cập nhật phân quyền thành công!";
+                    }
+                    else
+                    {
+                        message = "Không tìm thấy người dùng hoặc cập nhật thất bại.";
+                    }
+                }
+            }
             return isSuccess;
         }
     }

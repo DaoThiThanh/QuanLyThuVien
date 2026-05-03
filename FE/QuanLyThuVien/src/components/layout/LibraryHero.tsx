@@ -1,7 +1,24 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './LibraryHero.css';
+import { getUserName, getToken, getUserId } from '../../services/modules/authService';
 
 const LibraryHero: React.FC = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const token = getToken();
+    const name = getUserName();
+    const id = getUserId();
+    
+    if (token) {
+      setIsLoggedIn(true);
+      setUserName(name || 'Người dùng');
+      setUserId(id);
+    }
+  }, []);
+
   return (
     <section className="hero-section">
       <div className="hero-background">
@@ -18,7 +35,7 @@ const LibraryHero: React.FC = () => {
           <div className="hero-left">
             <div className="welcome-badge">
               <span className="wave-icon">👋</span>
-              <span>Xin chào, Minh Tuấn</span>
+              <span>Xin chào, {isLoggedIn ? userName : 'Bạn'}</span>
             </div>
 
             <h1 className="hero-title">
@@ -54,20 +71,22 @@ const LibraryHero: React.FC = () => {
           <div className="hero-right">
             <div className="user-glass-card">
               <div className="user-info-row">
-                <div className="user-avatar-large">N</div>
+                <div className="user-avatar-large">
+                  {isLoggedIn && userName ? userName.charAt(0).toUpperCase() : 'U'}
+                </div>
                 <div className="user-details">
-                  <h3 className="user-name-large">Nguyễn Minh Tuấn</h3>
-                  <span className="user-id">SV2021001</span>
+                  <h3 className="user-name-large">{isLoggedIn ? userName : 'Khách'}</h3>
+                  <span className="user-id">{isLoggedIn ? (userId?.substring(0, 8).toUpperCase() || 'Member') : 'Chưa đăng nhập'}</span>
                 </div>
               </div>
 
               <div className="user-stats-row">
                 <div className="stat-box">
-                  <span className="stat-number">4</span>
+                  <span className="stat-number">{isLoggedIn ? '0' : '-'}</span>
                   <span className="stat-label">Tổng mượn</span>
                 </div>
                 <div className="stat-box">
-                  <span className="stat-number highlight-yellow">2</span>
+                  <span className="stat-number highlight-yellow">{isLoggedIn ? '0' : '-'}</span>
                   <span className="stat-label">Đang mượn</span>
                 </div>
               </div>
