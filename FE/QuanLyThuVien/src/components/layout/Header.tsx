@@ -35,7 +35,7 @@ const Header: React.FC = () => {
     <header className={styles['library-header']}>
       <div className={styles['header-container']}>
         {/* Logo Section */}
-        <div className={styles['header-logo']}>
+        <div className={styles['header-logo']} onClick={() => navigate('/')}>
           <div className={styles['logo-icon']}>
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
@@ -64,74 +64,73 @@ const Header: React.FC = () => {
           )}
         </nav>
 
-          <div className={styles['header-actions']}>
-            <button className={`${styles['action-btn']} ${styles['search-btn']}`}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+        <div className={styles['header-actions']}>
+          <button className={`${styles['action-btn']} ${styles['search-btn']}`}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+          </button>
+
+          {isLoggedIn && (
+            <button className={`${styles['action-btn']} ${styles['notif-btn']}`}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>
+              <span className={styles['notif-badge']}></span>
             </button>
+          )}
 
-            {isLoggedIn && (
-              <button className={`${styles['action-btn']} ${styles['notif-btn']}`}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>
-                <span className={styles['notif-badge']}></span>
-              </button>
-            )}
-
-            <div className={styles['auth-actions']}>
-              {isLoggedIn ? (
-                <div className={styles['user-profile-layout']}>
-                  <div className={styles['user-profile-menu-container']}>
-                    <div className={styles['user-profile-trigger']}>
-                      <div className={styles['avatar']}>
-                        {userName ? userName.charAt(0).toUpperCase() : 'U'}
-                      </div>
-                      <span className={styles['trigger-name']}>{userName}</span>
-                      <svg className={styles['chevron-icon']} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+          <div className={styles['auth-actions']}>
+            {isLoggedIn ? (
+              <div className={styles['user-profile-layout']}>
+                <div className={styles['user-profile-menu-container']}>
+                  <div className={styles['user-profile-trigger']}>
+                    <div className={styles['avatar']}>
+                      {userName ? userName.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                    <span className={styles['trigger-name']}>{userName}</span>
+                    <svg className={styles['chevron-icon']} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                  </div>
+                  
+                  <div className={styles['user-dropdown-menu']}>
+                    <div className={styles['dropdown-header']}>
+                      <h4 className={styles['user-full-name']}>{userName}</h4>
+                      <p className={styles['user-email-text']}>{userEmail}</p>
                     </div>
                     
-                    <div className={styles['user-dropdown-menu']}>
-                      <div className={styles['dropdown-header']}>
-                        <h4 className={styles['user-full-name']}>{userName}</h4>
-                        <p className={styles['user-email-text']}>{userEmail}</p>
-                      </div>
-                      
-                      <div className={styles['dropdown-divider']}></div>
-                      
-                      <div className={styles['dropdown-items']}>
-                        {(userRole === '1' || userRole === '2') && (
-                           <Link to={userRole === '1' ? "/admin" : "/librarian"} className={`${styles['dropdown-item']} ${styles['admin-link']}`}>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M3 9h18" /><path d="M9 21V9" /></svg>
-                            <span>Trang quản trị</span>
-                          </Link>
-                        )}
-                        
-                        <Link to="/profile" className={styles['dropdown-item']}>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-                          <span>Hồ sơ cá nhân</span>
+                    <div className={styles['dropdown-divider']}></div>
+                    
+                    <div className={styles['dropdown-items']}>
+                      {(userRole === '1' || userRole === '2') && (
+                          <Link to={userRole === '1' ? "/admin" : "/librarian"} className={`${styles['dropdown-item']} ${styles['admin-link']}`}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M3 9h18" /><path d="M9 21V9" /></svg>
+                          <span>Trang quản trị</span>
                         </Link>
-                        
-                        <Link to="/borrowed-books" className={styles['dropdown-item']}>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" /></svg>
-                          <span>Sách đang mượn</span>
-                        </Link>
-                      </div>
+                      )}
+                      
+                      <Link to="/profile" className={styles['dropdown-item']}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                        <span>Hồ sơ cá nhân</span>
+                      </Link>
+                      
+                      <Link to="/borrowed-books" className={styles['dropdown-item']}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" /></svg>
+                        <span>Sách đang mượn</span>
+                      </Link>
                     </div>
                   </div>
+                </div>
 
-                  <button onClick={handleLogout} className={`${styles['action-btn']} ${styles['logout-direct-btn']}`} title="Đăng xuất">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" x2="9" y1="12" y2="12" /></svg>
-                  </button>
-                </div>
-              ) : (
-                <div className={styles['auth-buttons']}>
-                  <Link to="/login" className={`${styles['btn-auth']} ${styles['btn-login-outline']}`}>Đăng nhập</Link>
-                  <Link to="/register" className={`${styles['btn-auth']} ${styles['btn-register-solid']}`}>Đăng ký</Link>
-                </div>
-              )}
-            </div>
+                <button onClick={handleLogout} className={`${styles['action-btn']} ${styles['logout-direct-btn']}`} title="Đăng xuất">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" x2="9" y1="12" y2="12" /></svg>
+                </button>
+              </div>
+            ) : (
+              <div className={styles['auth-buttons']}>
+                <Link to="/login" className={`${styles['btn-auth']} ${styles['btn-login-outline']}`}>Đăng nhập</Link>
+                <Link to="/register" className={`${styles['btn-auth']} ${styles['btn-register-solid']}`}>Đăng ký</Link>
+              </div>
+            )}
           </div>
+        </div>
       </div>
     </header>
-
   );
 };
 

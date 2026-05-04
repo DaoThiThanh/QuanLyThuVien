@@ -63,7 +63,6 @@ const PersonalInfo: React.FC<PersonalInfoProps> = ({ profile }) => {
         </div>
       </div>
     </div>
-    </div>
   );
 };
 
