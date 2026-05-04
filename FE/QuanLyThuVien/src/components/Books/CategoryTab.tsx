@@ -1,4 +1,4 @@
-import "./CategoryTab.css";
+import styles from "./CategoryTab.module.css";
 type CategoryTabProps = {
     categories: string[];
     activeCategory: string;
@@ -7,7 +7,7 @@ type CategoryTabProps = {
 
 function CategoryTab(props: CategoryTabProps) {
     return (
-        <div className="category-tabs">
+        <div className={styles['category-tabs']}>
             {props.categories.map((category) => {
                 const isActive = props.activeCategory === category;
 
@@ -16,8 +16,8 @@ function CategoryTab(props: CategoryTabProps) {
                         key={category}
                         className={
                             isActive
-                                ? "category-tab category-tab-active"
-                                : "category-tab"
+                                ? `${styles['category-tab']} ${styles['category-tab-active']}`
+                                : styles['category-tab']
                         }
                         onClick={() => props.onChange(category)} // gửi lên cha
                     >

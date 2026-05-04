@@ -1,5 +1,5 @@
 import React from "react";
-import "./BorrowStatsSection.css";
+import styles from "./BorrowStatsSection.module.css";
 
 import { FiBook, FiClock, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
 
@@ -11,20 +11,20 @@ type StatItemProps = {
 };
 
 const StatItem = ({ icon, label, value, color }: StatItemProps) => (
-    <div className="stat-card">
-        <div className="stat-icon" style={{ backgroundColor: `${color}15`, color: color }}>
+    <div className={styles['stat-card']}>
+        <div className={styles['stat-icon']} style={{ backgroundColor: `${color}15`, color: color }}>
             {icon}
         </div>
-        <div className="stat-info">
-            <span className="stat-value">{value}</span>
-            <span className="stat-label">{label}</span>
+        <div className={styles['stat-info']}>
+            <span className={styles['stat-value']}>{value}</span>
+            <span className={styles['stat-label']}>{label}</span>
         </div>
     </div>
 );
 
 function BorrowStatsSection() {
     return (
-        <div className="borrow-stats-section">
+        <div className={styles['borrow-stats-section']}>
             <StatItem 
                 icon={<FiBook size={20} />} 
                 label="Tổng số sách" 

@@ -1,4 +1,4 @@
-import './BookCard.css'
+import styles from './BookCard.module.css'
 import type { BookItem } from './BookGrid';
 import { FiEye } from "react-icons/fi";
 
@@ -10,32 +10,32 @@ type BookCardProps = {
 function BookCard(props: BookCardProps) {
     const { book, onViewDetail } = props;
     return (
-        <div className='book-card'>
-            <div className='book-card-image-wrapper'>
-                <img className='book-card-image'
+        <div className={styles['book-card']}>
+            <div className={styles['book-card-image-wrapper']}>
+                <img className={styles['book-card-image']}
                     src={book.image}
                     alt={book.title} />
                 <span className={
                     book.status === "available"
-                        ? "book-card-status book-card-status-available"
-                        : "book-card-status book-card-status-unavailable"
+                        ? `${styles['book-card-status']} ${styles['book-card-status-available']}`
+                        : `${styles['book-card-status']} ${styles['book-card-status-unavailable']}`
                 }
                 >
-                    <span className="status-dot"></span>
+                    <span className={styles['status-dot']}></span>
                     {book.status === "available" ? "Có sẵn" : "Hết sách"}
                 </span>
             </div>
-            <div className="book-card-content">
-                <div className="book-card-category">{book.category}</div>
+            <div className={styles['book-card-content']}>
+                <div className={styles['book-card-category']}>{book.category}</div>
 
-                <h3 className="book-card-title">{book.title}</h3>
+                <h3 className={styles['book-card-title']}>{book.title}</h3>
 
-                <p className="book-card-author">{book.author}</p>
+                <p className={styles['book-card-author']}>{book.author}</p>
 
-                <div className="book-card-footer">
-                    <span className="book-card-year">{book.year}</span>
+                <div className={styles['book-card-footer']}>
+                    <span className={styles['book-card-year']}>{book.year}</span>
                     <button
-                        className="book-card-button"
+                        className={styles['book-card-button']}
                         onClick={() => onViewDetail(book)}
                     >
                         <FiEye size={16} />

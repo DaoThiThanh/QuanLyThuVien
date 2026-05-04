@@ -1,5 +1,5 @@
 import { FiSearch, FiFilter } from "react-icons/fi";
-import "./SearchBar.css";
+import styles from "./SearchBar.module.css";
 
 type SearchBarProps = {
     value: string;
@@ -9,18 +9,18 @@ type SearchBarProps = {
 
 function SearchBar(props: SearchBarProps) {
     return (
-        <div className="search-bar-container">
-            <div className="search-input-wrapper">
-                <FiSearch className="search-icon" size={20} />
+        <div className={styles['search-bar-container']}>
+            <div className={styles['search-input-wrapper']}>
+                <FiSearch className={styles['search-icon']} size={20} />
                 <input
-                    className="search-bar-input"
+                    className={styles['search-bar-input']}
                     type="text"
                     value={props.value}
                     onChange={(e) => props.onChange(e.target.value)}
                     placeholder="Tìm kiếm sách, tác giả..."
                 />
             </div>
-            <button className="filter-button" onClick={(e) => props.onFilterClick()}>
+            <button className={styles['filter-button']} onClick={(e) => props.onFilterClick()}>
                 <FiFilter size={18} />
                 <span>Bộ lọc</span>
             </button>

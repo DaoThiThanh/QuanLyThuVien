@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import './NewBooks.css';
+import styles from './NewBooks.module.css';
 import { GetNewBooks } from '../../services/modules/bookService';
 import type { NewBookItem } from '../../types/book';
 
@@ -29,19 +29,19 @@ const NewBooks: React.FC = () => {
   }, []);
 
   return (
-    <div className="new-books-container">
-      <div className="section-header">
-        <div className="header-left">
-          <div className="icon-sparkle">
+    <div className={styles['new-books-container']}>
+      <div className={styles['section-header']}>
+        <div className={styles['header-left']}>
+          <div className={styles['icon-sparkle']}>
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
           </div>
-          <div className="header-titles">
-            <h2 className="section-title">Sách mới bổ sung</h2>
-            <p className="section-subtitle">Cập nhật gần đây</p>
+          <div className={styles['header-titles']}>
+            <h2 className={styles['section-title']}>Sách mới bổ sung</h2>
+            <p className={styles['section-subtitle']}>Cập nhật gần đây</p>
           </div>
         </div>
-        <a href="#" className="view-all-link">
-          Xem tất cả <span className="arrow">&gt;</span>
+        <a href="#" className={styles['view-all-link']}>
+          Xem tất cả <span className={styles['arrow']}>&gt;</span>
         </a>
       </div>
 
@@ -58,7 +58,7 @@ const NewBooks: React.FC = () => {
           <p>Chưa có sách mới nào.</p>
         </div>
       ) : (
-        <div className="new-books-list">
+        <div className={styles['new-books-list']}>
           {newBooks.map((book) => {
             // Handle both PascalCase and camelCase if backend serialization differs from interface
             const title = book.TenSach || (book as any).tenSach;
@@ -67,17 +67,17 @@ const NewBooks: React.FC = () => {
             const namXuatBan = book.NamXuatBan ?? (book as any).namXuatBan ?? '';
 
             return (
-              <div className="new-book-card" key={book.id}>
-                <div className="book-cover-wrapper">
-                  <img src={image || 'https://via.placeholder.com/150'} alt={title} className="book-cover-image" />
-                  <div className="badge-new-blue">MỚI</div>
+              <div className={styles['new-book-card']} key={book.id}>
+                <div className={styles['book-cover-wrapper']}>
+                  <img src={image || 'https://via.placeholder.com/150'} alt={title} className={styles['book-cover-image']} />
+                  <div className={styles['badge-new-blue']}>MỚI</div>
                   {soLuongTon > 0 && (
-                    <div className="badge-status online">• Có sẵn</div>
+                    <div className={`${styles['badge-status']} ${styles['online']}`}>• Có sẵn</div>
                   )}
                 </div>
-                <div className="book-info">
-                  <span className="book-category">{namXuatBan ? `Năm XB: ${namXuatBan}` : 'Sách mới'}</span>
-                  <h3 className="book-title">{title}</h3>
+                <div className={styles['book-info']}>
+                  <span className={styles['book-category']}>{namXuatBan ? `Năm XB: ${namXuatBan}` : 'Sách mới'}</span>
+                  <h3 className={styles['book-title']}>{title}</h3>
                 </div>
               </div>
             );

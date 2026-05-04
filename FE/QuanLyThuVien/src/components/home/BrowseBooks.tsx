@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import './BrowseBooks.css';
+import styles from './BrowseBooks.module.css';
 import { FiBookOpen, FiGrid, FiList, FiEye } from 'react-icons/fi';
 import { GetDanhSachSach } from '../../services/modules/bookService';
 import type { PaginatedBookItem } from '../../types/book';
@@ -49,45 +49,45 @@ const BrowseBooks: React.FC = () => {
   const handleCollapse = () => {
     setPage(1);
     // Optional: Scroll back to the top of the section
-    const section = document.querySelector('.browse-books-section');
+    const section = document.querySelector(`.${styles['browse-books-section']}`);
     if (section) {
       section.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
   return (
-    <section className="browse-books-section">
-      <div className="section-header">
-        <div className="header-left">
-          <div className="icon-fire" style={{ backgroundColor: '#eff6ff', color: '#3b82f6' }}>
+    <section className={styles['browse-books-section']}>
+      <div className={styles['section-header']}>
+        <div className={styles['header-left']}>
+          <div className={styles['icon-fire']} style={{ backgroundColor: '#eff6ff', color: '#3b82f6' }}>
             <FiBookOpen size={24} />
           </div>
-          <div className="header-titles">
-            <h2 className="section-title">Duyệt kho sách</h2>
-            <p className="section-subtitle">Hàng ngàn đầu sách đang chờ bạn</p>
+          <div className={styles['header-titles']}>
+            <h2 className={styles['section-title']}>Duyệt kho sách</h2>
+            <p className={styles['section-subtitle']}>Hàng ngàn đầu sách đang chờ bạn</p>
           </div>
         </div>
       </div>
 
-      <div className="browse-filters">
-        <div className="category-tabs">
-          <button className={`tab-btn ${activeTab === 'all' ? 'active' : ''}`} onClick={() => setActiveTab('all')}>
-            Tất cả sách <span className="count">{totalItems}</span>
+      <div className={styles['browse-filters']}>
+        <div className={styles['category-tabs']}>
+          <button className={`${styles['tab-btn']} ${activeTab === 'all' ? styles['active'] : ''}`} onClick={() => setActiveTab('all')}>
+            Tất cả sách <span className={styles['count']}>{totalItems}</span>
           </button>
-          <button className={`tab-btn ${activeTab === 'science' ? 'active' : ''}`} onClick={() => setActiveTab('science')}>
-            Khoa học <span className="count">0</span>
+          <button className={`${styles['tab-btn']} ${activeTab === 'science' ? styles['active'] : ''}`} onClick={() => setActiveTab('science')}>
+            Khoa học <span className={styles['count']}>0</span>
           </button>
-          <button className={`tab-btn ${activeTab === 'economic' ? 'active' : ''}`} onClick={() => setActiveTab('economic')}>
-            Kinh tế <span className="count">0</span>
+          <button className={`${styles['tab-btn']} ${activeTab === 'economic' ? styles['active'] : ''}`} onClick={() => setActiveTab('economic')}>
+            Kinh tế <span className={styles['count']}>0</span>
           </button>
-          <button className={`tab-btn ${activeTab === 'literature' ? 'active' : ''}`} onClick={() => setActiveTab('literature')}>
-            Văn học <span className="count">0</span>
+          <button className={`${styles['tab-btn']} ${activeTab === 'literature' ? styles['active'] : ''}`} onClick={() => setActiveTab('literature')}>
+            Văn học <span className={styles['count']}>0</span>
           </button>
         </div>
 
-        <div className="filter-controls">
-          <div className="filter-selects">
-            <div className="select-group">
+        <div className={styles['filter-controls']}>
+          <div className={styles['filter-selects']}>
+            <div className={styles['select-group']}>
               <label>Thể loại</label>
               <select>
                 <option>Tất cả</option>
@@ -95,7 +95,7 @@ const BrowseBooks: React.FC = () => {
                 <option>Tham khảo</option>
               </select>
             </div>
-            <div className="select-group">
+            <div className={styles['select-group']}>
               <label>Năm xuất bản</label>
               <select>
                 <option>Tất cả năm</option>
@@ -103,7 +103,7 @@ const BrowseBooks: React.FC = () => {
                 <option>2023</option>
               </select>
             </div>
-            <div className="select-group">
+            <div className={styles['select-group']}>
               <label>Tình trạng</label>
               <select>
                 <option>Chỉ sách có sẵn</option>
@@ -112,51 +112,51 @@ const BrowseBooks: React.FC = () => {
             </div>
           </div>
 
-          <div className="view-toggles">
-            <span className="view-label">Chế độ xem</span>
-            <button className="view-btn active"><FiGrid /></button>
-            <button className="view-btn"><FiList /></button>
+          <div className={styles['view-toggles']}>
+            <span className={styles['view-label']}>Chế độ xem</span>
+            <button className={`${styles['view-btn']} ${styles['active']}`}><FiGrid /></button>
+            <button className={styles['view-btn']}><FiList /></button>
           </div>
         </div>
       </div>
 
-      <p className="results-count">Hiển thị {books.length} trong tổng số {totalItems} sách</p>
+      <p className={styles['results-count']}>Hiển thị {books.length} trong tổng số {totalItems} sách</p>
 
       {error ? (
         <div className="error-message" style={{ color: 'red', textAlign: 'center', padding: '2rem' }}>
           {error}
         </div>
       ) : (
-        <div className="browse-books-grid">
+        <div className={styles['browse-books-grid']}>
           {books.map((book) => (
-            <div className="browse-book-card" key={book.id}>
-              <div className="book-image-wrapper">
-                <img src={book.hinhAnh || 'https://via.placeholder.com/150'} alt={book.tenSach} className="book-cover" />
-                <div className="book-badges">
-                  <span className={`badge status ${book.soLuongTon > 0 ? 'available' : 'unavailable'}`}>
+            <div className={styles['browse-book-card']} key={book.id}>
+              <div className={styles['book-image-wrapper']}>
+                <img src={book.hinhAnh || 'https://via.placeholder.com/150'} alt={book.tenSach} className={styles['book-cover']} />
+                <div className={styles['book-badges']}>
+                  <span className={`${styles['badge']} ${styles['status']} ${book.soLuongTon > 0 ? styles['available'] : styles['unavailable']}`}>
                     {book.soLuongTon > 0 ? 'Có sẵn' : 'Hết sách'}
                   </span>
                 </div>
               </div>
-              <div className="book-details">
-                <div className="book-meta">
-                  <span className="book-category">{book.tenDanhMuc}</span>
+              <div className={styles['book-details']}>
+                <div className={styles['book-meta']}>
+                  <span className={styles['book-category']}>{book.tenDanhMuc}</span>
                 </div>
-                <h3 className="book-title">{book.tenSach}</h3>
-                <p className="book-author">{book.tenTacGia}</p>
+                <h3 className={styles['book-title']}>{book.tenSach}</h3>
+                <p className={styles['book-author']}>{book.tenTacGia}</p>
 
-                <div className="book-footer">
-                  <div className="book-rating">
-                    <span className="star">★</span> 5.0
+                <div className={styles['book-footer']}>
+                  <div className={styles['book-rating']}>
+                    <span className={styles['star']}>★</span> 5.0
                   </div>
-                  <div className="book-actions-btns">
+                  <div className={styles['book-actions-btns']}>
                     <button 
-                      className="view-detail-btn"
+                      className={styles['view-detail-btn']}
                       onClick={() => navigate(`/book-detail/${book.id}`)}
                     >
                       <FiEye /> Chi tiết
                     </button>
-                    <button className={`borrow-btn ${book.soLuongTon <= 0 ? 'disabled' : ''}`} disabled={book.soLuongTon <= 0}>
+                    <button className={`${styles['borrow-btn']} ${book.soLuongTon <= 0 ? styles['disabled'] : ''}`} disabled={book.soLuongTon <= 0}>
                       Mượn
                     </button>
                   </div>
@@ -171,14 +171,14 @@ const BrowseBooks: React.FC = () => {
         <div style={{ textAlign: 'center', padding: '1rem' }}>Đang tải...</div>
       )}
 
-      <div className="load-more-container">
+      <div className={styles['load-more-container']}>
         {!loading && books.length < totalItems && (
-          <button className="load-more-btn" onClick={handleLoadMore}>
+          <button className={styles['load-more-btn']} onClick={handleLoadMore}>
             Tải thêm sách
           </button>
         )}
         {!loading && books.length > pageSize && (
-          <button className="collapse-btn" onClick={handleCollapse}>
+          <button className={styles['collapse-btn']} onClick={handleCollapse}>
             Thu gọn lại
           </button>
         )}

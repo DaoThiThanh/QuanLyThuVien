@@ -1,5 +1,5 @@
 import React from "react";
-import "./BorrowedBookList.css";
+import styles from "./BorrowedBookList.module.css";
 
 
 // Component to display the list of borrowed books
@@ -30,8 +30,8 @@ function BorrowedBookList({ books }: BorrowedBookListProps) {
     };
 
     return (
-        <div className="borrowed-book-list-container">
-            <table className="borrowed-book-table">
+        <div className={styles['borrowed-book-list-container']}>
+            <table className={styles['borrowed-book-table']}>
                 <thead>
                     <tr>
                         <th>Sách</th>
@@ -46,11 +46,11 @@ function BorrowedBookList({ books }: BorrowedBookListProps) {
                     {books.map((book) => (
                         <tr key={book.id}>
                             <td>
-                                <div className="book-info-cell">
-                                    <img src={book.coverImage} alt={book.title} className="book-cover-mini" />
+                                <div className={styles['book-info-cell']}>
+                                    <img src={book.coverImage} alt={book.title} className={styles['book-cover-mini']} />
                                     <div>
-                                        <p className="book-title-cell">{book.title}</p>
-                                        <p className="book-author-cell">{book.author}</p>
+                                        <p className={styles['book-title-cell']}>{book.title}</p>
+                                        <p className={styles['book-author-cell']}>{book.author}</p>
                                     </div>
                                 </div>
                             </td>
@@ -58,12 +58,12 @@ function BorrowedBookList({ books }: BorrowedBookListProps) {
                             <td>{book.dueDate}</td>
                             <td>{book.returnDate || "-"}</td>
                             <td>
-                                <span className={`status-badge ${book.status}`}>
+                                <span className={`${styles['status-badge']} ${styles[book.status]}`}>
                                     {getStatusLabel(book.status)}
                                 </span>
                             </td>
                             <td>
-                                <button className="action-btn">Chi tiết</button>
+                                <button className={styles['action-btn']}>Chi tiết</button>
                             </td>
                         </tr>
                     ))}

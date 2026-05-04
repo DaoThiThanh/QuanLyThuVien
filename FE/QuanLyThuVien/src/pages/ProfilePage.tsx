@@ -4,7 +4,7 @@ import ProfileHeader from '../components/Profile/ProfileHeader';
 import ProfileStats from '../components/Profile/ProfileStats';
 import PersonalInfo from '../components/Profile/PersonalInfo';
 import SecuritySettings from '../components/Profile/SecuritySettings';
-import './ProfilePage.css';
+import styles from './ProfilePage.module.css';
 import { getProfileApi, getUserId, type ProfileData } from '../services/modules/authService';
 
 const ProfilePage: React.FC = () => {
@@ -33,25 +33,25 @@ const ProfilePage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="profile-page-container">
+      <div className={styles['profile-page-container']}>
         <Header />
-        <div className="loading-container" style={{ textAlign: 'center', padding: '100px' }}>
-          <div className="spinner">Đang tải thông tin...</div>
+        <div className={styles['loading-container']} style={{ textAlign: 'center', padding: '100px' }}>
+          <div className={styles['spinner']}>Đang tải thông tin...</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="profile-page-container">
+    <div className={styles['profile-page-container']}>
       <Header />
-      <main className="profile-main-content">
-        <div className="profile-page-header">
+      <main className={styles['profile-main-content']}>
+        <div className={styles['profile-page-header']}>
           <h1>Hồ sơ cá nhân</h1>
           <p>Quản lý thông tin tài khoản của bạn</p>
         </div>
         
-        <div className="profile-content-wrapper">
+        <div className={styles['profile-content-wrapper']}>
           <ProfileHeader profile={profile} />
           <ProfileStats />
           <PersonalInfo profile={profile} />

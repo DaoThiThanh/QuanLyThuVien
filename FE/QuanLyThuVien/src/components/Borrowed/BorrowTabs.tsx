@@ -1,5 +1,5 @@
 import React from "react";
-import "./BorrowTabs.css";
+import styles from "./BorrowTabs.module.css";
 
 
 type TabOption = "all" | "borrowing" | "returned" | "overdue";
@@ -18,20 +18,20 @@ function BorrowTabs({ activeTab, onTabChange }: BorrowTabsProps) {
     ];
 
     return (
-        <div className="borrow-tabs-container">
-            <div className="borrow-tabs">
+        <div className={styles['borrow-tabs-container']}>
+            <div className={styles['borrow-tabs']}>
                 {tabs.map((tab) => (
                     <button
                         key={tab.id}
-                        className={`borrow-tab ${activeTab === tab.id ? "active" : ""}`}
+                        className={`${styles['borrow-tab']} ${activeTab === tab.id ? styles['active'] : ""}`}
                         onClick={() => onTabChange(tab.id)}
                     >
                         {tab.label}
                     </button>
                 ))}
             </div>
-            <div className="borrow-search">
-                <input type="text" placeholder="Tìm kiếm sách đã mượn..." className="borrow-search-input" />
+            <div className={styles['borrow-search']}>
+                <input type="text" placeholder="Tìm kiếm sách đã mượn..." className={styles['borrow-search-input']} />
             </div>
         </div>
     );

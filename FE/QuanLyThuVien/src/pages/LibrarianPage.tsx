@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import './AdminPage.css'; // Reusing the same rich CSS as Admin
+import styles from './AdminPage.module.css'; // Reusing the same rich CSS as Admin
 import { getThongKeThuThu, type ThongKeThuThuDto } from '../services/modules/statService';
 import { getUserName } from '../services/modules/authService';
 
@@ -67,25 +67,25 @@ const LibrarianPage: React.FC = () => {
   ];
 
   return (
-    <div className="admin-container">
+    <div className={styles['admin-container']}>
       {/* Sidebar */}
-      <aside className="admin-sidebar">
-        <div className="admin-logo">
-          <div className="admin-logo-icon" style={{background: 'linear-gradient(135deg, #10b981, #34d399)'}}>
+      <aside className={styles['admin-sidebar']}>
+        <div className={styles['admin-logo']}>
+          <div className={styles['admin-logo-icon']} style={{background: 'linear-gradient(135deg, #10b981, #34d399)'}}>
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
           </div>
           <span>Thủ Thư Hub</span>
         </div>
 
-        <nav className="admin-nav">
+        <nav className={styles['admin-nav']}>
           {menuItems.map((item) => (
             <a
               key={item.id}
-              className={`admin-nav-item ${activeTab === item.id ? 'active' : ''}`}
+              className={`${styles['admin-nav-item']} ${activeTab === item.id ? styles['active'] : ''}`}
               onClick={(e) => { e.preventDefault(); setActiveTab(item.id); }}
               href={`#${item.id}`}
             >
-              <div className="icon-wrapper">{item.icon}</div>
+              <div className={styles['icon-wrapper']}>{item.icon}</div>
               {item.label}
             </a>
           ))}
@@ -93,99 +93,98 @@ const LibrarianPage: React.FC = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="admin-main">
+      <main className={styles['admin-main']}>
         {/* Header */}
-        <header className="admin-header">
-          <h1 className="admin-header-title">
+        <header className={styles['admin-header']}>
+          <h1 className={styles['admin-header-title']}>
             {menuItems.find(m => m.id === activeTab)?.label}
           </h1>
           
-          <div className="admin-header-actions">
-            <button className="icon-btn">
+          <div className={styles['admin-header-actions']}>
+            <button className={styles['icon-btn']}>
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
             </button>
-            <div className="admin-profile-btn" style={{borderColor: '#10b981'}}>
-              <div className="admin-avatar" style={{backgroundColor: '#10b981', boxShadow: '0 0 0 2px var(--bg), 0 0 0 4px #10b981'}}>
+            <div className={styles['admin-profile-btn']} style={{borderColor: '#10b981'}}>
+              <div className={styles['admin-avatar']} style={{backgroundColor: '#10b981', boxShadow: '0 0 0 2px var(--bg), 0 0 0 4px #10b981'}}>
                 {getUserName() ? getUserName()!.charAt(0).toUpperCase() : 'T'}
               </div>
-              <span className="admin-username">{getUserName() || 'Thủ Thư (NV)'}</span>
-              <svg className="chevron-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              <span className={styles['admin-username']}>{getUserName() || 'Thủ Thư (NV)'}</span>
+              <svg className={styles['chevron-icon']} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
             </div>
-            <Link to="/" className="exit-btn" title="Trở về trang chủ">
+            <Link to="/" className={styles['exit-btn']} title="Trở về trang chủ">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
             </Link>
           </div>
         </header>
 
         {/* Dynamic Content Area */}
-        <div className="admin-content">
+        <div className={styles['admin-content']}>
           {activeTab === 'dashboard' && (
             <>
-              {/* Stats Grid */}
-              <div className="dashboard-stats">
-                <div className="stat-card librarian-card" onClick={() => setActiveTab('borrow')} style={{cursor: 'pointer'}}>
-                  <div className="stat-header">
+              <div className={styles['dashboard-stats']}>
+                <div className={`${styles['stat-card']} ${styles['librarian-card']}`} onClick={() => setActiveTab('borrow')} style={{cursor: 'pointer'}}>
+                  <div className={styles['stat-header']}>
                     <span>Sách Đang Mượn</span>
-                    <div className="stat-icon" style={{color: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)'}}>
+                    <div className={styles['stat-icon']} style={{color: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)'}}>
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
                     </div>
                   </div>
-                  <div className="stat-value">{loading ? '...' : stats?.booksBorrowed}</div>
-                  <div className="stat-trend trend-up">
+                  <div className={styles['stat-value']}>{loading ? '...' : stats?.booksBorrowed}</div>
+                  <div className={`${styles['stat-trend']} ${styles['trend-up']}`}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
                     <span>+5% tuần này</span>
                   </div>
                 </div>
 
-                <div className="stat-card librarian-card" onClick={() => setActiveTab('requests')} style={{cursor: 'pointer'}}>
-                  <div className="stat-header">
+                <div className={`${styles['stat-card']} ${styles['librarian-card']}`} onClick={() => setActiveTab('requests')} style={{cursor: 'pointer'}}>
+                  <div className={styles['stat-header']}>
                     <span>Yêu Cầu Chờ</span>
-                    <div className="stat-icon" style={{color: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.1)'}}>
+                    <div className={styles['stat-icon']} style={{color: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.1)'}}>
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 6v6l4 2"/></svg>
                     </div>
                   </div>
-                  <div className="stat-value">{loading ? '...' : stats?.pendingRequests}</div>
-                  <div className="stat-trend trend-down" style={{color: '#ef4444'}}>
+                  <div className={styles['stat-value']}>{loading ? '...' : stats?.pendingRequests}</div>
+                  <div className={`${styles['stat-trend']} ${styles['trend-down']}`} style={{color: '#ef4444'}}>
                     <span>Cần xử lý ngay</span>
                   </div>
                 </div>
 
-                <div className="stat-card librarian-card" onClick={() => setActiveTab('borrow')} style={{cursor: 'pointer'}}>
-                  <div className="stat-header">
+                <div className={`${styles['stat-card']} ${styles['librarian-card']}`} onClick={() => setActiveTab('borrow')} style={{cursor: 'pointer'}}>
+                  <div className={styles['stat-header']}>
                     <span>Sách Trễ Hạn</span>
-                    <div className="stat-icon" style={{color: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)'}}>
+                    <div className={styles['stat-icon']} style={{color: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)'}}>
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                     </div>
                   </div>
-                  <div className="stat-value">{loading ? '...' : stats?.booksOverdue}</div>
-                  <div className="stat-trend trend-down" style={{color: '#ef4444'}}>
+                  <div className={styles['stat-value']}>{loading ? '...' : stats?.booksOverdue}</div>
+                  <div className={`${styles['stat-trend']} ${styles['trend-down']}`} style={{color: '#ef4444'}}>
                     <span>8 Độc giả vi phạm</span>
                   </div>
                 </div>
 
-                <div className="stat-card librarian-card">
-                  <div className="stat-header">
+                <div className={`${styles['stat-card']} ${styles['librarian-card']}`}>
+                  <div className={styles['stat-header']}>
                     <span>Tổng Kho Sách</span>
-                    <div className="stat-icon" style={{color: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)'}}>
+                    <div className={styles['stat-icon']} style={{color: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)'}}>
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
                     </div>
                   </div>
-                  <div className="stat-value">{loading ? '...' : (stats?.totalBooks || 4520).toLocaleString()}</div>
-                  <div className="stat-trend trend-up">
+                  <div className={styles['stat-value']}>{loading ? '...' : (stats?.totalBooks || 4520).toLocaleString()}</div>
+                  <div className={`${styles['stat-trend']} ${styles['trend-up']}`}>
                     <span>Mới nhập 50 đầu sách</span>
                   </div>
                 </div>
               </div>
 
-              <div className="admin-dashboard-grid">
+              <div className={styles['admin-dashboard-grid']}>
                 {/* Recent Requests Table */}
-                <div className="admin-section">
-                  <div className="section-header">
-                    <h2 className="section-title">Yêu Cầu Mượn Online</h2>
-                    <Link to="/librarian/requests" className="view-all-link" onClick={(e) => {e.preventDefault(); setActiveTab('requests')}}>Xem tất cả</Link>
+                <div className={styles['admin-section']}>
+                  <div className={styles['section-header']}>
+                    <h2 className={styles['section-title']}>Yêu Cầu Mượn Online</h2>
+                    <Link to="/librarian/requests" className={styles['view-all-link']} onClick={(e) => {e.preventDefault(); setActiveTab('requests')}}>Xem tất cả</Link>
                   </div>
-                  <div className="table-responsive">
-                    <table className="admin-table">
+                  <div className={styles['table-responsive']}>
+                    <table className={styles['admin-table']}>
                       <thead>
                         <tr>
                           <th>Mã YC</th>
@@ -199,13 +198,13 @@ const LibrarianPage: React.FC = () => {
                           <tr key={req.id}>
                             <td><strong>{req.id}</strong></td>
                             <td>
-                              <div className="user-details">
-                                <span className="user-name" style={{fontSize: '14px'}}>{req.user}</span>
+                              <div className={styles['user-details']}>
+                                <span className={styles['user-name']} style={{fontSize: '14px'}}>{req.user}</span>
                               </div>
                             </td>
                             <td style={{fontSize: '13px'}}>{req.pickup}</td>
                             <td>
-                              <span className={`status-badge status-${req.status}`} style={{padding: '4px 10px', fontSize: '11px'}}>
+                              <span className={`${styles['status-badge']} ${styles['status-' + req.status]}`} style={{padding: '4px 10px', fontSize: '11px'}}>
                                 {req.status === 'pending' ? 'Chờ duyệt' : req.status === 'approved' ? 'Đã duyệt' : 'Từ chối'}
                               </span>
                             </td>
@@ -217,21 +216,21 @@ const LibrarianPage: React.FC = () => {
                 </div>
 
                 {/* Recent Activities */}
-                <div className="admin-section recent-activities-panel">
-                  <div className="section-header">
-                    <h2 className="section-title">Hoạt động nghiệp vụ</h2>
+                <div className={`${styles['admin-section']} ${styles['recent-activities-panel']}`}>
+                  <div className={styles['section-header']}>
+                    <h2 className={styles['section-title']}>Hoạt động nghiệp vụ</h2>
                   </div>
-                  <div className="activity-list">
+                  <div className={styles['activity-list']}>
                     {recentLibrarianActivities.map(activity => (
-                      <div key={activity.id} className="activity-item">
-                        <div className={`activity-icon-box ${activity.type === 'borrow' ? 'user' : activity.type === 'return' ? 'approve' : activity.type === 'extend' ? 'warning' : 'system'}`}>
+                      <div key={activity.id} className={styles['activity-item']}>
+                        <div className={`${styles['activity-icon-box']} ${activity.type === 'borrow' ? styles['user'] : activity.type === 'return' ? styles['approve'] : activity.type === 'extend' ? styles['warning'] : styles['system']}`}>
                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                              {activity.type === 'borrow' ? <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></> : activity.type === 'return' ? <polyline points="20 6 9 17 4 12"/> : activity.type === 'extend' ? <><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></> : <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>}
                            </svg>
                         </div>
-                        <div className="activity-info">
-                          <p className="activity-text"><strong>{activity.user}</strong> {activity.action}</p>
-                          <span className="activity-time">{activity.time}</span>
+                        <div className={styles['activity-info']}>
+                          <p className={styles['activity-text']}><strong>{activity.user}</strong> {activity.action}</p>
+                          <span className={styles['activity-time']}>{activity.time}</span>
                         </div>
                       </div>
                     ))}
@@ -242,13 +241,13 @@ const LibrarianPage: React.FC = () => {
           )}
 
           {activeTab === 'books' && (
-            <div className="admin-section">
-              <div className="section-header">
-                <h2 className="section-title">Kho Sách Thư Viện</h2>
-                <button className="section-action">+ Nhập Sách Mới</button>
+            <div className={styles['admin-section']}>
+              <div className={styles['section-header']}>
+                <h2 className={styles['section-title']}>Kho Sách Thư Viện</h2>
+                <button className={styles['section-action']}>+ Nhập Sách Mới</button>
               </div>
-              <div className="table-responsive">
-                <table className="admin-table">
+              <div className={styles['table-responsive']}>
+                <table className={styles['admin-table']}>
                   <thead>
                     <tr>
                       <th>Mã Sách</th>
@@ -268,7 +267,7 @@ const LibrarianPage: React.FC = () => {
                         <td>{book.category}</td>
                         <td>{book.amount}</td>
                         <td>
-                          <span className={`status-badge ${book.status === 'available' ? 'status-active' : 'status-pending'}`}>
+                          <span className={`${styles['status-badge']} ${book.status === 'available' ? styles['status-active'] : styles['status-pending']}`}>
                             {book.status === 'available' ? 'Sẵn sàng' : 'Đã hết'}
                           </span>
                         </td>
@@ -281,14 +280,14 @@ const LibrarianPage: React.FC = () => {
           )}
 
           {activeTab === 'borrow' && (
-            <div className="admin-dashboard-grid" style={{gridTemplateColumns: '1fr'}}>
-              <div className="admin-section">
-                <div className="section-header">
-                  <h2 className="section-title">Danh sách Sách đang mượn</h2>
-                  <button className="section-action">+ Tạo Phiếu Mượn</button>
+            <div className={styles['admin-dashboard-grid']} style={{gridTemplateColumns: '1fr'}}>
+              <div className={styles['admin-section']}>
+                <div className={styles['section-header']}>
+                  <h2 className={styles['section-title']}>Danh sách Sách đang mượn</h2>
+                  <button className={styles['section-action']}>+ Tạo Phiếu Mượn</button>
                 </div>
-                <div className="table-responsive">
-                  <table className="admin-table">
+                <div className={styles['table-responsive']}>
+                  <table className={styles['admin-table']}>
                     <thead>
                       <tr>
                         <th>Mã Phiếu</th>
@@ -307,7 +306,7 @@ const LibrarianPage: React.FC = () => {
                           <td>{item.book}</td>
                           <td>{item.borrowDate}</td>
                           <td><span style={{color: '#3b82f6', fontWeight: '500'}}>{item.dueDate}</span></td>
-                          <td><button className="status-badge status-active" style={{border: 'none', cursor: 'pointer'}}>Trả sách</button></td>
+                          <td><button className={`${styles['status-badge']} ${styles['status-active']}`} style={{border: 'none', cursor: 'pointer'}}>Trả sách</button></td>
                         </tr>
                       ))}
                     </tbody>
@@ -315,12 +314,12 @@ const LibrarianPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="admin-section" style={{marginTop: '30px'}}>
-                <div className="section-header">
-                  <h2 className="section-title" style={{color: '#ef4444'}}>Sách quá hạn (Cần xử lý)</h2>
+              <div className={styles['admin-section']} style={{marginTop: '30px'}}>
+                <div className={styles['section-header']}>
+                  <h2 className={styles['section-title']} style={{color: '#ef4444'}}>Sách quá hạn (Cần xử lý)</h2>
                 </div>
-                <div className="table-responsive">
-                  <table className="admin-table">
+                <div className={styles['table-responsive']}>
+                  <table className={styles['admin-table']}>
                     <thead>
                       <tr>
                         <th>Mã Phiếu</th>
@@ -338,7 +337,7 @@ const LibrarianPage: React.FC = () => {
                           <td>{item.reader}</td>
                           <td>{item.book}</td>
                           <td>{item.dueDate}</td>
-                          <td><span className="status-badge status-rejected">{item.delayDays} ngày</span></td>
+                          <td><span className={`${styles['status-badge']} ${styles['status-rejected']}`}>{item.delayDays} ngày</span></td>
                           <td><strong style={{color: '#ef4444'}}>{(item.delayDays * 5000).toLocaleString()} ₫</strong></td>
                         </tr>
                       ))}
@@ -350,12 +349,12 @@ const LibrarianPage: React.FC = () => {
           )}
 
           {activeTab === 'requests' && (
-            <div className="admin-section">
-              <div className="section-header">
-                <h2 className="section-title">Chi tiết Yêu cầu mượn Online</h2>
+            <div className={styles['admin-section']}>
+              <div className={styles['section-header']}>
+                <h2 className={styles['section-title']}>Chi tiết Yêu cầu mượn Online</h2>
               </div>
-              <div className="table-responsive">
-                <table className="admin-table">
+              <div className={styles['table-responsive']}>
+                <table className={styles['admin-table']}>
                   <thead>
                     <tr>
                       <th>Mã YC</th>
@@ -374,15 +373,15 @@ const LibrarianPage: React.FC = () => {
                         <td>{req.email}</td>
                         <td>{req.pickup}</td>
                         <td>
-                          <span className={`status-badge status-${req.status}`}>
+                          <span className={`${styles['status-badge']} ${styles['status-' + req.status]}`}>
                             {req.status === 'pending' ? 'Đang chờ' : req.status === 'approved' ? 'Đã duyệt' : 'Đã từ chối'}
                           </span>
                         </td>
                         <td>
                           {req.status === 'pending' && (
-                            <div className="action-buttons">
-                              <button className="btn-icon approve"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
-                              <button className="btn-icon reject"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                            <div className={styles['action-buttons']}>
+                              <button className={`${styles['btn-icon']} ${styles['approve']}`}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+                              <button className={`${styles['btn-icon']} ${styles['reject']}`}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
                             </div>
                           )}
                         </td>
@@ -395,8 +394,8 @@ const LibrarianPage: React.FC = () => {
           )}
 
           {activeTab === 'categories' && (
-            <div className="placeholder-content">
-              <div className="placeholder-icon">
+            <div className={styles['placeholder-content']}>
+              <div className={styles['placeholder-icon']}>
                  {menuItems.find(m => m.id === activeTab)?.icon}
               </div>
               <h3>Giao diện {menuItems.find(m => m.id === activeTab)?.label} đang được phát triển</h3>

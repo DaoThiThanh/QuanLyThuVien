@@ -4,7 +4,7 @@ import { FiArrowLeft, FiUser, FiTag, FiPrinter, FiCalendar, FiBook, FiCheckCircl
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import BorrowConfirmModal from '../components/modals/BorrowConfirmModal';
-import './BookDetailPage.css';
+import styles from './BookDetailPage.module.css';
 
 const BookDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -37,118 +37,118 @@ const BookDetailPage: React.FC = () => {
   };
 
   return (
-    <div className="book-detail-page">
+    <div className={styles['book-detail-page']}>
       <Header />
       
-      <main className="detail-container">
+      <main className={styles['detail-container']}>
         {/* Breadcrumbs */}
-        <nav className="breadcrumbs">
-          <button className="back-link" onClick={handleBack}>
+        <nav className={styles['breadcrumbs']}>
+          <button className={styles['back-link']} onClick={handleBack}>
             <FiArrowLeft /> Quay lại
           </button>
-          <span className="separator">/</span>
-          <span className="breadcrumb-item">Sách</span>
-          <span className="separator">/</span>
-          <span className="breadcrumb-item active">{book.tenSach}</span>
+          <span className={styles['separator']}>/</span>
+          <span className={styles['breadcrumb-item']}>Sách</span>
+          <span className={styles['separator']}>/</span>
+          <span className={`${styles['breadcrumb-item']} ${styles['active']}`}>{book.tenSach}</span>
         </nav>
 
-        <div className="detail-card">
-          <div className="detail-grid">
+        <div className={styles['detail-card']}>
+          <div className={styles['detail-grid']}>
             {/* Left Column: Image & Stats */}
-            <div className="detail-left">
-              <div className="book-cover-wrapper">
-                <img src={book.hinhAnh} alt={book.tenSach} className="book-detail-cover" />
-                <div className="status-badge-detail">
+            <div className={styles['detail-left']}>
+              <div className={styles['book-cover-wrapper']}>
+                <img src={book.hinhAnh} alt={book.tenSach} className={styles['book-detail-cover']} />
+                <div className={styles['status-badge-detail']}>
                   <FiCheckCircle /> Có sẵn
                 </div>
               </div>
               
-              <div className="availability-stats">
-                <p className="stats-label">Bản sao hiện có</p>
-                <div className="dots-indicator">
+              <div className={styles['availability-stats']}>
+                <p className={styles['stats-label']}>Bản sao hiện có</p>
+                <div className={styles['dots-indicator']}>
                   {[...Array(book.tongSoLuong)].map((_, i) => (
                     <span 
                       key={i} 
-                      className={`dot ${i < book.soLuongTon ? 'active' : ''}`}
+                      className={`${styles['dot']} ${i < book.soLuongTon ? styles['active'] : ''}`}
                     ></span>
                   ))}
                 </div>
-                <p className="stats-text">
-                  <span className="available-count">{book.soLuongTon}/{book.tongSoLuong}</span> bản có sẵn
+                <p className={styles['stats-text']}>
+                  <span className={styles['available-count']}>{book.soLuongTon}/{book.tongSoLuong}</span> bản có sẵn
                 </p>
               </div>
             </div>
 
             {/* Right Column: Info & Actions */}
-            <div className="detail-right">
-              <div className="book-header-info">
-                <span className="category-tag">{book.tenDanhMuc}</span>
-                <h1 className="book-detail-title">{book.tenSach}</h1>
-                <p className="book-detail-author">{book.tenTacGia}</p>
+            <div className={styles['detail-right']}>
+              <div className={styles['book-header-info']}>
+                <span className={styles['category-tag']}>{book.tenDanhMuc}</span>
+                <h1 className={styles['book-detail-title']}>{book.tenSach}</h1>
+                <p className={styles['book-detail-author']}>{book.tenTacGia}</p>
               </div>
 
-              <div className="info-grid">
-                <div className="info-item">
-                  <div className="info-icon">
+              <div className={styles['info-grid']}>
+                <div className={styles['info-item']}>
+                  <div className={styles['info-icon']}>
                     <FiUser />
                   </div>
-                  <div className="info-content">
-                    <span className="label">Tác giả</span>
-                    <span className="value">{book.tenTacGia}</span>
+                  <div className={styles['info-content']}>
+                    <span className={styles['label']}>Tác giả</span>
+                    <span className={styles['value']}>{book.tenTacGia}</span>
                   </div>
                 </div>
 
-                <div className="info-item">
-                  <div className="info-icon">
+                <div className={styles['info-item']}>
+                  <div className={styles['info-icon']}>
                     <FiTag />
                   </div>
-                  <div className="info-content">
-                    <span className="label">Thể loại</span>
-                    <span className="value">{book.tenDanhMuc}</span>
+                  <div className={styles['info-content']}>
+                    <span className={styles['label']}>Thể loại</span>
+                    <span className={styles['value']}>{book.tenDanhMuc}</span>
                   </div>
                 </div>
 
-                <div className="info-item">
-                  <div className="info-icon">
+                <div className={styles['info-item']}>
+                  <div className={styles['info-icon']}>
                     <FiPrinter />
                   </div>
-                  <div className="info-content">
-                    <span className="label">Nhà xuất bản</span>
-                    <span className="value">{book.nhaXuatBan}</span>
+                  <div className={styles['info-content']}>
+                    <span className={styles['label']}>Nhà xuất bản</span>
+                    <span className={styles['value']}>{book.nhaXuatBan}</span>
                   </div>
                 </div>
 
-                <div className="info-item">
-                  <div className="info-icon">
+                <div className={styles['info-item']}>
+                  <div className={styles['info-icon']}>
                     <FiCalendar />
                   </div>
-                  <div className="info-content">
-                    <span className="label">Năm xuất bản</span>
-                    <span className="value">{book.namXuatBan}</span>
+                  <div className={styles['info-content']}>
+                    <span className={styles['label']}>Năm xuất bản</span>
+                    <span className={styles['value']}>{book.namXuatBan}</span>
                   </div>
                 </div>
 
-                <div className="info-item full-width">
-                  <div className="info-icon">
+                <div className={`${styles['info-item']} ${styles['full-width']}`}>
+                  <div className={styles['info-icon']}>
                     <FiBook />
                   </div>
-                  <div className="info-content">
-                    <span className="label">ISBN</span>
-                    <span className="value">{book.isbn}</span>
+                  <div className={styles['info-content']}>
+                    <span className={styles['label']}>ISBN</span>
+                    <span className={styles['value']}>{book.isbn}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="book-description">
-                <h3 className="desc-title">Mô tả sách</h3>
-                <p className="desc-text">{book.moTa}</p>
+              <div className={styles['book-description']}>
+                <h3 className={styles['desc-title']}>Mô tả sách</h3>
+                <p className={styles['desc-text']}>{book.moTa}</p>
               </div>
 
-              <div className="detail-actions">
-                <button className="btn-borrow-main" onClick={() => setShowBorrowModal(true)}>
+              <div className={styles['detail-actions']}>
+                <button className={styles['btn-borrow-main']} onClick={() => setShowBorrowModal(true)}>
                   <FiBook /> Mượn sách này
                 </button>
-                <button className="btn-back-list" onClick={handleBack}>
+                <button className={styles['btn-back-list']} onClick={handleBack}>
                   <FiArrowLeft /> Quay lại danh sách
                 </button>
               </div>

@@ -1,4 +1,4 @@
-import "./BookGrid.css";
+import styles from "./BookGrid.module.css";
 import BookCard from "./BookCard";
 export type BookItem = {
     id: string;
@@ -15,7 +15,7 @@ type BookGridProps = {
 }
 function BookGrid(props: BookGridProps) {
     return (
-        <div className="book-grid">
+        <div className={styles['book-grid']}>
             {props.books.map((book) => (
                 <BookCard
                     key={book.id}
