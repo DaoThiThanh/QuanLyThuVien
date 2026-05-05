@@ -3,8 +3,10 @@ import styles from './PopularBooks.module.css';
 import { useEffect, useState } from 'react';
 import { GetPopularBooks } from '../../services/modules/bookService';
 import type { BookItem } from '../../types/book';
+import { useNavigate } from 'react-router-dom';
 
 const PopularBooks: React.FC = () => {
+  const navigate = useNavigate();
   const [books, setBooks] = useState<BookItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -52,7 +54,12 @@ const PopularBooks: React.FC = () => {
           <div className={styles['loading-state']}>Đang tải sách nổi bật...</div>
         ) : books.length > 0 ? (
           books.map((book) => (
-            <div className={styles['book-card-popular']} key={book.id}>
+            <div 
+              className={styles['book-card-popular']} 
+              key={book.id}
+              onClick={() => navigate(`/book-detail/${book.id}`)}
+              style={{ cursor: 'pointer' }}
+            >
               <div
                 className={styles['book-image-bg']}
                 style={{ backgroundImage: `url(${book.hinhAnh})` }}

@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import styles from './NewBooks.module.css';
 import { GetNewBooks } from '../../services/modules/bookService';
 import type { NewBookItem } from '../../types/book';
+import { useNavigate } from 'react-router-dom';
 
 const NewBooks: React.FC = () => {
+  const navigate = useNavigate();
   const [newBooks, setNewBooks] = useState<NewBookItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -67,7 +69,12 @@ const NewBooks: React.FC = () => {
             const namXuatBan = book.NamXuatBan ?? (book as any).namXuatBan ?? '';
 
             return (
-              <div className={styles['new-book-card']} key={book.id}>
+              <div 
+                className={styles['new-book-card']} 
+                key={book.id}
+                onClick={() => navigate(`/book-detail/${book.id}`)}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className={styles['book-cover-wrapper']}>
                   <img src={image || 'https://via.placeholder.com/150'} alt={title} className={styles['book-cover-image']} />
                   <div className={styles['badge-new-blue']}>MỚI</div>
