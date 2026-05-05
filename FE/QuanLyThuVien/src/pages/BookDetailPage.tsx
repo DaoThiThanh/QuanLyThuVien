@@ -5,8 +5,9 @@ import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import BorrowConfirmModal from '../components/modals/BorrowConfirmModal';
 import styles from './BookDetailPage.module.css';
-import { getToken } from '../services/modules/authService';
+import { getToken, getUserId } from '../services/modules/authService';
 import { GetBookById } from '../services/modules/bookService';
+import { CreateYeuCauMuon } from '../services/modules/borrowService';
 
 const BookDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -14,6 +15,7 @@ const BookDetailPage: React.FC = () => {
   const [showBorrowModal, setShowBorrowModal] = useState(false);
   const [book, setBook] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchBookDetail = async () => {
@@ -36,10 +38,28 @@ const BookDetailPage: React.FC = () => {
     navigate(-1);
   };
 
-  const handleConfirmBorrow = () => {
-    // Logic for confirming borrow (e.g., API call)
-    alert('Yêu cầu mượn sách đã được gửi thành công!');
-    setShowBorrowModal(false);
+  const handleConfirmBorrow = async () => {
+    const userId = getUserId();
+    if (!userId || !id) {
+        alert("Không xác định được người dùng hoặc sách. Vui lòng đăng nhập lại.");
+        return;
+    }
+
+    setSubmitting(true);
+    try {
+        await CreateYeuCauMuon({
+            docGiaId: userId,
+            dauSachIds: [id],
+            ngayHenNhan: new Date(new Date().getTime() + 2 * 24 * 60 * 60 * 1000).toISOString() // Hẹn 2 ngày sau
+        });
+        alert('Yêu cầu mượn sách đã được gửi thành công! Vui lòng đến thư viện nhận sách trong vòng 2 ngày tới.');
+        setShowBorrowModal(false);
+    } catch (error: any) {
+        console.error("Lỗi khi gửi yêu cầu mượn:", error);
+        alert(error.message || "Gửi yêu cầu mượn thất bại. Vui lòng thử lại sau.");
+    } finally {
+        setSubmitting(false);
+    }
   };
 
   if (loading) {
@@ -203,6 +223,7 @@ const BookDetailPage: React.FC = () => {
         isOpen={showBorrowModal}
         onClose={() => setShowBorrowModal(false)}
         onConfirm={handleConfirmBorrow}
+        isLoading={submitting}
         bookData={{
           tenSach: book.tenSach,
           tenTacGia: book.tenTacGia,

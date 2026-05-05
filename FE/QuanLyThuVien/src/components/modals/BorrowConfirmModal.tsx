@@ -6,6 +6,7 @@ interface BorrowConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  isLoading?: boolean;
   bookData: {
     tenSach: string;
     tenTacGia: string;
@@ -14,7 +15,7 @@ interface BorrowConfirmModalProps {
   };
 }
 
-const BorrowConfirmModal: React.FC<BorrowConfirmModalProps> = ({ isOpen, onClose, onConfirm, bookData }) => {
+const BorrowConfirmModal: React.FC<BorrowConfirmModalProps> = ({ isOpen, onClose, onConfirm, bookData, isLoading }) => {
   if (!isOpen) return null;
 
   // Calculate dates
@@ -35,7 +36,7 @@ const BorrowConfirmModal: React.FC<BorrowConfirmModalProps> = ({ isOpen, onClose
       <div className={styles['modal-content']}>
         <div className={styles['modal-header']}>
           <h2 className={styles['modal-title']}>Xác nhận mượn sách</h2>
-          <button className={styles['close-btn']} onClick={onClose}>
+          <button className={styles['close-btn']} onClick={onClose} disabled={isLoading}>
             <FiX />
           </button>
         </div>
@@ -73,8 +74,14 @@ const BorrowConfirmModal: React.FC<BorrowConfirmModalProps> = ({ isOpen, onClose
           </p>
 
           <div className={styles['modal-actions']}>
-            <button className={styles['btn-cancel']} onClick={onClose}>Hủy bỏ</button>
-            <button className={styles['btn-confirm-borrow']} onClick={onConfirm}>Xác nhận mượn</button>
+            <button className={styles['btn-cancel']} onClick={onClose} disabled={isLoading}>Hủy bỏ</button>
+            <button 
+              className={styles['btn-confirm-borrow']} 
+              onClick={onConfirm} 
+              disabled={isLoading}
+            >
+              {isLoading ? 'Đang xử lý...' : 'Xác nhận mượn'}
+            </button>
           </div>
         </div>
       </div>
