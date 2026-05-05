@@ -9,6 +9,7 @@ namespace QuanLyThuVien.Repositories
         Task<bool> CreateYeuCauMuonAsync(CreateYeuCauMuonRequest request);
         Task<List<YeuCauMuonDto>> GetYeuCauByDocGiaAsync(Guid docGiaId);
         Task<List<YeuCauMuonDto>> GetAllYeuCauMuonAsync();
+        Task<bool> UpdateTrangThaiAsync(Guid id, int trangThai);
     }
 
     public class YeuCauMuonRepository : IYeuCauMuonRepository
@@ -91,7 +92,8 @@ namespace QuanLyThuVien.Repositories
                         yc.NgayYeuCau, 
                         yc.NgayHenNhan, 
                         yc.TrangThai,
-                        nd.HoTen as TenDocGia
+                        nd.HoTen as TenDocGia,
+                        nd.Email
                     FROM YeuCauMuon yc
                     JOIN NguoiDung nd ON yc.DocGiaId = nd.Id
                     WHERE yc.DocGiaId = @DocGiaId
@@ -110,12 +112,18 @@ namespace QuanLyThuVien.Repositories
                                 Id = reader.GetGuid(reader.GetOrdinal("Id")),
                                 DocGiaId = reader.GetGuid(reader.GetOrdinal("DocGiaId")),
                                 TenDocGia = reader.GetString(reader.GetOrdinal("TenDocGia")),
+                                Email = reader.IsDBNull(reader.GetOrdinal("Email")) ? string.Empty : reader.GetString(reader.GetOrdinal("Email")),
                                 NgayYeuCau = reader.GetDateTime(reader.GetOrdinal("NgayYeuCau")),
                                 NgayHenNhan = reader.IsDBNull(reader.GetOrdinal("NgayHenNhan")) ? null : reader.GetDateTime(reader.GetOrdinal("NgayHenNhan")),
                                 TrangThai = reader.GetInt32(reader.GetOrdinal("TrangThai"))
                             });
                         }
                     }
+                }
+
+                foreach (var yc in result)
+                {
+                    yc.TenCacSach = await GetTenSachByYeuCauIdAsync(yc.Id, connection);
                 }
             }
 
@@ -138,7 +146,8 @@ namespace QuanLyThuVien.Repositories
                         yc.NgayYeuCau, 
                         yc.NgayHenNhan, 
                         yc.TrangThai,
-                        nd.HoTen as TenDocGia
+                        nd.HoTen as TenDocGia,
+                        nd.Email
                     FROM YeuCauMuon yc
                     JOIN NguoiDung nd ON yc.DocGiaId = nd.Id
                     ORDER BY yc.NgayYeuCau DESC";
@@ -149,21 +158,70 @@ namespace QuanLyThuVien.Repositories
                     {
                         while (await reader.ReadAsync())
                         {
-                            result.Add(new YeuCauMuonDto
+                            var dto = new YeuCauMuonDto
                             {
                                 Id = reader.GetGuid(reader.GetOrdinal("Id")),
                                 DocGiaId = reader.GetGuid(reader.GetOrdinal("DocGiaId")),
                                 TenDocGia = reader.GetString(reader.GetOrdinal("TenDocGia")),
+                                Email = reader.IsDBNull(reader.GetOrdinal("Email")) ? string.Empty : reader.GetString(reader.GetOrdinal("Email")),
                                 NgayYeuCau = reader.GetDateTime(reader.GetOrdinal("NgayYeuCau")),
                                 NgayHenNhan = reader.IsDBNull(reader.GetOrdinal("NgayHenNhan")) ? null : reader.GetDateTime(reader.GetOrdinal("NgayHenNhan")),
                                 TrangThai = reader.GetInt32(reader.GetOrdinal("TrangThai"))
-                            });
+                            };
+                            // Note: If you want to add Email to DTO, update the DTO model first. 
+                            // For now I'll just focus on getting book titles.
+                            result.Add(dto);
                         }
                     }
+                }
+
+                foreach (var yc in result)
+                {
+                    yc.TenCacSach = await GetTenSachByYeuCauIdAsync(yc.Id, connection);
                 }
             }
 
             return result;
+        }
+
+        private async Task<List<string>> GetTenSachByYeuCauIdAsync(Guid yeuCauId, SqlConnection connection)
+        {
+            var tenSachs = new List<string>();
+            var query = @"
+                SELECT ds.TenSach 
+                FROM ChiTietYeuCau ctyc
+                JOIN DauSach ds ON ctyc.DauSachId = ds.Id
+                WHERE ctyc.YeuCauId = @YeuCauId";
+
+            using (var command = new SqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@YeuCauId", yeuCauId);
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        tenSachs.Add(reader.GetString(0));
+                    }
+                }
+            }
+            return tenSachs;
+        }
+
+        public async Task<bool> UpdateTrangThaiAsync(Guid id, int trangThai)
+        {
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+                var query = "UPDATE YeuCauMuon SET TrangThai = @TrangThai WHERE Id = @Id";
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Id", id);
+                    command.Parameters.AddWithValue("@TrangThai", trangThai);
+                    var result = await command.ExecuteNonQueryAsync();
+                    return result > 0;
+                }
+            }
         }
     }
 }

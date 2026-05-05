@@ -13,6 +13,8 @@ export interface YeuCauMuonDto {
     ngayYeuCau: string;
     ngayHenNhan?: string;
     trangThai: number;
+    tenCacSach?: string[];
+    email?: string;
 }
 
 export const CreateYeuCauMuon = async (payload: CreateYeuCauMuonRequest) => {
@@ -37,5 +39,15 @@ export const GetDanhSachPhieuMuon = async (page: number = 1, pageSize: number = 
 
 export const GetPhieuMuonQuaHan = async () => {
     const response = await CauHinhApi.get<any[]>('/phieu-muon/qua-han');
+    return response.data;
+};
+
+export const DuyetYeuCauMuon = async (id: string) => {
+    const response = await CauHinhApi.put(`/yeu-cau-muon/${id}/duyet`);
+    return response.data;
+};
+
+export const TuChoiYeuCauMuon = async (id: string) => {
+    const response = await CauHinhApi.put(`/yeu-cau-muon/${id}/tu-choi`);
     return response.data;
 };

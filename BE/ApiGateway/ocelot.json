@@ -121,7 +121,43 @@
       "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
     },
     {
-      "DownstreamPathTemplate": "/api{catchAll}",
+      "DownstreamPathTemplate": "/api/phieu-muon/{catchAll}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7031
+        }
+      ],
+      "UpstreamPathTemplate": "/gateway/phieu-muon/{catchAll}",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/phieu-muon",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7031
+        }
+      ],
+      "UpstreamPathTemplate": "/gateway/phieu-muon",
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/ThongKe/{catchAll}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7031
+        }
+      ],
+      "UpstreamPathTemplate": "/gateway/ThongKe/{catchAll}",
+      "UpstreamHttpMethod": [ "Get" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/{catchAll}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -133,7 +169,6 @@
       "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
     }
   ],
-
   "GlobalConfiguration": {
     "BaseUrl": "https://localhost:7272"
   }

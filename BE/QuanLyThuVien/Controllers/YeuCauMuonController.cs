@@ -45,5 +45,21 @@ namespace QuanLyThuVien.Controllers
             var result = await _yeuCauMuonRepository.GetAllYeuCauMuonAsync();
             return Ok(result);
         }
+
+        [HttpPut("{id}/duyet")]
+        public async Task<IActionResult> DuyetYeuCau(Guid id)
+        {
+            var result = await _yeuCauMuonRepository.UpdateTrangThaiAsync(id, 1);
+            if (result) return Ok(new { message = "Đã duyệt yêu cầu mượn sách!" });
+            return BadRequest("Không thể duyệt yêu cầu.");
+        }
+
+        [HttpPut("{id}/tu-choi")]
+        public async Task<IActionResult> TuChoiYeuCau(Guid id)
+        {
+            var result = await _yeuCauMuonRepository.UpdateTrangThaiAsync(id, 2);
+            if (result) return Ok(new { message = "Đã từ chối yêu cầu mượn sách." });
+            return BadRequest("Không thể từ chối yêu cầu.");
+        }
     }
 }

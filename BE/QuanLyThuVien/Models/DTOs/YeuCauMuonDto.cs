@@ -8,10 +8,12 @@ namespace QuanLyThuVien.Models.DTOs
         public Guid Id { get; set; }
         public Guid DocGiaId { get; set; }
         public string TenDocGia { get; set; }
+        public string Email { get; set; }
         public DateTime NgayYeuCau { get; set; }
         public DateTime? NgayHenNhan { get; set; }
         public int TrangThai { get; set; }
         public List<Guid> DauSachIds { get; set; } = new List<Guid>();
+        public List<string> TenCacSach { get; set; } = new List<string>();
     }
 
     public class CreateYeuCauMuonRequest

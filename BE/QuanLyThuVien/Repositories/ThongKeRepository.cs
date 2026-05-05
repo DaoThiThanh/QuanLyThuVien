@@ -32,28 +32,28 @@ namespace QuanLyThuVien.Repositories
                 var queryBorrowed = "SELECT COUNT(*) FROM CuonSach WHERE TrangThaiMuon = 2";
                 using (var cmd = new SqlCommand(queryBorrowed, connection))
                 {
-                    result.BooksBorrowed = (int)await cmd.ExecuteScalarAsync();
+                    result.BooksBorrowed = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                 }
 
                 // 2. Yêu cầu chờ duyệt (TrangThai = 0 trong YeuCauMuon)
                 var queryPending = "SELECT COUNT(*) FROM YeuCauMuon WHERE TrangThai = 0";
                 using (var cmd = new SqlCommand(queryPending, connection))
                 {
-                    result.PendingRequests = (int)await cmd.ExecuteScalarAsync();
+                    result.PendingRequests = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                 }
 
                 // 3. Sách Trễ Hạn (PhieuMuon có HanTra < GETDATE() và TrangThai = 1)
                 var queryOverdue = "SELECT COUNT(*) FROM PhieuMuon WHERE HanTra < CAST(GETDATE() AS DATE) AND TrangThai = 1";
                 using (var cmd = new SqlCommand(queryOverdue, connection))
                 {
-                    result.BooksOverdue = (int)await cmd.ExecuteScalarAsync();
+                    result.BooksOverdue = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                 }
 
                 // 4. Tổng Kho Sách (Số lượng cuốn sách sẵn sàng hoặc tổng cộng)
                 var queryTotal = "SELECT COUNT(*) FROM CuonSach";
                 using (var cmd = new SqlCommand(queryTotal, connection))
                 {
-                    result.TotalBooks = (int)await cmd.ExecuteScalarAsync();
+                    result.TotalBooks = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                 }
             }
 
@@ -73,14 +73,14 @@ namespace QuanLyThuVien.Repositories
                 var queryReaders = "SELECT COUNT(*) FROM NguoiDung WHERE VaiTro = 3";
                 using (var cmd = new SqlCommand(queryReaders, connection))
                 {
-                    result.TotalReaders = (int)await cmd.ExecuteScalarAsync();
+                    result.TotalReaders = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                 }
 
                 // 2. Tổng Thủ thư (VaiTro = 2)
                 var queryLibrarians = "SELECT COUNT(*) FROM NguoiDung WHERE VaiTro = 2";
                 using (var cmd = new SqlCommand(queryLibrarians, connection))
                 {
-                    result.TotalLibrarians = (int)await cmd.ExecuteScalarAsync();
+                    result.TotalLibrarians = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                 }
 
                 // 3. Doanh Thu Phạt (Tổng SoTienThu trong PhieuThuPhat)
@@ -94,7 +94,7 @@ namespace QuanLyThuVien.Repositories
                 var queryActive = "SELECT COUNT(*) FROM PhieuMuon WHERE TrangThai = 1";
                 using (var cmd = new SqlCommand(queryActive, connection))
                 {
-                    result.ActiveLoans = (int)await cmd.ExecuteScalarAsync();
+                    result.ActiveLoans = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                 }
             }
 

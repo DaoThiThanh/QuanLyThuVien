@@ -128,7 +128,7 @@ namespace QuanLyThuVien.Repositories
                 var countQuery = "SELECT COUNT(*) FROM DauSach";
                 using (var countCommand = new SqlCommand(countQuery, connection))
                 {
-                    result.TotalItems = (int)await countCommand.ExecuteScalarAsync();
+                    result.TotalItems = Convert.ToInt32(await countCommand.ExecuteScalarAsync());
                 }
 
                 result.TotalPages = (int)Math.Ceiling(result.TotalItems / (double)pageSize);
