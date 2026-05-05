@@ -28,5 +28,19 @@ namespace QuanLyThuVien.Controllers
                 return StatusCode(500, "Internal server error: " + ex.Message);
             }
         }
+
+        [HttpGet("admin")]
+        public async Task<ActionResult<ThongKeAdminDto>> GetThongKeAdmin()
+        {
+            try
+            {
+                var result = await _thongKeRepository.GetThongKeAdminAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Internal server error: " + ex.Message);
+            }
+        }
     }
 }

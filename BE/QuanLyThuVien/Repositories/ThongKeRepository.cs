@@ -7,6 +7,7 @@ namespace QuanLyThuVien.Repositories
     public interface IThongKeRepository
     {
         Task<ThongKeThuThuDto> GetThongKeThuThuAsync();
+        Task<ThongKeAdminDto> GetThongKeAdminAsync();
     }
 
     public class ThongKeRepository : IThongKeRepository
@@ -53,6 +54,47 @@ namespace QuanLyThuVien.Repositories
                 using (var cmd = new SqlCommand(queryTotal, connection))
                 {
                     result.TotalBooks = (int)await cmd.ExecuteScalarAsync();
+                }
+            }
+
+            return result;
+        }
+
+        public async Task<ThongKeAdminDto> GetThongKeAdminAsync()
+        {
+            var result = new ThongKeAdminDto();
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+
+                // 1. Tổng Độc giả (VaiTro = 3)
+                var queryReaders = "SELECT COUNT(*) FROM NguoiDung WHERE VaiTro = 3";
+                using (var cmd = new SqlCommand(queryReaders, connection))
+                {
+                    result.TotalReaders = (int)await cmd.ExecuteScalarAsync();
+                }
+
+                // 2. Tổng Thủ thư (VaiTro = 2)
+                var queryLibrarians = "SELECT COUNT(*) FROM NguoiDung WHERE VaiTro = 2";
+                using (var cmd = new SqlCommand(queryLibrarians, connection))
+                {
+                    result.TotalLibrarians = (int)await cmd.ExecuteScalarAsync();
+                }
+
+                // 3. Doanh Thu Phạt (Tổng SoTienThu trong PhieuThuPhat)
+                var queryRevenue = "SELECT ISNULL(SUM(SoTienThu), 0) FROM PhieuThuPhat";
+                using (var cmd = new SqlCommand(queryRevenue, connection))
+                {
+                    result.TotalRevenue = Convert.ToDecimal(await cmd.ExecuteScalarAsync());
+                }
+
+                // 4. Sách đang mượn
+                var queryActive = "SELECT COUNT(*) FROM PhieuMuon WHERE TrangThai = 1";
+                using (var cmd = new SqlCommand(queryActive, connection))
+                {
+                    result.ActiveLoans = (int)await cmd.ExecuteScalarAsync();
                 }
             }
 

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import styles from './AdminPage.module.css';
 import { getAllUsers, updateUserRole, type UserItem } from '../services/modules/userService';
 import { getUserName } from '../services/modules/authService';
+import { getThongKeAdmin, type ThongKeAdminDto } from '../services/modules/statService';
 
 interface AdminStats {
   totalReaders: number;
@@ -13,36 +14,28 @@ interface AdminStats {
 
 const AdminPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [stats, setStats] = useState<ThongKeAdminDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<UserItem[]>([]);
 
   useEffect(() => {
-    // Simulate API call to fetch admin dashboard stats
-    const fetchStats = async () => {
+    const fetchData = async () => {
       setLoading(true);
-      setTimeout(() => {
-        setStats({
-          totalReaders: 1248,
-          totalLibrarians: 12,
-          totalRevenue: 15450000,
-          systemStatus: 'Hoạt động',
-        });
-        setLoading(false);
-      }, 800);
-    };
-
-    const fetchUsers = async () => {
       try {
-        const data = await getAllUsers();
-        setUsers(data);
-      } catch (e) {
-        console.error("Lỗi lấy danh sách user", e);
+        const [statsData, usersData] = await Promise.all([
+          getThongKeAdmin(),
+          getAllUsers()
+        ]);
+        setStats(statsData);
+        setUsers(usersData);
+      } catch (error) {
+        console.error("Lỗi khi tải dữ liệu admin:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchStats();
-    fetchUsers();
+    fetchData();
   }, []);
 
   const recentActivities = [
@@ -150,7 +143,7 @@ const AdminPage: React.FC = () => {
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
                     </div>
                   </div>
-                  <div className={styles['stat-value']}>{loading ? '...' : 156}</div>
+                  <div className={styles['stat-value']}>{loading ? '...' : stats?.activeLoans}</div>
                   <div className={`${styles['stat-trend']} ${styles['trend-up']}`}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
                     <span>24 yêu cầu mới</span>
@@ -247,7 +240,7 @@ const AdminPage: React.FC = () => {
                       <div key={activity.id} className={styles['activity-item']}>
                         <div className={`${styles['activity-icon-box']} ${styles[activity.type]}`}>
                           {activity.type === 'approve' && <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
-                          {activity.type === 'user' && <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>}
+                          {activity.type === 'user' && <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>}
                           {activity.type === 'warning' && <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>}
                           {activity.type === 'system' && <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>}
                         </div>
@@ -306,7 +299,53 @@ const AdminPage: React.FC = () => {
             </div>
           )}
 
-          {(activeTab === 'librarians' || activeTab === 'settings') && (
+          {activeTab === 'librarians' && (
+            <div className={styles['admin-section']}>
+              <div className={styles['section-header']}>
+                <h2 className={styles['section-title']}>Danh sách Thủ thư</h2>
+                <button className={styles['section-action']}>+ Thêm Thủ Thư</button>
+              </div>
+              <div className={styles['table-responsive']}>
+                <table className={styles['admin-table']}>
+                  <thead>
+                    <tr>
+                      <th>Họ Tên</th>
+                      <th>Email</th>
+                      <th>Số điện thoại</th>
+                      <th>Trạng Thái</th>
+                      <th>Thao Tác</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.filter(u => u.vaiTro === 2).length > 0 ? (
+                      users.filter(u => u.vaiTro === 2).map((user) => (
+                        <tr key={user.id}>
+                          <td style={{fontWeight: '600'}}>{user.hoTen}</td>
+                          <td>{user.email}</td>
+                          <td>{user.soDienThoai || 'N/A'}</td>
+                          <td>
+                            <span className={`${styles['status-badge']} ${user.trangThai === 1 ? styles['status-active'] : styles['status-inactive']}`}>
+                              {user.trangThai === 1 ? 'Đang làm việc' : 'Đã nghỉ'}
+                            </span>
+                          </td>
+                          <td>
+                             <div className={styles['action-buttons']}>
+                               <button className={`${styles['btn-icon']} ${styles['view']}`} title="Chi tiết"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                               <button className={`${styles['btn-icon']} ${styles['reject']}`} title="Khóa tài khoản"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></button>
+                             </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr><td colSpan={5} style={{textAlign: 'center', padding: '20px'}}>Chưa có thủ thư nào</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'settings' && (
             <div className={styles['placeholder-content']}>
               <div className={styles['placeholder-icon']}>
                  {menuItems.find(m => m.id === activeTab)?.icon}

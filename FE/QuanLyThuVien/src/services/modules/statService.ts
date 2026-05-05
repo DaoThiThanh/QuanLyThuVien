@@ -22,3 +22,27 @@ export const getThongKeThuThu = async (): Promise<ThongKeThuThuDto> => {
     };
   }
 };
+
+export interface ThongKeAdminDto {
+  totalReaders: number;
+  totalLibrarians: number;
+  totalRevenue: number;
+  activeLoans: number;
+  systemStatus: string;
+}
+
+export const getThongKeAdmin = async (): Promise<ThongKeAdminDto> => {
+  try {
+    const response = await axiosClient.get('/ThongKe/admin');
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi khi lấy thống kê admin:", error);
+    return {
+      totalReaders: 0,
+      totalLibrarians: 0,
+      totalRevenue: 0,
+      activeLoans: 0,
+      systemStatus: "Lỗi kết nối"
+    };
+  }
+};
