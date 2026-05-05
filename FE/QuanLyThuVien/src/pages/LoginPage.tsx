@@ -87,9 +87,6 @@ const LoginPage: React.FC = () => {
           {/* Right side (Form) */}
           <div className={styles['login-right']}>
             <h2 className={styles['form-title']}>Đăng nhập</h2>
-            <p className={styles['form-subtitle']}>
-              Chưa có tài khoản? <Link to="/register" className={styles['register-link']}>Đăng ký ngay</Link>
-            </p>
 
             {error && (
               <div className={styles['error-message']} style={{ color: '#d32f2f', backgroundColor: '#ffebee', padding: '10px', borderRadius: '4px', marginBottom: '15px', fontSize: '14px' }}>
@@ -147,6 +144,10 @@ const LoginPage: React.FC = () => {
                 {loading ? 'Đang xử lý...' : 'Đăng nhập'}
               </button>
             </form>
+
+            <p className={styles['form-subtitle']}>
+              Chưa có tài khoản? <Link to="/register" className={styles['register-link']}>Đăng ký ngay</Link>
+            </p>
           </div>
         </div>
       </div>

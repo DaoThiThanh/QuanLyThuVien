@@ -9,6 +9,7 @@ namespace QuanLyThuVien.Repositories
         Task<PagedResult<PhieuMuonDto>> GetDanhSachPhieuMuonAsync(int page, int pageSize);
         Task<PhieuMuonDto> GetPhieuMuonByIdAsync(Guid id);
         Task<bool> CreatePhieuMuonAsync(CreatePhieuMuonRequest request);
+        Task<List<PhieuMuonDto>> GetPhieuMuonQuaHanAsync();
     }
 
     public class PhieuMuonRepository : IPhieuMuonRepository
@@ -251,6 +252,55 @@ namespace QuanLyThuVien.Repositories
                     }
                 }
             }
+        }
+
+        public async Task<List<PhieuMuonDto>> GetPhieuMuonQuaHanAsync()
+        {
+            var result = new List<PhieuMuonDto>();
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+
+                var query = @"
+                    SELECT 
+                        pm.Id, 
+                        pm.DocGiaId, 
+                        nd.HoTen as TenDocGia, 
+                        pm.ThuThuId, 
+                        pm.KenhMuon, 
+                        pm.NgayMuon, 
+                        pm.HanTra, 
+                        pm.TrangThai
+                    FROM PhieuMuon pm
+                    LEFT JOIN NguoiDung nd ON pm.DocGiaId = nd.Id
+                    WHERE pm.HanTra < CAST(GETDATE() AS DATE) AND pm.TrangThai = 1
+                    ORDER BY pm.HanTra ASC";
+
+                using (var command = new SqlCommand(query, connection))
+                {
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            result.Add(new PhieuMuonDto
+                            {
+                                Id = reader.GetGuid(reader.GetOrdinal("Id")),
+                                DocGiaId = reader.GetGuid(reader.GetOrdinal("DocGiaId")),
+                                TenDocGia = reader.IsDBNull(reader.GetOrdinal("TenDocGia")) ? string.Empty : reader.GetString(reader.GetOrdinal("TenDocGia")),
+                                ThuThuId = reader.IsDBNull(reader.GetOrdinal("ThuThuId")) ? null : reader.GetGuid(reader.GetOrdinal("ThuThuId")),
+                                KenhMuon = reader.IsDBNull(reader.GetOrdinal("KenhMuon")) ? 1 : reader.GetInt32(reader.GetOrdinal("KenhMuon")),
+                                NgayMuon = reader.IsDBNull(reader.GetOrdinal("NgayMuon")) ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("NgayMuon")),
+                                HanTra = reader.IsDBNull(reader.GetOrdinal("HanTra")) ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("HanTra")),
+                                TrangThai = reader.IsDBNull(reader.GetOrdinal("TrangThai")) ? 1 : reader.GetInt32(reader.GetOrdinal("TrangThai"))
+                            });
+                        }
+                    }
+                }
+            }
+
+            return result;
         }
     }
 }

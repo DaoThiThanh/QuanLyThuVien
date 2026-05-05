@@ -48,5 +48,12 @@ namespace QuanLyThuVien.Controllers
             }
             return BadRequest(new { Message = "Lỗi khi tạo phiếu mượn, vui lòng kiểm tra lại ID độc giả và sách." });
         }
+
+        [HttpGet("qua-han")]
+        public async Task<IActionResult> GetQuaHan()
+        {
+            var result = await _phieuMuonRepository.GetPhieuMuonQuaHanAsync();
+            return Ok(result);
+        }
     }
 }

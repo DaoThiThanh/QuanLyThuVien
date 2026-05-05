@@ -168,7 +168,8 @@
 .login-page .login-right .form-subtitle {
   font-size: 15px;
   color: #64748b;
-  margin-bottom: 32px;
+  margin-top: 24px;
+  text-align: center;
 }
 
 .login-page .register-link {

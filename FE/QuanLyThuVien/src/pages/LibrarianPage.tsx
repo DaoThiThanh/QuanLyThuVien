@@ -3,30 +3,49 @@ import { Link } from 'react-router-dom';
 import styles from './AdminPage.module.css'; // Reusing the same rich CSS as Admin
 import { getThongKeThuThu, type ThongKeThuThuDto } from '../services/modules/statService';
 import { getUserName } from '../services/modules/authService';
+import { GetAllYeuCauMuon, GetDanhSachPhieuMuon, GetPhieuMuonQuaHan } from '../services/modules/borrowService';
+import { GetDanhSachSach } from '../services/modules/bookService';
 
 const LibrarianPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [stats, setStats] = useState<ThongKeThuThuDto | null>(null);
   const [loading, setLoading] = useState(true);
+  const [requests, setRequests] = useState<any[]>([]);
+  const [borrowedBooks, setBorrowedBooks] = useState<any[]>([]);
+  const [overdueBooks, setOverdueBooks] = useState<any[]>([]);
+  const [inventoryBooks, setInventoryBooks] = useState<any[]>([]);
 
   useEffect(() => {
-    // Call API to fetch librarian dashboard stats
-    const fetchStats = async () => {
+    const fetchData = async () => {
       setLoading(true);
-      // Giả lập thời gian tải để tạo hiệu ứng mượt mà
-      setTimeout(() => {
-        setStats({
-          booksBorrowed: 85,
-          pendingRequests: 12,
-          booksOverdue: 8,
-          totalBooks: 4520
-        });
+      try {
+        const [statsData, requestsData, borrowedData, overdueData, inventoryData] = await Promise.all([
+          getThongKeThuThu(),
+          GetAllYeuCauMuon(),
+          GetDanhSachPhieuMuon(1, 10),
+          GetPhieuMuonQuaHan(),
+          GetDanhSachSach(1, 10)
+        ]);
+        
+        setStats(statsData);
+        setRequests(requestsData || []);
+        setBorrowedBooks(borrowedData?.items || []);
+        setOverdueBooks(overdueData || []);
+        setInventoryBooks(inventoryData?.items || []);
+      } catch (error) {
+        console.error("Lỗi khi tải dữ liệu thủ thư:", error);
+      } finally {
         setLoading(false);
-      }, 500);
+      }
     };
 
-    fetchStats();
+    fetchData();
   }, []);
+
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return 'N/A';
+    return new Date(dateStr).toLocaleDateString('vi-VN');
+  };
 
   const recentLibrarianActivities = [
     { id: 1, user: 'Nguyễn Văn A', action: 'vừa trả sách "Lập trình React"', time: '5 phút trước', type: 'return' },
@@ -35,28 +54,6 @@ const LibrarianPage: React.FC = () => {
     { id: 4, user: 'Hệ thống', action: 'cập nhật 50 đầu sách mới nhập', time: '2 giờ trước', type: 'update' },
   ];
 
-  const mockBorrowedBooks = [
-    { id: 'PM-001', reader: 'Nguyễn Văn A', book: 'Lập trình C#', borrowDate: '20/04/2026', dueDate: '04/05/2026', status: 'borrowing' },
-    { id: 'PM-002', reader: 'Trần Thị B', book: 'Kinh tế học', borrowDate: '25/04/2026', dueDate: '09/05/2026', status: 'borrowing' },
-    { id: 'PM-003', reader: 'Lê Văn C', book: 'Tâm lý học', borrowDate: '28/04/2026', dueDate: '12/05/2026', status: 'borrowing' },
-  ];
-
-  const mockOverdueBooks = [
-    { id: 'PM-000', reader: 'Phạm Văn D', book: 'Lịch sử thế giới', borrowDate: '01/04/2026', dueDate: '15/04/2026', delayDays: 18 },
-    { id: 'PM-099', reader: 'Hoàng Thị E', book: 'Vật lý nguyên tử', borrowDate: '05/04/2026', dueDate: '19/04/2026', delayDays: 14 },
-  ];
-
-  const mockRequests = [
-    { id: '#YC-00124', user: 'Nguyễn Văn A', email: 'nguyenvana@email.com', date: '03/05/2026', pickup: '05/05/2026', status: 'pending' },
-    { id: '#YC-00123', user: 'Trần Thị B', email: 'tranthib@email.com', date: '02/05/2026', pickup: '04/05/2026', status: 'approved' },
-    { id: '#YC-00122', user: 'Lê Hoàng M', email: 'lehoangm@email.com', date: '01/05/2026', pickup: '03/05/2026', status: 'rejected' },
-  ];
-
-  const mockBooks = [
-    { id: 'S-001', title: 'Đắc Nhân Tâm', author: 'Dale Carnegie', category: 'Kỹ năng', amount: 5, status: 'available' },
-    { id: 'S-002', title: 'Sạch Sành Sanh', author: 'Robert C. Martin', category: 'Công nghệ', amount: 0, status: 'borrowed' },
-    { id: 'S-003', title: 'Nhà Giả Kim', author: 'Paulo Coelho', category: 'Văn học', amount: 12, status: 'available' },
-  ];
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg> },
@@ -194,18 +191,18 @@ const LibrarianPage: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {mockRequests.slice(0, 3).map((req) => (
+                        {requests.slice(0, 3).map((req) => (
                           <tr key={req.id}>
-                            <td><strong>{req.id}</strong></td>
+                            <td><strong>#{String(req.id).substring(0, 8)}</strong></td>
                             <td>
                               <div className={styles['user-details']}>
-                                <span className={styles['user-name']} style={{fontSize: '14px'}}>{req.user}</span>
+                                <span className={styles['user-name']} style={{fontSize: '14px'}}>{req.tenDocGia}</span>
                               </div>
                             </td>
-                            <td style={{fontSize: '13px'}}>{req.pickup}</td>
+                            <td style={{fontSize: '13px'}}>{formatDate(req.ngayHenNhan)}</td>
                             <td>
-                              <span className={`${styles['status-badge']} ${styles['status-' + req.status]}`} style={{padding: '4px 10px', fontSize: '11px'}}>
-                                {req.status === 'pending' ? 'Chờ duyệt' : req.status === 'approved' ? 'Đã duyệt' : 'Từ chối'}
+                              <span className={`${styles['status-badge']} ${styles['status-' + (req.trangThai === 0 ? 'pending' : req.trangThai === 1 ? 'approved' : 'rejected')]}`} style={{padding: '4px 10px', fontSize: '11px'}}>
+                                {req.trangThai === 0 ? 'Chờ duyệt' : req.trangThai === 1 ? 'Đã duyệt' : 'Từ chối'}
                               </span>
                             </td>
                           </tr>
@@ -259,16 +256,16 @@ const LibrarianPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {mockBooks.map(book => (
+                    {inventoryBooks.map(book => (
                       <tr key={book.id}>
-                        <td>{book.id}</td>
-                        <td style={{fontWeight: '600'}}>{book.title}</td>
-                        <td>{book.author}</td>
-                        <td>{book.category}</td>
-                        <td>{book.amount}</td>
+                        <td style={{fontSize: '12px'}}>{book.id}</td>
+                        <td style={{fontWeight: '600'}}>{book.tenSach}</td>
+                        <td>{book.tenTacGia}</td>
+                        <td>{book.tenDanhMuc}</td>
+                        <td>{book.soLuongTon}</td>
                         <td>
-                          <span className={`${styles['status-badge']} ${book.status === 'available' ? styles['status-active'] : styles['status-pending']}`}>
-                            {book.status === 'available' ? 'Sẵn sàng' : 'Đã hết'}
+                          <span className={`${styles['status-badge']} ${book.soLuongTon > 0 ? styles['status-active'] : styles['status-pending']}`}>
+                            {book.soLuongTon > 0 ? 'Sẵn sàng' : 'Đã hết'}
                           </span>
                         </td>
                       </tr>
@@ -299,13 +296,13 @@ const LibrarianPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {mockBorrowedBooks.map(item => (
+                      {borrowedBooks.map(item => (
                         <tr key={item.id}>
-                          <td><strong>{item.id}</strong></td>
-                          <td>{item.reader}</td>
-                          <td>{item.book}</td>
-                          <td>{item.borrowDate}</td>
-                          <td><span style={{color: '#3b82f6', fontWeight: '500'}}>{item.dueDate}</span></td>
+                          <td><strong>#{String(item.id).substring(0, 8)}</strong></td>
+                          <td>{item.tenDocGia}</td>
+                          <td>{item.tenSach || "Nhiều sách"}</td>
+                          <td>{formatDate(item.ngayMuon)}</td>
+                          <td><span style={{color: '#3b82f6', fontWeight: '500'}}>{formatDate(item.hanTra)}</span></td>
                           <td><button className={`${styles['status-badge']} ${styles['status-active']}`} style={{border: 'none', cursor: 'pointer'}}>Trả sách</button></td>
                         </tr>
                       ))}
@@ -331,16 +328,19 @@ const LibrarianPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {mockOverdueBooks.map(item => (
-                        <tr key={item.id}>
-                          <td><strong>{item.id}</strong></td>
-                          <td>{item.reader}</td>
-                          <td>{item.book}</td>
-                          <td>{item.dueDate}</td>
-                          <td><span className={`${styles['status-badge']} ${styles['status-rejected']}`}>{item.delayDays} ngày</span></td>
-                          <td><strong style={{color: '#ef4444'}}>{(item.delayDays * 5000).toLocaleString()} ₫</strong></td>
-                        </tr>
-                      ))}
+                      {overdueBooks.map(item => {
+                        const delayDays = Math.ceil((new Date().getTime() - new Date(item.hanTra).getTime()) / (1000 * 3600 * 24));
+                        return (
+                          <tr key={item.id}>
+                            <td><strong>#{String(item.id).substring(0, 8)}</strong></td>
+                            <td>{item.tenDocGia}</td>
+                            <td>{item.tenSach || "Nhiều sách"}</td>
+                            <td>{formatDate(item.hanTra)}</td>
+                            <td><span className={`${styles['status-badge']} ${styles['status-rejected']}`}>{delayDays} ngày</span></td>
+                            <td><strong style={{color: '#ef4444'}}>{(delayDays * 5000).toLocaleString()} ₫</strong></td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -366,19 +366,19 @@ const LibrarianPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {mockRequests.map(req => (
+                    {requests.map(req => (
                       <tr key={req.id}>
-                        <td><strong>{req.id}</strong></td>
-                        <td>{req.user}</td>
-                        <td>{req.email}</td>
-                        <td>{req.pickup}</td>
+                        <td><strong>#{String(req.id).substring(0, 8)}</strong></td>
+                        <td>{req.tenDocGia}</td>
+                        <td>{req.email || "N/A"}</td>
+                        <td>{formatDate(req.ngayHenNhan)}</td>
                         <td>
-                          <span className={`${styles['status-badge']} ${styles['status-' + req.status]}`}>
-                            {req.status === 'pending' ? 'Đang chờ' : req.status === 'approved' ? 'Đã duyệt' : 'Đã từ chối'}
+                          <span className={`${styles['status-badge']} ${styles['status-' + (req.trangThai === 0 ? 'pending' : req.trangThai === 1 ? 'approved' : 'rejected')]}`}>
+                            {req.trangThai === 0 ? 'Đang chờ' : req.trangThai === 1 ? 'Đã duyệt' : 'Đã từ chối'}
                           </span>
                         </td>
                         <td>
-                          {req.status === 'pending' && (
+                          {req.trangThai === 0 && (
                             <div className={styles['action-buttons']}>
                               <button className={`${styles['btn-icon']} ${styles['approve']}`}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
                               <button className={`${styles['btn-icon']} ${styles['reject']}`}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>

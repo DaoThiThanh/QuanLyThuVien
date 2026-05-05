@@ -66,5 +66,21 @@ namespace QuanLyThuVien.Controllers
                 return StatusCode(500, $"Lỗi server: {ex.Message}");
             }
         }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(Guid id)
+        {
+            try
+            {
+                var result = await _sachRepository.GetSachByIdAsync(id);
+                if (result == null) return NotFound("Không tìm thấy sách.");
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi server: {ex.Message}");
+            }
+        }
     }
 }

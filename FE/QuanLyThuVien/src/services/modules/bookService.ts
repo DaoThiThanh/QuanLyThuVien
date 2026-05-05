@@ -24,3 +24,7 @@ export async function GetDanhSachSach(page: number = 1, pageSize: number = 12): 
     const response = await axiosClient.get<PaginatedResponse<PaginatedBookItem>>(`/sach?page=${page}&pageSize=${pageSize}`);
     return response.data;
 }
+export async function GetBookById(id: string): Promise<any> {
+    const response = await axiosClient.get<any>(`/sach/${id}`);
+    return response.data;
+}

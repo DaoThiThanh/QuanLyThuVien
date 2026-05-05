@@ -9,6 +9,7 @@ namespace QuanLyThuVien.Repositories
         Task<IEnumerable<SachNoiBatDto>> GetSachNoiBatAsync(int top);
         Task<IEnumerable<SachMoiBoSungDto>> GetSachMoiBoSungAsync(int top);
         Task<PagedResult<SachDto>> GetDanhSachSachAsync(int page, int pageSize);
+        Task<SachDto> GetSachByIdAsync(Guid id);
     }
     
     public class SachRepository : ISachRepository
@@ -172,6 +173,64 @@ namespace QuanLyThuVien.Repositories
             }
 
             return result;
+        }
+
+        public async Task<SachDto> GetSachByIdAsync(Guid id)
+        {
+            SachDto sach = null;
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+
+                var query = @"
+                    SELECT 
+                        ds.Id, 
+                        ds.TenSach, 
+                        ds.HinhAnh, 
+                        ds.SoLuongTon, 
+                        ds.NamXuatBan,
+                        dm.TenDanhMuc,
+                        tg.TenTacGia,
+                        nxb.TenNXB,
+                        '' as MoTa,
+                        '' as Isbn,
+                        (SELECT COUNT(*) FROM CuonSach WHERE DauSachId = ds.Id) as TongSoLuong
+                    FROM DauSach ds
+                    LEFT JOIN DanhMucSach dm ON ds.DanhMucId = dm.Id
+                    LEFT JOIN TacGia tg ON ds.TacGiaId = tg.Id
+                    LEFT JOIN NhaXuatBan nxb ON ds.NxbId = nxb.Id
+                    WHERE ds.Id = @Id";
+
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Id", id);
+
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        if (await reader.ReadAsync())
+                        {
+                            sach = new SachDto
+                            {
+                                Id = reader.GetGuid(reader.GetOrdinal("Id")),
+                                TenSach = reader.GetString(reader.GetOrdinal("TenSach")),
+                                HinhAnh = reader.IsDBNull(reader.GetOrdinal("HinhAnh")) ? null : reader.GetString(reader.GetOrdinal("HinhAnh")),
+                                SoLuongTon = reader.IsDBNull(reader.GetOrdinal("SoLuongTon")) ? 0 : reader.GetInt32(reader.GetOrdinal("SoLuongTon")),
+                                TenDanhMuc = reader.IsDBNull(reader.GetOrdinal("TenDanhMuc")) ? string.Empty : reader.GetString(reader.GetOrdinal("TenDanhMuc")),
+                                TenTacGia = reader.IsDBNull(reader.GetOrdinal("TenTacGia")) ? string.Empty : reader.GetString(reader.GetOrdinal("TenTacGia")),
+                                NamXuatBan = reader.IsDBNull(reader.GetOrdinal("NamXuatBan")) ? 0 : reader.GetInt32(reader.GetOrdinal("NamXuatBan")),
+                                TenNhaXuatBan = reader.IsDBNull(reader.GetOrdinal("TenNXB")) ? string.Empty : reader.GetString(reader.GetOrdinal("TenNXB")),
+                                MoTa = reader.IsDBNull(reader.GetOrdinal("MoTa")) ? string.Empty : reader.GetString(reader.GetOrdinal("MoTa")),
+                                Isbn = reader.IsDBNull(reader.GetOrdinal("Isbn")) ? string.Empty : reader.GetString(reader.GetOrdinal("Isbn")),
+                                TongSoLuong = reader.IsDBNull(reader.GetOrdinal("TongSoLuong")) ? 0 : reader.GetInt32(reader.GetOrdinal("TongSoLuong"))
+                            };
+                        }
+                    }
+                }
+            }
+
+            return sach;
         }
     }
 }
