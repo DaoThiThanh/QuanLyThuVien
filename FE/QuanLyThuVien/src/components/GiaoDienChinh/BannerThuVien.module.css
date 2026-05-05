@@ -1,0 +1,458 @@
+/* src/components/GiaoDienChinh/BannerThuVien.css */
+.hero-section {
+  position: relative;
+  width: 100%;
+  background: linear-gradient(135deg, #2563eb 0%, #4338ca 100%);
+  color: white;
+  padding-top: 60px;
+  font-family: system-ui, -apple-system, sans-serif;
+  margin-bottom: 70px;
+  /* Space for overlapping cards, enough for half of 100px card */
+}
+
+.hero-section .hero-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.hero-section .hero-image-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&q=80&w=2000');
+  background-size: cover;
+  background-position: center;
+  filter: blur(2px) brightness(0.65);
+  transform: scale(1.05); /* Slightly more scale to cover blur edges */
+}
+
+
+
+
+.hero-section .circle {
+  display: none; /* Removed blurred edges effect as requested */
+}
+
+
+.hero-section .hero-content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px 80px 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-section .hero-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 40px;
+}
+
+/* Left side styling */
+.hero-section .hero-left {
+  flex: 1;
+  max-width: 650px;
+}
+
+.hero-section .welcome-badge {
+  display: inline-flex;
+  align-items: center;
+  background-color: #eab308;
+  /* Yellow 500 */
+  color: white;
+  padding: 6px 16px;
+  border-radius: 24px;
+  font-weight: 500;
+  font-size: 16px;
+  margin-bottom: 24px;
+  gap: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.hero-section .wave-icon {
+  font-size: 18px;
+}
+
+.hero-section .hero-title {
+  font-size: 54px;
+  line-height: 1.2;
+  font-weight: 700;
+  margin: 0 0 20px 0;
+  letter-spacing: -0.5px;
+  color: white;
+}
+
+.hero-section .highlight-text {
+  color: #fde047;
+  /* Yellow 300 */
+}
+
+.hero-section .hero-description {
+  font-size: 18px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 40px;
+  max-width: 550px;
+}
+
+.hero-section .search-box {
+  display: flex;
+  background-color: white;
+  border-radius: 12px;
+  padding: 6px;
+  margin-bottom: 24px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.hero-section .search-input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+}
+
+.hero-section .search-icon {
+  color: #9ca3af;
+}
+
+.hero-section .search-input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  font-size: 18px;
+  color: #374151;
+  outline: none;
+}
+
+.hero-section .search-input::placeholder {
+  color: #9ca3af;
+}
+
+.hero-section .search-button {
+  background-color: #3b82f6;
+  /* Blue 500 */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 600;
+  font-size: 17px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.hero-section .search-button:hover {
+  background-color: #2563eb;
+  /* Blue 600 */
+}
+
+.hero-section .quick-links {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.hero-section .quick-links-label {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+}
+
+.hero-section .tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.hero-section .tag {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 500;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.hero-section .tag:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Right side - User Card */
+.hero-section .hero-right {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.hero-section .user-glass-card {
+  width: 380px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+}
+
+.hero-section .user-info-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.hero-section .user-avatar-large {
+  width: 56px;
+  height: 56px;
+  background-color: #93c5fd;
+  /* Light Blue */
+  color: white;
+  /* In design it's white N on light blue bg */
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.hero-section .user-name-large {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  color: white;
+}
+
+.hero-section .user-id {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.hero-section .user-stats-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.hero-section .stat-box {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.08);
+  /* slight less transparency */
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-section .stat-number {
+  font-size: 30px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.hero-section .stat-number.highlight-yellow {
+  color: #fde047;
+}
+
+.hero-section .stat-label {
+  font-size: 15px;
+  color: #ffffff !important;
+}
+
+.hero-section .user-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hero-section .user-action-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  padding: 14px 20px;
+  border-radius: 12px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.hero-section .user-action-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.hero-section .action-btn-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hero-section .accent-yellow {
+  color: #fde047;
+}
+
+/* Bottom Overlapping Stats */
+.hero-section .bottom-stats-container {
+  position: absolute;
+  bottom: -45px;
+  /* Adjust based on card height to overlap 50% */
+  left: 0;
+  width: 100%;
+  z-index: 2;
+}
+
+.hero-section .bottom-stats-grid {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+
+.hero-section .stat-card {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  color: #1f2937;
+  transition: transform 0.2s;
+  min-height: 90px;
+  box-sizing: border-box;
+}
+
+.hero-section .stat-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Specialized stat card backgrounds based on image */
+.hero-section .stat-card.icon-yellow-bg {
+  background: #fefce8;
+}
+
+.hero-section .stat-card.icon-red-bg {
+  background: #fff1f2;
+}
+
+.hero-section .icon-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.hero-section .icon-blue {
+  background-color: #eff6ff;
+  color: #3b82f6;
+}
+
+.hero-section .icon-purple {
+  background-color: #faf5ff;
+  color: #a855f7;
+}
+
+.hero-section .icon-green {
+  background-color: #f0fdf4;
+  color: #22c55e;
+}
+
+.hero-section .icon-yellow {
+  background-color: #fef9c3;
+  color: #ca8a04;
+}
+
+.hero-section .icon-red {
+  background-color: #ffe4e6;
+  color: #e11d48;
+}
+
+.hero-section .stat-card-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-section .stat-card-value {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 2px 0;
+  line-height: 1.2;
+}
+
+.hero-section .stat-card-label {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* Responsiveness adjustments */
+@media (max-width: 1024px) {
+  .hero-section .hero-main {
+    flex-direction: column;
+  }
+
+  .hero-section .hero-right {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .hero-section .user-glass-card {
+    width: 100%;
+    max-width: 500px;
+  }
+
+  .hero-section .bottom-stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .hero-section {
+    margin-bottom: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-section .hero-title {
+    font-size: 36px;
+  }
+
+  .hero-section .bottom-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .hero-section .stat-card {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-section .bottom-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-section {
+    margin-bottom: 450px;
+  }
+}
