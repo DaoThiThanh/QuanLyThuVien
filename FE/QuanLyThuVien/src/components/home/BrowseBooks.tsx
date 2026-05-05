@@ -4,6 +4,7 @@ import { FiBookOpen, FiGrid, FiList, FiEye } from 'react-icons/fi';
 import { GetDanhSachSach } from '../../services/modules/bookService';
 import type { PaginatedBookItem } from '../../types/book';
 import { useNavigate } from 'react-router-dom';
+import { getToken } from '../../services/modules/authService';
 
 
 const BrowseBooks: React.FC = () => {
@@ -156,7 +157,19 @@ const BrowseBooks: React.FC = () => {
                     >
                       <FiEye /> Chi tiết
                     </button>
-                    <button className={`${styles['borrow-btn']} ${book.soLuongTon <= 0 ? styles['disabled'] : ''}`} disabled={book.soLuongTon <= 0}>
+                    <button 
+                      className={`${styles['borrow-btn']} ${book.soLuongTon <= 0 ? styles['disabled'] : ''}`} 
+                      disabled={book.soLuongTon <= 0}
+                      onClick={() => {
+                        if (!getToken()) {
+                          navigate('/login', { state: { from: '/' } });
+                          return;
+                        }
+                        // For now, if logged in, we can redirect to detail page to complete borrowing
+                        // Or show an alert if we don't want to implement a modal here yet
+                        navigate(`/book-detail/${book.id}`);
+                      }}
+                    >
                       Mượn
                     </button>
                   </div>

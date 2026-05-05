@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import styles from './LoginPage.module.css';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { loginApi } from '../services/modules/authService';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from || '/';
+
   const [formData, setFormData] = useState({
     email: '',
     matkhau: '',
@@ -32,8 +35,8 @@ const LoginPage: React.FC = () => {
       // loginApi now natively saves tokens, role, and userId!
       await loginApi(formData, remember);
 
-      // Navigate to homepage after successful login
-      navigate('/');
+      // Navigate back to where they were, or home
+      navigate(from, { replace: true });
     } catch (err: any) {
       console.error('Lỗi đăng nhập:', err);
       setError(err.message || 'Đăng nhập thất bại. Vui lòng thử lại.');

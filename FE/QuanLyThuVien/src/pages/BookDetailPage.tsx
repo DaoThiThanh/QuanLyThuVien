@@ -5,6 +5,7 @@ import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import BorrowConfirmModal from '../components/modals/BorrowConfirmModal';
 import styles from './BookDetailPage.module.css';
+import { getToken } from '../services/modules/authService';
 
 const BookDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -145,7 +146,17 @@ const BookDetailPage: React.FC = () => {
               </div>
 
               <div className={styles['detail-actions']}>
-                <button className={styles['btn-borrow-main']} onClick={() => setShowBorrowModal(true)}>
+                <button 
+                  className={styles['btn-borrow-main']} 
+                  onClick={() => {
+                    if (!getToken()) {
+                      // Nếu chưa đăng nhập, chuyển hướng sang trang login và lưu lại URL hiện tại
+                      navigate('/login', { state: { from: `/book-detail/${id}` } });
+                      return;
+                    }
+                    setShowBorrowModal(true);
+                  }}
+                >
                   <FiBook /> Mượn sách này
                 </button>
                 <button className={styles['btn-back-list']} onClick={handleBack}>
