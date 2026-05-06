@@ -70,9 +70,9 @@ const LibrarianPage: React.FC = () => {
       const [statsData, requestsData, borrowedData, overdueData, inventoryData, tacGiasData, nxbsData, dmData, readersData] = await Promise.all([
         getThongKeThuThu(),
         GetAllYeuCauMuon(),
-        GetDanhSachPhieuMuon(1, 10),
+        GetDanhSachPhieuMuon(1, 100),
         GetPhieuMuonQuaHan(),
-        GetDanhSachSach(1, 50),
+        GetDanhSachSach(1, 100),
         GetTacGias(),
         GetNhaXuatBans(),
         GetCategories(),
@@ -450,10 +450,10 @@ const LibrarianPage: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {requests.length === 0 ? (
-                          <tr><td colSpan={4} style={{ textAlign: 'center', padding: '20px' }}>Không có yêu cầu nào</td></tr>
+                        {requests.filter(r => r.trangThai === 0).length === 0 ? (
+                          <tr><td colSpan={4} style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>Không có yêu cầu mới cần duyệt</td></tr>
                         ) : (
-                          requests.slice(0, 5).map((req) => (
+                          requests.filter(r => r.trangThai === 0).slice(0, 5).map((req) => (
                             <tr key={req.id}>
                               <td>
                                 <div className={styles['user-details']}>
@@ -462,14 +462,23 @@ const LibrarianPage: React.FC = () => {
                                 </div>
                               </td>
                               <td style={{ fontSize: '13px', maxWidth: '250px' }}>
-                                <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: req.tenCacSach && req.tenCacSach.length > 0 ? 'inherit' : '#9ca3af' }} title={req.tenCacSach?.join(', ')}>
-                                  {req.tenCacSach && req.tenCacSach.length > 0 ? req.tenCacSach.join(', ') : (req.tenCacSach ? 'Chưa chọn sách' : 'Đang tải...')}
+                                <div 
+                                  style={{ 
+                                    overflow: 'hidden', 
+                                    textOverflow: 'ellipsis', 
+                                    whiteSpace: 'nowrap', 
+                                    color: req.tenCacSach && req.tenCacSach.length > 0 ? '#1e293b' : '#9ca3af',
+                                    fontWeight: '500'
+                                  }} 
+                                  title={req.tenCacSach?.join(', ')}
+                                >
+                                  {req.tenCacSach && req.tenCacSach.length > 0 ? req.tenCacSach.join(', ') : 'Sách đang mượn...'}
                                 </div>
                               </td>
                               <td style={{ fontSize: '13px' }}>{formatDate(req.ngayHenNhan || '')}</td>
                               <td>
-                                <span className={`${styles['status-badge']} ${styles['status-' + (req.trangThai === 0 ? 'pending' : req.trangThai === 1 ? 'approved' : 'rejected')]}`} style={{ padding: '4px 10px', fontSize: '11px' }}>
-                                  {req.trangThai === 0 ? 'Chờ duyệt' : req.trangThai === 1 ? 'Đã duyệt' : 'Từ chối'}
+                                <span className={`${styles['status-badge']} ${styles['status-pending']}`} style={{ padding: '4px 10px', fontSize: '11px' }}>
+                                  Mới (Chờ duyệt)
                                 </span>
                               </td>
                             </tr>
@@ -569,15 +578,19 @@ const LibrarianPage: React.FC = () => {
                 <div className={styles['dashboard-stats']} style={{ marginBottom: '25px', gap: '15px' }}>
                   <div className={styles['stat-card']} style={{ padding: '15px', background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', border: '1px solid #bfdbfe' }}>
                     <div style={{ color: '#1e40af', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', marginBottom: '5px' }}>Đang cho mượn</div>
-                    <div style={{ fontSize: '24px', fontWeight: '800', color: '#1e3a8a' }}>{borrowedBooks.length}</div>
+                    <div style={{ fontSize: '24px', fontWeight: '800', color: '#1e3a8a' }}>{stats?.booksBorrowed || 0}</div>
                   </div>
                   <div className={styles['stat-card']} style={{ padding: '15px', background: 'linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%)', border: '1px solid #fecaca' }}>
                     <div style={{ color: '#991b1b', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', marginBottom: '5px' }}>Quá hạn</div>
-                    <div style={{ fontSize: '24px', fontWeight: '800', color: '#7f1d1d' }}>{overdueBooks.length}</div>
+                    <div style={{ fontSize: '24px', fontWeight: '800', color: '#7f1d1d' }}>{stats?.booksOverdue || 0}</div>
                   </div>
                   <div className={styles['stat-card']} style={{ padding: '15px', background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', border: '1px solid #bbf7d0' }}>
                     <div style={{ color: '#166534', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', marginBottom: '5px' }}>Tỉ lệ đúng hạn</div>
-                    <div style={{ fontSize: '24px', fontWeight: '800', color: '#14532d' }}>{borrowedBooks.length > 0 ? Math.round(((borrowedBooks.length - overdueBooks.length) / borrowedBooks.length) * 100) : 100}%</div>
+                    <div style={{ fontSize: '24px', fontWeight: '800', color: '#14532d' }}>
+                      {stats && stats.booksBorrowed > 0 
+                        ? Math.round(((stats.booksBorrowed - stats.booksOverdue) / stats.booksBorrowed) * 100) 
+                        : 100}%
+                    </div>
                   </div>
                 </div>
 
