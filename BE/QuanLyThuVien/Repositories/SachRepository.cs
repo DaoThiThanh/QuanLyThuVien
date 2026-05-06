@@ -15,6 +15,8 @@ namespace QuanLyThuVien.Repositories
         Task<bool> DeleteSachAsync(Guid id);
         Task<IEnumerable<TacGiaDto>> GetTacGiasAsync();
         Task<IEnumerable<NhaXuatBanDto>> GetNhaXuatBansAsync();
+        Task<object> GetCuonSachByBarcodeAsync(string barcode);
+        Task<IEnumerable<object>> GetAvailableCuonSachsByDauSachAsync(Guid dauSachId);
     }
     
     public class SachRepository : ISachRepository
@@ -379,6 +381,72 @@ namespace QuanLyThuVien.Repositories
                             {
                                 Id = reader.GetGuid(0),
                                 TenNXB = reader.GetString(1)
+                            });
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+        public async Task<object> GetCuonSachByBarcodeAsync(string barcode)
+        {
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+                var query = @"
+                    SELECT cs.Id, cs.MaVach, cs.TinhTrangVatLy, cs.TrangThaiMuon, ds.TenSach, ds.Id as DauSachId
+                    FROM CuonSach cs
+                    JOIN DauSach ds ON cs.DauSachId = ds.Id
+                    WHERE cs.MaVach = @MaVach";
+
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@MaVach", barcode);
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        if (await reader.ReadAsync())
+                        {
+                            return new
+                            {
+                                Id = reader.GetGuid(0),
+                                MaVach = reader.GetString(1),
+                                TinhTrangVatLy = reader.GetString(2),
+                                TrangThaiMuon = reader.GetInt32(3),
+                                TenSach = reader.GetString(4),
+                                DauSachId = reader.GetGuid(5)
+                            };
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        public async Task<IEnumerable<object>> GetAvailableCuonSachsByDauSachAsync(Guid dauSachId)
+        {
+            var result = new List<object>();
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+                var query = @"
+                    SELECT Id, MaVach, TinhTrangVatLy 
+                    FROM CuonSach 
+                    WHERE DauSachId = @DauSachId AND TrangThaiMuon = 1"; // 1 = Sẵn sàng
+
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@DauSachId", dauSachId);
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            result.Add(new
+                            {
+                                Id = reader.GetGuid(0),
+                                MaVach = reader.GetString(1),
+                                TinhTrangVatLy = reader.GetString(2)
                             });
                         }
                     }

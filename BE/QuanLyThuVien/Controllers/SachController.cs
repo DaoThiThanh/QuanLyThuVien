@@ -156,5 +156,19 @@ namespace QuanLyThuVien.Controllers
                 return StatusCode(500, $"Lỗi server: {ex.Message}");
             }
         }
+        [HttpGet("cuon-sach/barcode/{barcode}")]
+        public async Task<IActionResult> GetByBarcode(string barcode)
+        {
+            var result = await _sachRepository.GetCuonSachByBarcodeAsync(barcode);
+            if (result == null) return NotFound(new { message = "Không tìm thấy cuốn sách với mã vạch này." });
+            return Ok(result);
+        }
+
+        [HttpGet("cuon-sach/available/{dauSachId}")]
+        public async Task<IActionResult> GetAvailableCopies(Guid dauSachId)
+        {
+            var result = await _sachRepository.GetAvailableCuonSachsByDauSachAsync(dauSachId);
+            return Ok(result);
+        }
     }
 }

@@ -6,6 +6,8 @@ import { getUserName } from '../dichVu/modules/dichVuXacThuc';
 import { GetAllYeuCauMuon, GetDanhSachPhieuMuon, GetPhieuMuonQuaHan, DuyetYeuCauMuon, TuChoiYeuCauMuon, type YeuCauMuonDto } from '../dichVu/modules/dichVuMuonSach';
 import { GetDanhSachSach, CreateBook, UpdateBook, DeleteBook, GetTacGias, GetNhaXuatBans, GetCategories } from '../dichVu/modules/dichVuSach';
 import type { TacGiaItem, NhaXuatBanItem, CategoryItem, UpsertSachDto } from '../kieuDuLieu/sach';
+import DuyetYeuCauModal from '../components/CuaSoXacNhan/DuyetYeuCauModal';
+import KiemTraKhoModal from '../components/CuaSoXacNhan/KiemTraKhoModal';
 
 const LibrarianPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -14,6 +16,10 @@ const LibrarianPage: React.FC = () => {
   const [requests, setRequests] = useState<YeuCauMuonDto[]>([]);
   const [borrowedBooks, setBorrowedBooks] = useState<any[]>([]);
   const [overdueBooks, setOverdueBooks] = useState<any[]>([]);
+  const [overdueLoans, setOverdueLoans] = useState<any[]>([]);
+  const [selectedYeuCau, setSelectedYeuCau] = useState<any>(null);
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [showCheckStockModal, setShowCheckStockModal] = useState(false);
   const [inventoryBooks, setInventoryBooks] = useState<any[]>([]);
   const [tacGias, setTacGias] = useState<TacGiaItem[]>([]);
   const [nhaXuatBans, setNhaXuatBans] = useState<NhaXuatBanItem[]>([]);
@@ -61,15 +67,14 @@ const LibrarianPage: React.FC = () => {
     fetchData();
   }, []);
 
-  const handleApprove = async (id: string) => {
-    if (!window.confirm('Bạn có chắc chắn muốn duyệt yêu cầu này?')) return;
-    try {
-      await DuyetYeuCauMuon(id);
-      alert('Đã duyệt yêu cầu thành công!');
-      fetchData();
-    } catch (error: any) {
-      alert('Lỗi: ' + (error.message || 'Không thể duyệt yêu cầu'));
-    }
+  const handleOpenCheckStock = (yeuCau: any) => {
+    setSelectedYeuCau(yeuCau);
+    setShowCheckStockModal(true);
+  };
+
+  const handleIssueBooks = (yeuCau: any) => {
+    setSelectedYeuCau(yeuCau);
+    setShowApproveModal(true);
   };
 
   const handleReject = async (id: string) => {
@@ -503,28 +508,34 @@ const LibrarianPage: React.FC = () => {
                           </td>
                           <td style={{ fontSize: '13px' }}>{formatDate(req.ngayHenNhan || '')}</td>
                           <td>
-                            <span className={`${styles['status-badge']} ${styles['status-' + (req.trangThai === 0 ? 'pending' : req.trangThai === 1 ? 'approved' : 'rejected')]}`}>
-                              {req.trangThai === 0 ? 'Đang chờ' : req.trangThai === 1 ? 'Đã duyệt' : 'Đã từ chối'}
+                            <span className={`${styles['status-badge']} ${
+                                req.trangThai === 0 ? styles['status-pending'] : 
+                                req.trangThai === 1 ? styles['status-approved'] : 
+                                req.trangThai === 3 ? styles['status-completed'] : styles['status-rejected']
+                            }`}>
+                              {req.trangThai === 0 ? 'Đang chờ' : 
+                               req.trangThai === 1 ? 'Đã duyệt' : 
+                               req.trangThai === 3 ? 'Đã cấp sách' : 'Đã từ chối'}
                             </span>
                           </td>
                           <td>
                             {req.trangThai === 0 && (
                               <div className={styles['action-buttons']}>
-                                <button
-                                  className={`${styles['btn-icon']} ${styles['approve']}`}
-                                  title="Duyệt"
-                                  onClick={() => handleApprove(req.id)}
+                                <button 
+                                  className={`${styles['action-btn-mini']} ${styles['btn-check-stock']}`}
+                                  onClick={() => handleOpenCheckStock(req)}
                                 >
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                                </button>
-                                <button
-                                  className={`${styles['btn-icon']} ${styles['reject']}`}
-                                  title="Từ chối"
-                                  onClick={() => handleReject(req.id)}
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                                  Kiểm tra
                                 </button>
                               </div>
+                            )}
+                            {req.trangThai === 1 && (
+                                <button 
+                                    className={`${styles['action-btn-mini']} ${styles['btn-issue-book']}`}
+                                    onClick={() => handleIssueBooks(req)}
+                                >
+                                    Bàn giao sách
+                                </button>
                             )}
                           </td>
                         </tr>
@@ -605,7 +616,31 @@ const LibrarianPage: React.FC = () => {
             </div>
           </div>
         )}
-      </main>
+
+            {/* Modal Kiểm tra kho & Duyệt/Từ chối */}
+            {selectedYeuCau && (
+                <KiemTraKhoModal 
+                    isOpen={showCheckStockModal}
+                    onClose={() => setShowCheckStockModal(false)}
+                    yeuCau={selectedYeuCau}
+                    onSuccess={() => {
+                        fetchData();
+                    }}
+                />
+            )}
+
+            {/* Modal Bàn giao sách */}
+            {selectedYeuCau && (
+                <DuyetYeuCauModal 
+                    isOpen={showApproveModal}
+                    onClose={() => setShowApproveModal(false)}
+                    yeuCau={selectedYeuCau}
+                    onSuccess={() => {
+                        fetchData();
+                    }}
+                />
+            )}
+        </main>
     </div>
   );
 };

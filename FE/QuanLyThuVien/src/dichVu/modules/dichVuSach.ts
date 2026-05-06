@@ -56,3 +56,13 @@ export async function GetNhaXuatBans(): Promise<NhaXuatBanItem[]> {
     const response = await CauHinhApi.get<NhaXuatBanItem[]>('/sach/nha-xuat-ban');
     return response.data;
 }
+
+export const GetCuonSachByBarcode = async (barcode: string) => {
+    const response = await CauHinhApi.get(`/Sach/cuon-sach/barcode/${barcode}`);
+    return response.data;
+};
+
+export const GetAvailableCopies = async (dauSachId: string) => {
+    const response = await CauHinhApi.get<any[]>(`/Sach/cuon-sach/available/${dauSachId}`);
+    return response.data;
+};

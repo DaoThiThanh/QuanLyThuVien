@@ -22,6 +22,11 @@ export const CreateYeuCauMuon = async (payload: CreateYeuCauMuonRequest) => {
     return response.data;
 };
 
+export const CreatePhieuMuon = async (payload: any) => {
+    const response = await CauHinhApi.post('/phieu-muon', payload);
+    return response.data;
+};
+
 export const GetYeuCauByUser = async (userId: string) => {
     const response = await CauHinhApi.get<YeuCauMuonDto[]>(`/yeu-cau-muon/user/${userId}`);
     return response.data;

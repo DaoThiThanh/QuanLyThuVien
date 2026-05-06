@@ -193,8 +193,8 @@ namespace QuanLyThuVien.Repositories
 
                         // Insert PhieuMuon
                         var pmQuery = @"
-                            INSERT INTO PhieuMuon (Id, DocGiaId, ThuThuId, KenhMuon, NgayMuon, HanTra, TrangThai)
-                            VALUES (@Id, @DocGiaId, @ThuThuId, @KenhMuon, GETDATE(), @HanTra, 1)";
+                            INSERT INTO PhieuMuon (Id, DocGiaId, ThuThuId, KenhMuon, NgayMuon, HanTra, TrangThai, YeuCauId)
+                            VALUES (@Id, @DocGiaId, @ThuThuId, @KenhMuon, GETDATE(), @HanTra, 1, @YeuCauId)";
 
                         using (var command = new SqlCommand(pmQuery, connection, transaction))
                         {
@@ -203,8 +203,20 @@ namespace QuanLyThuVien.Repositories
                             command.Parameters.AddWithValue("@ThuThuId", (object)request.ThuThuId ?? DBNull.Value);
                             command.Parameters.AddWithValue("@KenhMuon", request.KenhMuon);
                             command.Parameters.AddWithValue("@HanTra", request.HanTra);
+                            command.Parameters.AddWithValue("@YeuCauId", (object)request.YeuCauId ?? DBNull.Value);
 
                             await command.ExecuteNonQueryAsync();
+                        }
+
+                        // Nếu có YeuCauId, cập nhật trạng thái yêu cầu mượn sang "Đã xử lý/Hoàn thành" (status 3)
+                        if (request.YeuCauId.HasValue)
+                        {
+                            var updateYcQuery = "UPDATE YeuCauMuon SET TrangThai = 3 WHERE Id = @YeuCauId";
+                            using (var command = new SqlCommand(updateYcQuery, connection, transaction))
+                            {
+                                command.Parameters.AddWithValue("@YeuCauId", request.YeuCauId.Value);
+                                await command.ExecuteNonQueryAsync();
+                            }
                         }
 
                         // Insert ChiTietPhieuMuon & Update CuonSach & DauSach

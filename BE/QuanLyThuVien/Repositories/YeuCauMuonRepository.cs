@@ -174,7 +174,7 @@ namespace QuanLyThuVien.Repositories
 
                 foreach (var yc in result)
                 {
-                    yc.TenCacSach = await GetTenSachByYeuCauIdAsync(yc.Id, connection);
+                    await PopulateChiTietYeuCauAsync(yc, connection);
                 }
             }
 
@@ -228,34 +228,33 @@ namespace QuanLyThuVien.Repositories
 
                 foreach (var yc in result)
                 {
-                    yc.TenCacSach = await GetTenSachByYeuCauIdAsync(yc.Id, connection);
+                    await PopulateChiTietYeuCauAsync(yc, connection);
                 }
             }
 
             return result;
         }
 
-        private async Task<List<string>> GetTenSachByYeuCauIdAsync(Guid yeuCauId, SqlConnection connection)
+        private async Task PopulateChiTietYeuCauAsync(YeuCauMuonDto yc, SqlConnection connection)
         {
-            var tenSachs = new List<string>();
             var query = @"
-                SELECT ds.TenSach 
+                SELECT ds.Id, ds.TenSach 
                 FROM ChiTietYeuCau ctyc
                 JOIN DauSach ds ON ctyc.DauSachId = ds.Id
                 WHERE ctyc.YeuCauId = @YeuCauId";
 
             using (var command = new SqlCommand(query, connection))
             {
-                command.Parameters.AddWithValue("@YeuCauId", yeuCauId);
+                command.Parameters.AddWithValue("@YeuCauId", yc.Id);
                 using (var reader = await command.ExecuteReaderAsync())
                 {
                     while (await reader.ReadAsync())
                     {
-                        tenSachs.Add(reader.GetString(0));
+                        yc.DauSachIds.Add(reader.GetGuid(0));
+                        yc.TenCacSach.Add(reader.GetString(1));
                     }
                 }
             }
-            return tenSachs;
         }
 
         public async Task<bool> UpdateTrangThaiAsync(Guid id, int trangThai)
@@ -264,6 +263,35 @@ namespace QuanLyThuVien.Repositories
             using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
+
+                // Nếu là duyệt (trangThai = 1), kiểm tra xem còn sách vật lý không
+                if (trangThai == 1)
+                {
+                    var checkQuery = @"
+                        SELECT ds.TenSach, 
+                               (SELECT COUNT(*) FROM CuonSach cs WHERE cs.DauSachId = ds.Id AND cs.TrangThaiMuon = 1) as AvailableCount
+                        FROM ChiTietYeuCau ctyc
+                        JOIN DauSach ds ON ctyc.DauSachId = ds.Id
+                        WHERE ctyc.YeuCauId = @Id";
+                    
+                    using (var command = new SqlCommand(checkQuery, connection))
+                    {
+                        command.Parameters.AddWithValue("@Id", id);
+                        using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                var tenSach = reader.GetString(0);
+                                var available = reader.GetInt32(1);
+                                if (available <= 0)
+                                {
+                                    throw new Exception($"Sách '{tenSach}' đã hết bản vật lý sẵn sàng. Không thể duyệt yêu cầu.");
+                                }
+                            }
+                        }
+                    }
+                }
+
                 var query = "UPDATE YeuCauMuon SET TrangThai = @TrangThai WHERE Id = @Id";
                 using (var command = new SqlCommand(query, connection))
                 {

@@ -55,17 +55,31 @@ namespace QuanLyThuVien.Controllers
         [HttpPut("{id}/duyet")]
         public async Task<IActionResult> DuyetYeuCau(Guid id)
         {
-            var result = await _yeuCauMuonRepository.UpdateTrangThaiAsync(id, 1);
-            if (result) return Ok(new { message = "Đã duyệt yêu cầu mượn sách!" });
-            return BadRequest("Không thể duyệt yêu cầu.");
+            try
+            {
+                var result = await _yeuCauMuonRepository.UpdateTrangThaiAsync(id, 1);
+                if (result) return Ok(new { message = "Đã duyệt yêu cầu mượn sách!" });
+                return BadRequest(new { message = "Không thể duyệt yêu cầu." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPut("{id}/tu-choi")]
         public async Task<IActionResult> TuChoiYeuCau(Guid id)
         {
-            var result = await _yeuCauMuonRepository.UpdateTrangThaiAsync(id, 2);
-            if (result) return Ok(new { message = "Đã từ chối yêu cầu mượn sách." });
-            return BadRequest("Không thể từ chối yêu cầu.");
+            try
+            {
+                var result = await _yeuCauMuonRepository.UpdateTrangThaiAsync(id, 2);
+                if (result) return Ok(new { message = "Đã từ chối yêu cầu mượn sách." });
+                return BadRequest(new { message = "Không thể từ chối yêu cầu." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
         [HttpGet("check-limit/{userId}")]
         public async Task<IActionResult> CheckLimit(Guid userId)
