@@ -10,6 +10,7 @@ import MetadataModal from '../components/common/MetadataModal';
 import DuyetYeuCauModal from '../components/CuaSoXacNhan/DuyetYeuCauModal';
 import KiemTraKhoModal from '../components/CuaSoXacNhan/KiemTraKhoModal';
 import XacNhanTraSachModal from '../components/CuaSoXacNhan/XacNhanTraSachModal';
+import { getAllUsers, type UserItem } from '../dichVu/modules/dichVuNguoiDung';
 
 const LibrarianPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -22,13 +23,14 @@ const LibrarianPage: React.FC = () => {
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showCheckStockModal, setShowCheckStockModal] = useState(false);
   const [inventoryBooks, setInventoryBooks] = useState<any[]>([]);
-  const [readers, setReaders] = useState<any[]>([]);
+  const [readers, setReaders] = useState<UserItem[]>([]);
   const [tacGias, setTacGias] = useState<TacGiaItem[]>([]);
   const [nhaXuatBans, setNhaXuatBans] = useState<NhaXuatBanItem[]>([]);
   const [danhMucs, setDanhMucs] = useState<CategoryItem[]>([]);
   const [quyDinh, setQuyDinh] = useState<any>(null);
   const [showReturnModal, setShowReturnModal] = useState(false);
   const [selectedPhieuMuon, setSelectedPhieuMuon] = useState<any>(null);
+  const [readerSearchTerm, setReaderSearchTerm] = useState('');
 
   // State cho Modal Metadata
   const [isMetadataModalOpen, setIsMetadataModalOpen] = useState(false);
@@ -50,7 +52,7 @@ const LibrarianPage: React.FC = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [statsData, requestsData, borrowedData, overdueData, inventoryData, tacGiasData, nxbsData, dmData] = await Promise.all([
+      const [statsData, requestsData, borrowedData, overdueData, inventoryData, tacGiasData, nxbsData, dmData, readersData] = await Promise.all([
         getThongKeThuThu(),
         GetAllYeuCauMuon(),
         GetDanhSachPhieuMuon(1, 10),
@@ -58,7 +60,8 @@ const LibrarianPage: React.FC = () => {
         GetDanhSachSach(1, 50),
         GetTacGias(),
         GetNhaXuatBans(),
-        GetCategories()
+        GetCategories(),
+        getAllUsers(3)
       ]);
 
       setStats(statsData);
@@ -72,6 +75,7 @@ const LibrarianPage: React.FC = () => {
       setNhaXuatBans(nxbsData || []);
       // @ts-ignore
       setDanhMucs(dmData || []);
+      setReaders(readersData || []);
     } catch (error) {
       console.error("Lỗi khi tải dữ liệu thủ thư:", error);
     } finally {
@@ -680,7 +684,14 @@ const LibrarianPage: React.FC = () => {
               <div className={styles['section-header']}>
                 <h2 className={styles['section-title']}>Quản lý Danh sách Độc giả</h2>
                 <div className={styles['header-search']}>
-                    <input type="text" placeholder="Tìm tên, email..." className={styles['form-control']} style={{ width: '250px' }} />
+                    <input 
+                      type="text" 
+                      placeholder="Tìm tên, email, số điện thoại..." 
+                      className={styles['form-control']} 
+                      style={{ width: '250px' }} 
+                      value={readerSearchTerm}
+                      onChange={(e) => setReaderSearchTerm(e.target.value)}
+                    />
                 </div>
               </div>
               <div className={styles['table-responsive']}>
@@ -696,29 +707,44 @@ const LibrarianPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {/* Mock data for readers for now since we don't have GetReaders service yet */}
-                    <tr>
-                      <td><strong>Nguyễn Văn A</strong></td>
-                      <td>
-                        <div>vana@email.com</div>
-                        <div style={{ fontSize: '12px' }}>090xxxxxxx</div>
-                      </td>
-                      <td><span className={`${styles['status-badge']} ${styles['status-active']}`}>Hoạt động</span></td>
-                      <td>01/01/2026</td>
-                      <td>Đang mượn 2 cuốn</td>
-                      <td><button className={styles['action-btn-mini']}>Xem hồ sơ</button></td>
-                    </tr>
-                    <tr>
-                      <td><strong>Lê Thị B</strong></td>
-                      <td>
-                        <div>lethib@email.com</div>
-                        <div style={{ fontSize: '12px' }}>091xxxxxxx</div>
-                      </td>
-                      <td><span className={`${styles['status-badge']} ${styles['status-active']}`}>Hoạt động</span></td>
-                      <td>15/02/2026</td>
-                      <td>Không có sách mượn</td>
-                      <td><button className={styles['action-btn-mini']}>Xem hồ sơ</button></td>
-                    </tr>
+                    {readers.filter(r => 
+                      r.hoTen.toLowerCase().includes(readerSearchTerm.toLowerCase()) || 
+                      r.email.toLowerCase().includes(readerSearchTerm.toLowerCase()) ||
+                      (r.soDienThoai && r.soDienThoai.includes(readerSearchTerm))
+                    ).length === 0 ? (
+                      <tr><td colSpan={6} style={{ textAlign: 'center', padding: '20px' }}>Không tìm thấy độc giả phù hợp</td></tr>
+                    ) : (
+                      readers.filter(r => 
+                        r.hoTen.toLowerCase().includes(readerSearchTerm.toLowerCase()) || 
+                        r.email.toLowerCase().includes(readerSearchTerm.toLowerCase()) ||
+                        (r.soDienThoai && r.soDienThoai.includes(readerSearchTerm))
+                      ).map(reader => (
+                        <tr key={reader.id}>
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                              <div className={styles['author-avatar']} style={{ width: '32px', height: '32px', fontSize: '14px', flexShrink: 0 }}>
+                                {reader.hoTen.charAt(0)}
+                              </div>
+                              <strong>{reader.hoTen}</strong>
+                            </div>
+                          </td>
+                          <td>
+                            <div style={{ fontSize: '13px' }}>{reader.email}</div>
+                            <div style={{ fontSize: '12px', color: '#6b7280' }}>{reader.soDienThoai || 'Chưa cập nhật'}</div>
+                          </td>
+                          <td>
+                            <span className={`${styles['status-badge']} ${reader.trangThai === 1 ? styles['status-active'] : styles['status-rejected']}`}>
+                              {reader.trangThai === 1 ? 'Hoạt động' : 'Bị khóa'}
+                            </span>
+                          </td>
+                          <td style={{ fontSize: '13px' }}>{formatDate(reader.ngayTao)}</td>
+                          <td>--</td>
+                          <td>
+                            <button className={styles['action-btn-mini']} title="Xem hồ sơ">Chi tiết</button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
