@@ -458,84 +458,71 @@ const AdminPage: React.FC = () => {
 
           {activeTab === 'categories' && (
             <div className={styles['admin-section']}>
-               <div className={styles['section-header']}>
-                 <h2 className={styles['section-title']}>Danh mục Sách</h2>
-                 <button onClick={openAddCategory} className={styles['section-action']} style={{ background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)' }}>
-                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                   Thêm Danh Mục
-                 </button>
-               </div>
-               <div className={styles['table-responsive']}>
-                 <table className={styles['admin-table']}>
-                   <thead>
-                     <tr>
-                       <th>Tên Danh Mục</th>
-                       <th>Số lượng sách</th>
-                       <th>Thao tác</th>
-                     </tr>
-                   </thead>
-                   <tbody>
-                     {danhMucs.map(dm => (
-                       <tr key={dm.id}>
-                         <td style={{ fontWeight: '600' }}>
-                           <span style={{ marginRight: '10px', fontSize: '20px' }}>
-                             {dm.icon || '📁'}
-                           </span>
-                           {dm.tenDanhMuc}
-                         </td>
-                         <td>--</td>
-                         <td>
-                           <div className={styles['action-buttons']}>
-                             <button className={`${styles['btn-icon']} ${styles['view']}`} title="Chỉnh sửa"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg></button>
-                             <button onClick={() => handleDeleteCategory(dm.id)} className={`${styles['btn-icon']} ${styles['reject']}`} title="Xóa"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>
-                           </div>
-                         </td>
-                       </tr>
-                     ))}
-                   </tbody>
-                 </table>
-               </div>
+                <div className={styles['section-header']}>
+                  <h2 className={styles['section-title']}>Danh mục Sách</h2>
+                  <button onClick={openAddCategory} className={styles['section-action']} style={{ background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)' }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Thêm Danh Mục
+                  </button>
+                </div>
+                <div className={styles['metadata-grid']}>
+                  {danhMucs.map(dm => (
+                    <div key={dm.id} className={styles['category-card']}>
+                      <div className={styles['category-main']}>
+                        <div className={styles['category-icon-wrapper']}>
+                          {dm.icon || '📁'}
+                        </div>
+                        <div className={styles['category-info']}>
+                          <h3>{dm.tenDanhMuc}</h3>
+                          <p>Phân loại sách hệ thống</p>
+                        </div>
+                      </div>
+                      <div className={styles['category-actions']}>
+                        <button onClick={() => openEditCategory(dm)} className={`${styles['btn-icon']} ${styles['edit']}`} title="Chỉnh sửa">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                        </button>
+                        <button onClick={() => handleDeleteCategory(dm.id)} className={`${styles['btn-icon']} ${styles['delete']}`} title="Xóa danh mục">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
             </div>
           )}
 
           {activeTab === 'authors' && (
             <div className={styles['admin-section']}>
-               <div className={styles['section-header']}>
-                 <h2 className={styles['section-title']}>Tác giả</h2>
-                 <button onClick={openAddAuthor} className={styles['section-action']} style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                    Thêm Tác Giả
-                 </button>
-               </div>
-               <div className={styles['table-responsive']}>
-                 <table className={styles['admin-table']}>
-                   <thead>
-                     <tr>
-                       <th>Tên Tác Giả</th>
-                       <th>Quê quán</th>
-                       <th>Thao tác</th>
-                     </tr>
-                   </thead>
-                   <tbody>
-                     {tacGias.map(tg => (
-                       <tr key={tg.id}>
-                         <td style={{ fontWeight: '600' }}>{tg.tenTacGia}</td>
-                         <td>Việt Nam</td>
-                         <td>
-                            <div className={styles['action-buttons']}>
-                              <button onClick={() => openEditAuthor(tg)} className={`${styles['btn-icon']} ${styles['edit']}`} title="Sửa">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                              </button>
-                              <button onClick={() => handleDeleteAuthor(tg.id)} className={`${styles['btn-icon']} ${styles['delete']}`} title="Xóa">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                              </button>
-                            </div>
-                         </td>
-                       </tr>
-                     ))}
-                   </tbody>
-                 </table>
-               </div>
+                <div className={styles['section-header']}>
+                  <h2 className={styles['section-title']}>Tác giả</h2>
+                  <button onClick={openAddAuthor} className={styles['section-action']} style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}>
+                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                     Thêm Tác Giả
+                  </button>
+                </div>
+                <div className={styles['author-list']}>
+                  {tacGias.map(tg => (
+                    <div key={tg.id} className={styles['author-item']}>
+                      <div className={styles['author-main']}>
+                        <div className={styles['author-avatar']}>
+                          {tg.tenTacGia.charAt(0)}
+                        </div>
+                        <div className={styles['author-info']}>
+                          <h3>{tg.tenTacGia}</h3>
+                          <p>Tác giả cộng tác</p>
+                        </div>
+                      </div>
+                      <div className={styles['action-buttons']}>
+                        <button onClick={() => openEditAuthor(tg)} className={`${styles['btn-icon']} ${styles['edit']}`} title="Chỉnh sửa">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                        </button>
+                        <button onClick={() => handleDeleteAuthor(tg.id)} className={`${styles['btn-icon']} ${styles['delete']}`} title="Xóa tác giả">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
             </div>
           )}
 
