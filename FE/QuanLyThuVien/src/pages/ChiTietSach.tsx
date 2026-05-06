@@ -125,7 +125,7 @@ Vui lòng trả sách cũ hoặc kiểm tra lại giỏ sách trước khi thêm
             <div className={styles['detail-left']}>
               <div className={styles['book-cover-wrapper']}>
                 <img src={book.hinhAnh || 'https://via.placeholder.com/400x600'} alt={book.tenSach} className={styles['book-detail-cover']} />
-                <div className={styles['status-badge-detail']}>
+                <div className={`${styles['status-badge-detail']} ${book.soLuongTon > 0 ? styles['available'] : styles['unavailable']}`}>
                   <FiCheckCircle /> {book.soLuongTon > 0 ? "Có sẵn" : "Hết sách"}
                 </div>
               </div>
@@ -213,7 +213,7 @@ Vui lòng trả sách cũ hoặc kiểm tra lại giỏ sách trước khi thêm
 
               <div className={styles['detail-actions']}>
                 <button 
-                  className={styles['btn-borrow-main']} 
+                  className={`${styles['btn-borrow-main']} ${book.soLuongTon <= 0 ? styles['btn-disabled'] : ''}`} 
                   disabled={book.soLuongTon <= 0}
                   onClick={handleAddToCart}
                 >

@@ -77,8 +77,10 @@ const NewBooks: React.FC = () => {
                 <div className={styles['book-cover-wrapper']}>
                   <img src={image || 'https://via.placeholder.com/150'} alt={title} className={styles['book-cover-image']} />
                   <div className={styles['badge-new-blue']}>MỚI</div>
-                  {soLuongTon > 0 && (
+                  {soLuongTon > 0 ? (
                     <div className={`${styles['badge-status']} ${styles['online']}`}>● Có sẵn</div>
+                  ) : (
+                    <div className={`${styles['badge-status']} ${styles['offline']}`}>● Hết sách</div>
                   )}
                 </div>
                 <div className={styles['book-info']}>

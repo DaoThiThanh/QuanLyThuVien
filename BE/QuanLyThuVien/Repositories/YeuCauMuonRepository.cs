@@ -58,10 +58,10 @@ namespace QuanLyThuVien.Repositories
                     throw new Exception($"Bạn chỉ được mượn tối đa {soSachToiDa} cuốn. Hiện tại bạn đang có {dangMuon} cuốn (đang mượn/chờ duyệt).");
                 }
 
-                // 4. Kiểm tra tính khả dụng của từng đầu sách
+                // 4. Kiểm tra tính khả dụng của từng đầu sách (Đếm bản vật lý thực tế)
                 foreach (var dauSachId in request.DauSachIds)
                 {
-                    var checkStockQuery = "SELECT SoLuongTon FROM DauSach WHERE Id = @Id";
+                    var checkStockQuery = "SELECT COUNT(*) FROM CuonSach WHERE DauSachId = @Id AND TrangThaiMuon = 1";
                     using (var checkStockCommand = new SqlCommand(checkStockQuery, connection))
                     {
                         checkStockCommand.Parameters.AddWithValue("@Id", dauSachId);

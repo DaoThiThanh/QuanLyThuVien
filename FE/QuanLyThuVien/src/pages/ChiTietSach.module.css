@@ -86,8 +86,6 @@
   position: absolute;
   top: 16px;
   right: 16px;
-  background: #10b981;
-  color: white;
   padding: 6px 14px;
   border-radius: 20px;
   font-size: 13px;
@@ -96,6 +94,28 @@
   align-items: center;
   gap: 6px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.status-badge-detail.available {
+  background: #10b981;
+  color: white;
+}
+
+.status-badge-detail.unavailable {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-borrow-main.btn-disabled {
+  background: #e2e8f0;
+  color: #94a3b8;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.btn-borrow-main.btn-disabled:hover {
+  transform: none;
 }
 
 .availability-stats {

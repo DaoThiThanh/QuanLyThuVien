@@ -42,12 +42,12 @@ namespace QuanLyThuVien.Repositories
                         ds.Id, 
                         ds.TenSach, 
                         ds.HinhAnh, 
-                        ds.SoLuongTon, 
+                        (SELECT COUNT(*) FROM CuonSach WHERE DauSachId = ds.Id AND TrangThaiMuon = 1) as SoLuongTon, 
                         COUNT(ct.Id) as SoLuotMuon
                     FROM DauSach ds
                     JOIN CuonSach cs ON ds.Id = cs.DauSachId
                     JOIN ChiTietPhieuMuon ct ON cs.Id = ct.CuonSachId
-                    GROUP BY ds.Id, ds.TenSach, ds.HinhAnh, ds.SoLuongTon
+                    GROUP BY ds.Id, ds.TenSach, ds.HinhAnh
                     ORDER BY SoLuotMuon DESC";
 
                 using (var command = new SqlCommand(query, connection))
@@ -88,7 +88,7 @@ namespace QuanLyThuVien.Repositories
                         Id, 
                         TenSach, 
                         HinhAnh, 
-                        SoLuongTon, 
+                        (SELECT COUNT(*) FROM CuonSach WHERE DauSachId = DauSach.Id AND TrangThaiMuon = 1) as SoLuongTon, 
                         NamXuatBan
                     FROM DauSach
                     ORDER BY NamXuatBan DESC";
@@ -145,7 +145,7 @@ namespace QuanLyThuVien.Repositories
                         ds.Id, 
                         ds.TenSach, 
                         ds.HinhAnh, 
-                        ds.SoLuongTon, 
+                        (SELECT COUNT(*) FROM CuonSach WHERE DauSachId = ds.Id AND TrangThaiMuon = 1) as SoLuongTon, 
                         dm.TenDanhMuc,
                         tg.TenTacGia
                     FROM DauSach ds
@@ -196,7 +196,7 @@ namespace QuanLyThuVien.Repositories
                         ds.Id, 
                         ds.TenSach, 
                         ds.HinhAnh, 
-                        ds.SoLuongTon, 
+                        (SELECT COUNT(*) FROM CuonSach WHERE DauSachId = ds.Id AND TrangThaiMuon = 1) as SoLuongTon, 
                         ds.NamXuatBan,
                         dm.TenDanhMuc,
                         tg.TenTacGia,

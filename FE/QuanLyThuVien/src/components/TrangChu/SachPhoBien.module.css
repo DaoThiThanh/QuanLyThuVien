@@ -124,19 +124,31 @@
   z-index: 1;
 }
 
-.popular-books-container .badge-new {
+.popular-books-container .availability-badge {
   position: relative;
   z-index: 2;
+  margin: 12px;
+  align-self: flex-start;
+}
+
+.popular-books-container .status-online {
   background-color: #10b981;
-  /* emerald-500 */
   color: white;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   padding: 4px 10px;
   border-radius: 12px;
-  margin: 12px;
-  align-self: flex-start;
-  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.popular-books-container .status-offline {
+  background-color: #ef4444;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .popular-books-container .book-info {

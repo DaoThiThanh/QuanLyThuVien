@@ -63,6 +63,14 @@ const PopularBooks: React.FC = () => {
                 style={{ backgroundImage: `url(${book.hinhAnh})` }}
               >
                 <div className={styles['book-gradient-overlay']}></div>
+                
+                <div className={styles['availability-badge']}>
+                   {book.soLuongTon > 0 ? (
+                     <span className={styles['status-online']}>● Có sẵn</span>
+                   ) : (
+                     <span className={styles['status-offline']}>● Hết sách</span>
+                   )}
+                </div>
 
                 <div className={styles['book-info']}>
                   <h3 className={styles['book-title']}>{book.tenSach}</h3>

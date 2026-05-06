@@ -139,6 +139,11 @@
   color: white;
 }
 
+.new-books-container .badge-status.offline {
+  background-color: #ef4444;
+  color: white;
+}
+
 .new-books-container .new-book-card .book-info {
   padding: 16px;
   display: flex;
