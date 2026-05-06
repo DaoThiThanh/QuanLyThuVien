@@ -51,3 +51,7 @@ export const TuChoiYeuCauMuon = async (id: string) => {
     const response = await CauHinhApi.put(`/yeu-cau-muon/${id}/tu-choi`);
     return response.data;
 };
+export const CheckBorrowingLimit = async (userId: string) => {
+    const response = await CauHinhApi.get<{ currentCount: number, maxLimit: number, canBorrowMore: number }>(`/yeu-cau-muon/check-limit/${userId}`);
+    return response.data;
+};

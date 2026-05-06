@@ -61,3 +61,10 @@ export interface UpsertSachDto {
     moTa?: string;
     isbn?: string;
 }
+
+export interface ItemGioSach {
+    id: string;
+    tenSach: string;
+    tenTacGia: string;
+    hinhAnh: string;
+}

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import styles from './DauTrang.module.css';
 import { getUserName, clearAuthData, getToken, getRole, getEmail } from '../../dichVu/modules/dichVuXacThuc';
+import { getSoLuongGioSach } from '../../dichVu/modules/dichVuGioSach';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -9,6 +10,7 @@ const Header: React.FC = () => {
   const [userName, setUserName] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
     const token = getToken();
@@ -22,6 +24,17 @@ const Header: React.FC = () => {
       setUserEmail(email || 'user@example.com');
       setUserRole(role);
     }
+
+    const updateCartCount = () => {
+      setCartCount(getSoLuongGioSach());
+    };
+
+    updateCartCount();
+    window.addEventListener('cart-updated', updateCartCount);
+    
+    return () => {
+      window.removeEventListener('cart-updated', updateCartCount);
+    };
   }, []);
 
   const handleLogout = () => {
@@ -70,10 +83,21 @@ const Header: React.FC = () => {
           </button>
 
           {isLoggedIn && (
-            <button className={`${styles['action-btn']} ${styles['notif-btn']}`}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>
-              <span className={styles['notif-badge']}></span>
-            </button>
+            <>
+              <button 
+                className={`${styles['action-btn']} ${styles['cart-btn']}`} 
+                onClick={() => navigate('/cart')}
+                title="Giỏ sách mượn"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                {cartCount > 0 && <span className={styles['cart-badge']}>{cartCount}</span>}
+              </button>
+
+              <button className={`${styles['action-btn']} ${styles['notif-btn']}`}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>
+                <span className={styles['notif-badge']}></span>
+              </button>
+            </>
           )}
 
           <div className={styles['auth-actions']}>

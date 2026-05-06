@@ -10,6 +10,7 @@ namespace QuanLyThuVien.Repositories
         Task<List<YeuCauMuonDto>> GetYeuCauByDocGiaAsync(Guid docGiaId);
         Task<List<YeuCauMuonDto>> GetAllYeuCauMuonAsync();
         Task<bool> UpdateTrangThaiAsync(Guid id, int trangThai);
+        Task<object> GetBorrowingLimitStatusAsync(Guid docGiaId);
     }
 
     public class YeuCauMuonRepository : IYeuCauMuonRepository
@@ -28,6 +29,56 @@ namespace QuanLyThuVien.Repositories
             using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
+
+                // 1. Lấy quy định về số sách mượn tối đa
+                int soSachToiDa = 5; // Mặc định
+                var tsQuery = "SELECT TOP 1 SoSachMuonToiDa FROM ThamSoQuyDinh ORDER BY NgayCapNhat DESC";
+                using (var tsCommand = new SqlCommand(tsQuery, connection))
+                {
+                    var val = await tsCommand.ExecuteScalarAsync();
+                    if (val != null && val != DBNull.Value) soSachToiDa = (int)val;
+                }
+
+                // 2. Kiểm tra số lượng sách đang mượn và đang yêu cầu của độc giả
+                int dangMuon = 0;
+                var countQuery = @"
+                    SELECT 
+                        (SELECT COUNT(*) FROM ChiTietPhieuMuon ct JOIN PhieuMuon pm ON ct.PhieuMuonId = pm.Id WHERE pm.DocGiaId = @DocGiaId AND pm.TrangThai = 1) +
+                        (SELECT COUNT(*) FROM ChiTietYeuCau ct JOIN YeuCauMuon yc ON ct.YeuCauId = yc.Id WHERE yc.DocGiaId = @DocGiaId AND yc.TrangThai = 0)";
+                
+                using (var countCommand = new SqlCommand(countQuery, connection))
+                {
+                    countCommand.Parameters.AddWithValue("@DocGiaId", request.DocGiaId);
+                    dangMuon = (int)await countCommand.ExecuteScalarAsync();
+                }
+
+                // 3. Kiểm tra nếu tổng số sách vượt quá quy định
+                if (dangMuon + request.DauSachIds.Count > soSachToiDa)
+                {
+                    throw new Exception($"Bạn chỉ được mượn tối đa {soSachToiDa} cuốn. Hiện tại bạn đang có {dangMuon} cuốn (đang mượn/chờ duyệt).");
+                }
+
+                // 4. Kiểm tra tính khả dụng của từng đầu sách
+                foreach (var dauSachId in request.DauSachIds)
+                {
+                    var checkStockQuery = "SELECT SoLuongTon FROM DauSach WHERE Id = @Id";
+                    using (var checkStockCommand = new SqlCommand(checkStockQuery, connection))
+                    {
+                        checkStockCommand.Parameters.AddWithValue("@Id", dauSachId);
+                        var stock = (int)await checkStockCommand.ExecuteScalarAsync();
+                        if (stock <= 0)
+                        {
+                            var nameQuery = "SELECT TenSach FROM DauSach WHERE Id = @Id";
+                            using (var nameCmd = new SqlCommand(nameQuery, connection))
+                            {
+                                nameCmd.Parameters.AddWithValue("@Id", dauSachId);
+                                var tenSach = await nameCmd.ExecuteScalarAsync();
+                                throw new Exception($"Sách '{tenSach}' hiện đã hết trong kho.");
+                            }
+                        }
+                    }
+                }
+
                 using (var transaction = connection.BeginTransaction())
                 {
                     try
@@ -70,7 +121,7 @@ namespace QuanLyThuVien.Repositories
                     catch (Exception)
                     {
                         transaction.Rollback();
-                        return false;
+                        throw;
                     }
                 }
             }
@@ -221,6 +272,42 @@ namespace QuanLyThuVien.Repositories
                     var result = await command.ExecuteNonQueryAsync();
                     return result > 0;
                 }
+            }
+        }
+        public async Task<object> GetBorrowingLimitStatusAsync(Guid docGiaId)
+        {
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+
+                // Lấy quy định
+                int soSachToiDa = 5;
+                var tsQuery = "SELECT TOP 1 SoSachMuonToiDa FROM ThamSoQuyDinh ORDER BY NgayCapNhat DESC";
+                using (var tsCommand = new SqlCommand(tsQuery, connection))
+                {
+                    var val = await tsCommand.ExecuteScalarAsync();
+                    if (val != null && val != DBNull.Value) soSachToiDa = (int)val;
+                }
+
+                // Tính số sách đang mượn + đang chờ duyệt
+                var countQuery = @"
+                    SELECT 
+                        (SELECT COUNT(*) FROM ChiTietPhieuMuon ct JOIN PhieuMuon pm ON ct.PhieuMuonId = pm.Id WHERE pm.DocGiaId = @DocGiaId AND pm.TrangThai = 1) +
+                        (SELECT COUNT(*) FROM ChiTietYeuCau ct JOIN YeuCauMuon yc ON ct.YeuCauId = yc.Id WHERE yc.DocGiaId = @DocGiaId AND yc.TrangThai = 0)";
+                
+                int dangMuon = 0;
+                using (var countCommand = new SqlCommand(countQuery, connection))
+                {
+                    countCommand.Parameters.AddWithValue("@DocGiaId", docGiaId);
+                    dangMuon = (int)await countCommand.ExecuteScalarAsync();
+                }
+
+                return new { 
+                    CurrentCount = dangMuon, 
+                    MaxLimit = soSachToiDa, 
+                    CanBorrowMore = soSachToiDa - dangMuon 
+                };
             }
         }
     }

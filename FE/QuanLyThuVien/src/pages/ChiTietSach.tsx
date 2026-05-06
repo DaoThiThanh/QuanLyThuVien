@@ -3,19 +3,17 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiUser, FiTag, FiPrinter, FiCalendar, FiBook, FiCheckCircle } from 'react-icons/fi';
 import Header from '../components/GiaoDienChinh/DauTrang';
 import Footer from '../components/GiaoDienChinh/CuoiTrang';
-import XacNhanMuonSachModal from '../components/CuaSoXacNhan/XacNhanMuonSachModal';
 import styles from './ChiTietSach.module.css';
 import { getToken, getUserId } from '../dichVu/modules/dichVuXacThuc';
 import { GetBookById } from '../dichVu/modules/dichVuSach';
-import { CreateYeuCauMuon } from '../dichVu/modules/dichVuMuonSach';
+import { CreateYeuCauMuon, CheckBorrowingLimit } from '../dichVu/modules/dichVuMuonSach';
+import { themVaoGioSach, getGioSach } from '../dichVu/modules/dichVuGioSach';
 
 const BookDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [showBorrowModal, setShowBorrowModal] = useState(false);
   const [book, setBook] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchBookDetail = async () => {
@@ -38,27 +36,46 @@ const BookDetailPage: React.FC = () => {
     navigate(-1);
   };
 
-  const handleConfirmBorrow = async () => {
+  const handleAddToCart = async () => {
     const userId = getUserId();
-    if (!userId || !id) {
-        alert("Không xác định được người dùng hoặc sách. Vui lòng đăng nhập lại.");
-        return;
+    if (!getToken() || !userId) {
+      navigate('/login', { state: { from: `/book-detail/${id}` } });
+      return;
     }
 
-    setSubmitting(true);
     try {
-        await CreateYeuCauMuon({
-            docGiaId: userId,
-            dauSachIds: [id],
-            ngayHenNhan: new Date(new Date().getTime() + 2 * 24 * 60 * 60 * 1000).toISOString() // Hẹn 2 ngày sau
-        });
-        alert('Yêu cầu mượn sách đã được gửi thành công! Vui lòng đến thư viện nhận sách trong vòng 2 ngày tới.');
-        setShowBorrowModal(false);
-    } catch (error: any) {
-        console.error("Lỗi khi gửi yêu cầu mượn:", error);
-        alert(error.message || "Gửi yêu cầu mượn thất bại. Vui lòng thử lại sau.");
-    } finally {
-        setSubmitting(false);
+      // 1. Kiểm tra giới hạn mượn từ Backend
+      const limitStatus = await CheckBorrowingLimit(userId);
+      const currentCart = getGioSach();
+      
+      // Tổng = (đang mượn/chờ duyệt trên BE) + (đang có trong giỏ hàng) + (cuốn mới này)
+      const totalPlanned = limitStatus.currentCount + currentCart.length + 1;
+
+      if (totalPlanned > limitStatus.maxLimit) {
+        alert(`Bạn đã đạt giới hạn mượn sách. 
+- Hiện đang có: ${limitStatus.currentCount} cuốn (đang mượn/chờ duyệt)
+- Trong giỏ mượn: ${currentCart.length} cuốn
+- Giới hạn tối đa: ${limitStatus.maxLimit} cuốn.
+Vui lòng trả sách cũ hoặc kiểm tra lại giỏ sách trước khi thêm mới.`);
+        return;
+      }
+
+      if (currentCart.find(i => i.id === id)) {
+        alert('Sách này đã có trong danh sách mượn của bạn.');
+        return;
+      }
+
+      themVaoGioSach({
+        id: id!,
+        tenSach: book.tenSach,
+        tenTacGia: book.tenTacGia,
+        hinhAnh: book.hinhAnh
+      });
+      
+      alert('Đã thêm sách vào danh sách mượn tạm thời. Bạn có thể chọn thêm sách khác hoặc nhấn vào biểu tượng Giỏ sách ở trên để gửi yêu cầu.');
+    } catch (error) {
+      console.error("Lỗi khi kiểm tra giới hạn:", error);
+      alert("Không thể kiểm tra giới hạn mượn lúc này. Vui lòng thử lại sau.");
     }
   };
 
@@ -198,15 +215,9 @@ const BookDetailPage: React.FC = () => {
                 <button 
                   className={styles['btn-borrow-main']} 
                   disabled={book.soLuongTon <= 0}
-                  onClick={() => {
-                    if (!getToken()) {
-                      navigate('/login', { state: { from: `/book-detail/${id}` } });
-                      return;
-                    }
-                    setShowBorrowModal(true);
-                  }}
+                  onClick={handleAddToCart}
                 >
-                  <FiBook /> {book.soLuongTon > 0 ? "Mượn sách này" : "Tạm hết sách"}
+                  <FiBook /> {book.soLuongTon > 0 ? "Thêm vào danh sách mượn" : "Tạm hết sách"}
                 </button>
                 <button className={styles['btn-back-list']} onClick={handleBack}>
                   <FiArrowLeft /> Quay lại danh sách
@@ -217,18 +228,6 @@ const BookDetailPage: React.FC = () => {
         </div>
       </main>
 
-      <XacNhanMuonSachModal 
-        isOpen={showBorrowModal}
-        onClose={() => setShowBorrowModal(false)}
-        onConfirm={handleConfirmBorrow}
-        isLoading={submitting}
-        bookData={{
-          tenSach: book.tenSach,
-          tenTacGia: book.tenTacGia,
-          hinhAnh: book.hinhAnh,
-          tenDanhMuc: book.tenDanhMuc
-        }}
-      />
 
       <Footer />
     </div>

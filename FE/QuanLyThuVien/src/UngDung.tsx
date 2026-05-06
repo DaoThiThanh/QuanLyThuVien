@@ -9,6 +9,7 @@ import BorrowedBooksPage from './pages/SachDaMuon';
 import ProfilePage from './pages/TrangCaNhan';
 import AdminPage from './pages/TrangAdmin';
 import LibrarianPage from './pages/TrangThuThu';
+import CartPage from './pages/GioSach';
 
 function App() {
 
@@ -25,6 +26,7 @@ function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/librarian" element={<LibrarianPage />} />
+          <Route path="/cart" element={<CartPage />} />
         </Routes>
       </BrowserRouter>
     </>

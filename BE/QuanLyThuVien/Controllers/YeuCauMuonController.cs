@@ -20,16 +20,22 @@ namespace QuanLyThuVien.Controllers
         {
             if (request == null || request.DauSachIds == null || request.DauSachIds.Count == 0)
             {
-                return BadRequest("Thông tin yêu cầu mượn không hợp lệ.");
+                return BadRequest(new { message = "Thông tin yêu cầu mượn không hợp lệ." });
             }
 
-            var result = await _yeuCauMuonRepository.CreateYeuCauMuonAsync(request);
-            if (result)
+            try
             {
-                return Ok(new { message = "Gửi yêu cầu mượn sách thành công!" });
+                var result = await _yeuCauMuonRepository.CreateYeuCauMuonAsync(request);
+                if (result)
+                {
+                    return Ok(new { message = "Gửi yêu cầu mượn sách thành công!" });
+                }
+                return StatusCode(500, new { message = "Đã xảy ra lỗi khi gửi yêu cầu mượn sách." });
             }
-
-            return StatusCode(500, "Đã xảy ra lỗi khi gửi yêu cầu mượn sách.");
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpGet("user/{userId}")]
@@ -60,6 +66,12 @@ namespace QuanLyThuVien.Controllers
             var result = await _yeuCauMuonRepository.UpdateTrangThaiAsync(id, 2);
             if (result) return Ok(new { message = "Đã từ chối yêu cầu mượn sách." });
             return BadRequest("Không thể từ chối yêu cầu.");
+        }
+        [HttpGet("check-limit/{userId}")]
+        public async Task<IActionResult> CheckLimit(Guid userId)
+        {
+            var status = await _yeuCauMuonRepository.GetBorrowingLimitStatusAsync(userId);
+            return Ok(status);
         }
     }
 }
