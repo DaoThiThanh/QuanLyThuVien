@@ -82,5 +82,79 @@ namespace QuanLyThuVien.Controllers
                 return StatusCode(500, $"Lỗi server: {ex.Message}");
             }
         }
+
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] UpsertSachDto dto)
+        {
+            try
+            {
+                var id = await _sachRepository.CreateSachAsync(dto);
+                return Ok(new { Id = id });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi server: {ex.Message}");
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpsertSachDto dto)
+        {
+            try
+            {
+                var success = await _sachRepository.UpdateSachAsync(id, dto);
+                if (!success) return NotFound("Không tìm thấy sách để cập nhật.");
+
+                return Ok(new { Success = true });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi server: {ex.Message}");
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            try
+            {
+                var success = await _sachRepository.DeleteSachAsync(id);
+                if (!success) return BadRequest("Không thể xóa sách (Có thể do sách đang được sử dụng).");
+
+                return Ok(new { Success = true });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi server: {ex.Message}");
+            }
+        }
+
+        [HttpGet("tac-gia")]
+        public async Task<IActionResult> GetTacGias()
+        {
+            try
+            {
+                var result = await _sachRepository.GetTacGiasAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi server: {ex.Message}");
+            }
+        }
+
+        [HttpGet("nha-xuat-ban")]
+        public async Task<IActionResult> GetNhaXuatBans()
+        {
+            try
+            {
+                var result = await _sachRepository.GetNhaXuatBansAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi server: {ex.Message}");
+            }
+        }
     }
 }

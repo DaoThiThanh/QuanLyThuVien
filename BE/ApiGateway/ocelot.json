@@ -10,7 +10,12 @@
         }
       ],
       "UpstreamPathTemplate": "/gateway/auth/{catchAll}",
-      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ]
     },
     {
       "DownstreamPathTemplate": "/api/User/{catchAll}",
@@ -22,7 +27,12 @@
         }
       ],
       "UpstreamPathTemplate": "/gateway/user/{catchAll}",
-      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ]
     },
     {
       "DownstreamPathTemplate": "/api/User",
@@ -34,7 +44,12 @@
         }
       ],
       "UpstreamPathTemplate": "/gateway/user",
-      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ]
     },
     {
       "DownstreamPathTemplate": "/api/Sach/noi-bat",
@@ -46,7 +61,9 @@
         }
       ],
       "UpstreamPathTemplate": "/gateway/sach/noi-bat",
-      "UpstreamHttpMethod": [ "Get" ]
+      "UpstreamHttpMethod": [
+        "Get"
+      ]
     },
     {
       "DownstreamPathTemplate": "/api/Sach",
@@ -58,7 +75,12 @@
         }
       ],
       "UpstreamPathTemplate": "/gateway/sach",
-      "UpstreamHttpMethod": [ "Get" ]
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ]
     },
     {
       "DownstreamPathTemplate": "/api/Sach/{id}",
@@ -70,7 +92,12 @@
         }
       ],
       "UpstreamPathTemplate": "/gateway/sach/{id}",
-      "UpstreamHttpMethod": [ "Get" ]
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ]
     },
     {
       "DownstreamPathTemplate": "/api/Sach/moi-bo-sung",
@@ -82,7 +109,9 @@
         }
       ],
       "UpstreamPathTemplate": "/gateway/sach/moi-bo-sung",
-      "UpstreamHttpMethod": [ "Get" ]
+      "UpstreamHttpMethod": [
+        "Get"
+      ]
     },
     {
       "DownstreamPathTemplate": "/api/DanhMuc",
@@ -94,7 +123,9 @@
         }
       ],
       "UpstreamPathTemplate": "/gateway/danh-muc",
-      "UpstreamHttpMethod": [ "Get" ]
+      "UpstreamHttpMethod": [
+        "Get"
+      ]
     },
     {
       "DownstreamPathTemplate": "/api/YeuCauMuon/{catchAll}",
@@ -106,7 +137,12 @@
         }
       ],
       "UpstreamPathTemplate": "/gateway/yeu-cau-muon/{catchAll}",
-      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ]
     },
     {
       "DownstreamPathTemplate": "/api/YeuCauMuon",
@@ -118,7 +154,12 @@
         }
       ],
       "UpstreamPathTemplate": "/gateway/yeu-cau-muon",
-      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ]
     },
     {
       "DownstreamPathTemplate": "/api/phieu-muon/{catchAll}",
@@ -130,7 +171,12 @@
         }
       ],
       "UpstreamPathTemplate": "/gateway/phieu-muon/{catchAll}",
-      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ]
     },
     {
       "DownstreamPathTemplate": "/api/phieu-muon",
@@ -142,7 +188,12 @@
         }
       ],
       "UpstreamPathTemplate": "/gateway/phieu-muon",
-      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ]
     },
     {
       "DownstreamPathTemplate": "/api/ThongKe/{catchAll}",
@@ -154,7 +205,9 @@
         }
       ],
       "UpstreamPathTemplate": "/gateway/ThongKe/{catchAll}",
-      "UpstreamHttpMethod": [ "Get" ]
+      "UpstreamHttpMethod": [
+        "Get"
+      ]
     },
     {
       "DownstreamPathTemplate": "/api/{catchAll}",
@@ -166,7 +219,12 @@
         }
       ],
       "UpstreamPathTemplate": "/gateway/{catchAll}",
-      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Delete" ]
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ]
     }
   ],
   "GlobalConfiguration": {

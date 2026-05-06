@@ -16,4 +16,16 @@ namespace QuanLyThuVien.Models.DTOs
         public string? Isbn { get; set; }
         public int TongSoLuong { get; set; }
     }
+
+    public class TacGiaDto
+    {
+        public Guid Id { get; set; }
+        public string TenTacGia { get; set; } = string.Empty;
+    }
+
+    public class NhaXuatBanDto
+    {
+        public Guid Id { get; set; }
+        public string TenNXB { get; set; } = string.Empty;
+    }
 }

@@ -20,7 +20,7 @@ function SearchBar(props: SearchBarProps) {
                     placeholder="Tìm kiếm sách, tác giả..."
                 />
             </div>
-            <button className={styles['filter-button']} onClick={(e) => props.onFilterClick()}>
+            <button className={styles['filter-button']} onClick={() => props.onFilterClick()}>
                 <FiFilter size={18} />
                 <span>Bộ lọc</span>
             </button>

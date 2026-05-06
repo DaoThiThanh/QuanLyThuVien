@@ -5,7 +5,10 @@ import type {
     CategoryItem,
     NewBookItem,
     PaginatedResponse,
-    PaginatedBookItem
+    PaginatedBookItem,
+    UpsertSachDto,
+    TacGiaItem,
+    NhaXuatBanItem
 } from "../../kieuDuLieu/sach";
 
 export async function GetPopularBooks(): Promise<BookItem[] | ApiResponse<BookItem[]>> {
@@ -29,3 +32,27 @@ export async function GetBookById(id: string): Promise<any> {
     return response.data;
 }
 
+export async function CreateBook(data: UpsertSachDto): Promise<any> {
+    const response = await CauHinhApi.post('/sach', data);
+    return response.data;
+}
+
+export async function UpdateBook(id: string, data: UpsertSachDto): Promise<any> {
+    const response = await CauHinhApi.put(`/sach/${id}`, data);
+    return response.data;
+}
+
+export async function DeleteBook(id: string): Promise<any> {
+    const response = await CauHinhApi.delete(`/sach/${id}`);
+    return response.data;
+}
+
+export async function GetTacGias(): Promise<TacGiaItem[]> {
+    const response = await CauHinhApi.get<TacGiaItem[]>('/sach/tac-gia');
+    return response.data;
+}
+
+export async function GetNhaXuatBans(): Promise<NhaXuatBanItem[]> {
+    const response = await CauHinhApi.get<NhaXuatBanItem[]>('/sach/nha-xuat-ban');
+    return response.data;
+}

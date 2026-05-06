@@ -39,3 +39,25 @@ export interface PaginatedResponse<T> {
     pageSize: number;
     items: T[];
 }
+
+export interface TacGiaItem {
+    id: string;
+    tenTacGia: string;
+}
+
+export interface NhaXuatBanItem {
+    id: string;
+    tenNXB: string;
+}
+
+export interface UpsertSachDto {
+    tenSach: string;
+    hinhAnh?: string;
+    soLuongTon: number;
+    danhMucId: string;
+    tacGiaId: string;
+    nxbId: string;
+    namXuatBan: number;
+    moTa?: string;
+    isbn?: string;
+}

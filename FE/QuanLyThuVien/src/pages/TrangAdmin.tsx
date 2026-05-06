@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './TrangAdmin.module.css';
-import { getAllUsers, updateUserRole, type UserItem } from '../dichVu/modules/dichVuNguoiDung';
+import { getAllUsers, type UserItem } from '../dichVu/modules/dichVuNguoiDung';
 import { getUserName } from '../dichVu/modules/dichVuXacThuc';
 import { getThongKeAdmin, type ThongKeAdminDto } from '../dichVu/modules/dichVuThongKe';
 
@@ -38,18 +38,7 @@ const AdminPage: React.FC = () => {
     { id: 4, user: 'Hệ thống', action: 'Tự động sao lưu dữ liệu', time: '3 giờ trước', type: 'system' },
   ];
 
-  const handleRoleChange = async (userId: string, newRole: number) => {
-    if (window.confirm("Bạn có chắc chắn muốn thay đổi quyền của người dùng này?")) {
-      const success = await updateUserRole(userId, newRole);
-      if (success) {
-        alert("Cập nhật quyền thành công!");
-        const data = await getAllUsers();
-        setUsers(data);
-      } else {
-        alert("Cập nhật thất bại!");
-      }
-    }
-  };
+
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg> },

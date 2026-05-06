@@ -10,6 +10,11 @@ namespace QuanLyThuVien.Repositories
         Task<IEnumerable<SachMoiBoSungDto>> GetSachMoiBoSungAsync(int top);
         Task<PagedResult<SachDto>> GetDanhSachSachAsync(int page, int pageSize);
         Task<SachDto> GetSachByIdAsync(Guid id);
+        Task<Guid> CreateSachAsync(UpsertSachDto dto);
+        Task<bool> UpdateSachAsync(Guid id, UpsertSachDto dto);
+        Task<bool> DeleteSachAsync(Guid id);
+        Task<IEnumerable<TacGiaDto>> GetTacGiasAsync();
+        Task<IEnumerable<NhaXuatBanDto>> GetNhaXuatBansAsync();
     }
     
     public class SachRepository : ISachRepository
@@ -231,6 +236,155 @@ namespace QuanLyThuVien.Repositories
             }
 
             return sach;
+        }
+
+        public async Task<Guid> CreateSachAsync(UpsertSachDto dto)
+        {
+            var id = Guid.NewGuid();
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+                var query = @"
+                    INSERT INTO DauSach (Id, TenSach, DanhMucId, TacGiaId, NxbId, NamXuatBan, HinhAnh, SoLuongTon)
+                    VALUES (@Id, @TenSach, @DanhMucId, @TacGiaId, @NxbId, @NamXuatBan, @HinhAnh, @SoLuongTon)";
+
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Id", id);
+                    command.Parameters.AddWithValue("@TenSach", dto.TenSach);
+                    command.Parameters.AddWithValue("@DanhMucId", dto.DanhMucId);
+                    command.Parameters.AddWithValue("@TacGiaId", dto.TacGiaId);
+                    command.Parameters.AddWithValue("@NxbId", dto.NxbId);
+                    command.Parameters.AddWithValue("@NamXuatBan", dto.NamXuatBan);
+                    command.Parameters.AddWithValue("@HinhAnh", (object?)dto.HinhAnh ?? DBNull.Value);
+                    command.Parameters.AddWithValue("@SoLuongTon", dto.SoLuongTon);
+
+                    await command.ExecuteNonQueryAsync();
+                }
+            }
+            return id;
+        }
+
+        public async Task<bool> UpdateSachAsync(Guid id, UpsertSachDto dto)
+        {
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+            int rowsAffected = 0;
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+                var query = @"
+                    UPDATE DauSach 
+                    SET TenSach = @TenSach, 
+                        DanhMucId = @DanhMucId, 
+                        TacGiaId = @TacGiaId, 
+                        NxbId = @NxbId, 
+                        NamXuatBan = @NamXuatBan, 
+                        HinhAnh = @HinhAnh, 
+                        SoLuongTon = @SoLuongTon
+                    WHERE Id = @Id";
+
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Id", id);
+                    command.Parameters.AddWithValue("@TenSach", dto.TenSach);
+                    command.Parameters.AddWithValue("@DanhMucId", dto.DanhMucId);
+                    command.Parameters.AddWithValue("@TacGiaId", dto.TacGiaId);
+                    command.Parameters.AddWithValue("@NxbId", dto.NxbId);
+                    command.Parameters.AddWithValue("@NamXuatBan", dto.NamXuatBan);
+                    command.Parameters.AddWithValue("@HinhAnh", (object?)dto.HinhAnh ?? DBNull.Value);
+                    command.Parameters.AddWithValue("@SoLuongTon", dto.SoLuongTon);
+
+                    rowsAffected = await command.ExecuteNonQueryAsync();
+                }
+            }
+            return rowsAffected > 0;
+        }
+
+        public async Task<bool> DeleteSachAsync(Guid id)
+        {
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+            int rowsAffected = 0;
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+                
+                // Note: In a real app, we should check for foreign key constraints 
+                // (e.g. if books exist in CuonSach or are borrowed).
+                // For simplicity, we just try to delete DauSach.
+                var query = "DELETE FROM DauSach WHERE Id = @Id";
+
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Id", id);
+                    try {
+                        rowsAffected = await command.ExecuteNonQueryAsync();
+                    } catch (SqlException) {
+                        // Might throw if there are CuonSach references
+                        return false;
+                    }
+                }
+            }
+            return rowsAffected > 0;
+        }
+
+        public async Task<IEnumerable<TacGiaDto>> GetTacGiasAsync()
+        {
+            var result = new List<TacGiaDto>();
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+                var query = "SELECT Id, TenTacGia FROM TacGia ORDER BY TenTacGia";
+
+                using (var command = new SqlCommand(query, connection))
+                {
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            result.Add(new TacGiaDto
+                            {
+                                Id = reader.GetGuid(0),
+                                TenTacGia = reader.GetString(1)
+                            });
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
+        public async Task<IEnumerable<NhaXuatBanDto>> GetNhaXuatBansAsync()
+        {
+            var result = new List<NhaXuatBanDto>();
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+                var query = "SELECT Id, TenNXB FROM NhaXuatBan ORDER BY TenNXB";
+
+                using (var command = new SqlCommand(query, connection))
+                {
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            result.Add(new NhaXuatBanDto
+                            {
+                                Id = reader.GetGuid(0),
+                                TenNXB = reader.GetString(1)
+                            });
+                        }
+                    }
+                }
+            }
+            return result;
         }
     }
 }
