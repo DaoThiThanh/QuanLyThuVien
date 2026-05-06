@@ -90,3 +90,23 @@ export const GetAvailableCopies = async (dauSachId: string) => {
     const response = await CauHinhApi.get<any[]>(`/Sach/cuon-sach/available/${dauSachId}`);
     return response.data;
 };
+
+export const GetPagedCuonSachs = async (page: number = 1, pageSize: number = 12, searchTerm: string = "") => {
+    const response = await CauHinhApi.get(`/Sach/cuon-sach/paged?page=${page}&pageSize=${pageSize}&searchTerm=${searchTerm}`);
+    return response.data;
+};
+
+export const UpdateCuonSach = async (id: string, data: { maVach: string, tinhTrang: string, trangThaiMuon: number }) => {
+    const response = await CauHinhApi.put(`/Sach/cuon-sach/${id}`, data);
+    return response.data;
+};
+
+export const DeleteCuonSach = async (id: string) => {
+    const response = await CauHinhApi.delete(`/Sach/cuon-sach/${id}`);
+    return response.data;
+};
+
+export const CreateCuonSach = async (data: { dauSachId: string, maVach: string }) => {
+    const response = await CauHinhApi.post('/Sach/cuon-sach', data);
+    return response.data;
+};

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using QuanLyThuVien.Models.DTOs;
 using QuanLyThuVien.Repositories;
+using System;
 
 namespace QuanLyThuVien.Controllers
 {
@@ -213,10 +214,53 @@ namespace QuanLyThuVien.Controllers
                 return StatusCode(500, $"Lỗi server: {ex.Message}");
             }
         }
+        [HttpGet("cuon-sach/paged")]
+        public async Task<IActionResult> GetPagedCuonSachs([FromQuery] int page = 1, [FromQuery] int pageSize = 12, [FromQuery] string searchTerm = "")
+        {
+            var result = await _sachRepository.GetPagedCuonSachsAsync(page, pageSize, searchTerm);
+            return Ok(result);
+        }
+
+        [HttpPut("cuon-sach/{id}")]
+        public async Task<IActionResult> UpdateCuonSach(Guid id, [FromBody] UpdateCuonSachDto dto)
+        {
+            var success = await _sachRepository.UpdateCuonSachAsync(id, dto.MaVach, dto.TinhTrang, dto.TrangThaiMuon);
+            if (!success) return BadRequest("Không thể cập nhật cuốn sách.");
+            return Ok(new { Success = true });
+        }
+
+        [HttpDelete("cuon-sach/{id}")]
+        public async Task<IActionResult> DeleteCuonSach(Guid id)
+        {
+            var success = await _sachRepository.DeleteCuonSachAsync(id);
+            if (!success) return BadRequest("Không thể xóa cuốn sách (có thể do sách đang được mượn).");
+            return Ok(new { Success = true });
+        }
+
+        [HttpPost("cuon-sach")]
+        public async Task<IActionResult> CreateCuonSach([FromBody] CreateCuonSachDto dto)
+        {
+            var success = await _sachRepository.CreateCuonSachAsync(dto.DauSachId, dto.MaVach);
+            if (!success) return BadRequest("Không thể thêm cuốn sách.");
+            return Ok(new { Success = true });
+        }
     }
 
     public class CreateTacGiaDto
     {
         public string TenTacGia { get; set; } = string.Empty;
+    }
+
+    public class UpdateCuonSachDto
+    {
+        public string MaVach { get; set; } = string.Empty;
+        public string TinhTrang { get; set; } = string.Empty;
+        public int TrangThaiMuon { get; set; }
+    }
+
+    public class CreateCuonSachDto
+    {
+        public Guid DauSachId { get; set; }
+        public string MaVach { get; set; } = string.Empty;
     }
 }

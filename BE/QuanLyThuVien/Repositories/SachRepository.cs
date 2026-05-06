@@ -1,6 +1,8 @@
 using Microsoft.Data.SqlClient;
 using QuanLyThuVien.Models.DTOs;
 using System.Data;
+using System.Collections.Generic;
+using System;
 
 namespace QuanLyThuVien.Repositories
 {
@@ -20,6 +22,10 @@ namespace QuanLyThuVien.Repositories
         Task<Guid> CreateTacGiaAsync(string tenTacGia);
         Task<bool> UpdateTacGiaAsync(Guid id, string tenTacGia);
         Task<bool> DeleteTacGiaAsync(Guid id);
+        Task<PagedResult<object>> GetPagedCuonSachsAsync(int page, int pageSize, string searchTerm = "");
+        Task<bool> UpdateCuonSachAsync(Guid id, string maVach, string tinhTrang, int trangThaiMuon);
+        Task<bool> DeleteCuonSachAsync(Guid id);
+        Task<bool> CreateCuonSachAsync(Guid dauSachId, string maVach);
     }
     
     public class SachRepository : ISachRepository
@@ -414,7 +420,7 @@ namespace QuanLyThuVien.Repositories
                             {
                                 Id = reader.GetGuid(0),
                                 MaVach = reader.GetString(1),
-                                TinhTrangVatLy = reader.GetString(2),
+                                TinhTrang = reader.GetString(2),
                                 TrangThaiMuon = reader.GetInt32(3),
                                 TenSach = reader.GetString(4),
                                 DauSachId = reader.GetGuid(5)
@@ -449,7 +455,7 @@ namespace QuanLyThuVien.Repositories
                             {
                                 Id = reader.GetGuid(0),
                                 MaVach = reader.GetString(1),
-                                TinhTrangVatLy = reader.GetString(2)
+                                TinhTrang = reader.GetString(2)
                             });
                         }
                     }
@@ -518,6 +524,127 @@ namespace QuanLyThuVien.Repositories
                     command.Parameters.AddWithValue("@Id", id);
                     var rows = await command.ExecuteNonQueryAsync();
                     return rows > 0;
+                }
+            }
+        }
+        public async Task<PagedResult<object>> GetPagedCuonSachsAsync(int page, int pageSize, string searchTerm = "")
+        {
+            var result = new PagedResult<object>
+            {
+                CurrentPage = page,
+                PageSize = pageSize,
+                Items = new List<object>()
+            };
+
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+
+                var countQuery = @"
+                    SELECT COUNT(*) 
+                    FROM CuonSach cs
+                    JOIN DauSach ds ON cs.DauSachId = ds.Id
+                    WHERE cs.MaVach LIKE @Search OR ds.TenSach LIKE @Search";
+                
+                using (var command = new SqlCommand(countQuery, connection))
+                {
+                    command.Parameters.AddWithValue("@Search", $"%{searchTerm}%");
+                    result.TotalItems = Convert.ToInt32(await command.ExecuteScalarAsync());
+                }
+
+                result.TotalPages = (int)Math.Ceiling(result.TotalItems / (double)pageSize);
+
+                var query = @"
+                    SELECT 
+                        cs.Id, 
+                        cs.DauSachId, 
+                        ds.TenSach, 
+                        cs.MaVach, 
+                        cs.TinhTrangVatLy, 
+                        cs.TrangThaiMuon
+                    FROM CuonSach cs
+                    JOIN DauSach ds ON cs.DauSachId = ds.Id
+                    WHERE cs.MaVach LIKE @Search OR ds.TenSach LIKE @Search
+                    ORDER BY ds.TenSach, cs.MaVach
+                    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Search", $"%{searchTerm}%");
+                    command.Parameters.AddWithValue("@Offset", (page - 1) * pageSize);
+                    command.Parameters.AddWithValue("@PageSize", pageSize);
+
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        var items = new List<object>();
+                        while (await reader.ReadAsync())
+                        {
+                            items.Add(new
+                            {
+                                Id = reader.GetGuid(reader.GetOrdinal("Id")),
+                                DauSachId = reader.GetGuid(reader.GetOrdinal("DauSachId")),
+                                TenSach = reader.GetString(reader.GetOrdinal("TenSach")),
+                                MaVach = reader.GetString(reader.GetOrdinal("MaVach")),
+                                TinhTrang = reader.IsDBNull(reader.GetOrdinal("TinhTrangVatLy")) ? "Bình thường" : reader.GetString(reader.GetOrdinal("TinhTrangVatLy")),
+                                TrangThaiMuon = reader.GetInt32(reader.GetOrdinal("TrangThaiMuon"))
+                            });
+                        }
+                        result.Items = items;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        public async Task<bool> UpdateCuonSachAsync(Guid id, string maVach, string tinhTrang, int trangThaiMuon)
+        {
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+                var query = "UPDATE CuonSach SET MaVach = @MaVach, TinhTrangVatLy = @TinhTrang, TrangThaiMuon = @TrangThaiMuon WHERE Id = @Id";
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Id", id);
+                    command.Parameters.AddWithValue("@MaVach", maVach);
+                    command.Parameters.AddWithValue("@TinhTrang", tinhTrang);
+                    command.Parameters.AddWithValue("@TrangThaiMuon", trangThaiMuon);
+                    return await command.ExecuteNonQueryAsync() > 0;
+                }
+            }
+        }
+
+        public async Task<bool> DeleteCuonSachAsync(Guid id)
+        {
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+                var query = "DELETE FROM CuonSach WHERE Id = @Id AND TrangThaiMuon = 1"; // Chỉ cho xóa nếu đang sẵn sàng
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Id", id);
+                    return await command.ExecuteNonQueryAsync() > 0;
+                }
+            }
+        }
+
+        public async Task<bool> CreateCuonSachAsync(Guid dauSachId, string maVach)
+        {
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+                var query = "INSERT INTO CuonSach (Id, DauSachId, MaVach, TinhTrangVatLy, TrangThaiMuon) VALUES (@Id, @DauSachId, @MaVach, N'Bình thường', 1)";
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Id", Guid.NewGuid());
+                    command.Parameters.AddWithValue("@DauSachId", dauSachId);
+                    command.Parameters.AddWithValue("@MaVach", maVach);
+                    return await command.ExecuteNonQueryAsync() > 0;
                 }
             }
         }

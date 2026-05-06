@@ -4,7 +4,7 @@ import styles from './TrangAdmin.module.css'; // Reusing the same rich CSS as Ad
 import { getThongKeThuThu, type ThongKeThuThuDto } from '../dichVu/modules/dichVuThongKe';
 import { getUserName } from '../dichVu/modules/dichVuXacThuc';
 import { GetAllYeuCauMuon, GetDanhSachPhieuMuon, GetPhieuMuonQuaHan, GetPhieuMuonById, type YeuCauMuonDto } from '../dichVu/modules/dichVuMuonSach';
-import { GetDanhSachSach, CreateBook, UpdateBook, DeleteBook, GetTacGias, GetNhaXuatBans, GetCategories, DeleteCategory, DeleteTacGia, CreateCategory, CreateTacGia, UpdateCategory, UpdateTacGia } from '../dichVu/modules/dichVuSach';
+import { GetDanhSachSach, CreateBook, UpdateBook, DeleteBook, GetTacGias, GetNhaXuatBans, GetCategories, DeleteCategory, DeleteTacGia, CreateCategory, CreateTacGia, UpdateCategory, UpdateTacGia, GetPagedCuonSachs, UpdateCuonSach, DeleteCuonSach, CreateCuonSach } from '../dichVu/modules/dichVuSach';
 import type { TacGiaItem, NhaXuatBanItem, CategoryItem, UpsertSachDto } from '../kieuDuLieu/sach';
 import MetadataModal from '../components/common/MetadataModal';
 import DuyetYeuCauModal from '../components/CuaSoXacNhan/DuyetYeuCauModal';
@@ -64,10 +64,16 @@ const LibrarianPage: React.FC = () => {
     tenSach: '', soLuongTon: 0, danhMucId: '', tacGiaId: '', nxbId: '', namXuatBan: new Date().getFullYear()
   });
 
+  const [cuonSachs, setCuonSachs] = useState<any[]>([]);
+  const [copySearchTerm, setCopySearchTerm] = useState('');
+  const [showCopyModal, setShowCopyModal] = useState(false);
+  const [editingCopy, setEditingCopy] = useState<any>(null);
+  const [copyFormData, setCopyFormData] = useState({ dauSachId: '', maVach: '', tinhTrang: 'Bình thường', trangThaiMuon: 1 });
+
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [statsData, requestsData, borrowedData, overdueData, inventoryData, tacGiasData, nxbsData, dmData, readersData] = await Promise.all([
+      const [statsData, requestsData, borrowedData, overdueData, inventoryData, tacGiasData, nxbsData, dmData, readersData, copiesData] = await Promise.all([
         getThongKeThuThu(),
         GetAllYeuCauMuon(),
         GetDanhSachPhieuMuon(1, 100),
@@ -76,7 +82,8 @@ const LibrarianPage: React.FC = () => {
         GetTacGias(),
         GetNhaXuatBans(),
         GetCategories(),
-        getAllUsers(3)
+        getAllUsers(3),
+        GetPagedCuonSachs(1, 100)
       ]);
 
       const normalizeData = (data: any) => {
@@ -95,6 +102,7 @@ const LibrarianPage: React.FC = () => {
       setNhaXuatBans(normalizeData(nxbsData));
       setDanhMucs(normalizeData(dmData));
       setReaders(normalizeData(readersData));
+      setCuonSachs(normalizeData(copiesData));
     } catch (error) {
       console.error("Lỗi khi tải dữ liệu thủ thư:", error);
     } finally {
@@ -196,6 +204,40 @@ const LibrarianPage: React.FC = () => {
     }
   };
 
+  const handleSaveCopy = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+        if (editingCopy) {
+            await UpdateCuonSach(editingCopy.id, {
+                maVach: copyFormData.maVach,
+                tinhTrang: copyFormData.tinhTrang,
+                trangThaiMuon: copyFormData.trangThaiMuon
+            });
+        } else {
+            await CreateCuonSach({
+                dauSachId: copyFormData.dauSachId,
+                maVach: copyFormData.maVach
+            });
+        }
+        setShowCopyModal(false);
+        fetchData();
+        alert('Lưu thành công!');
+    } catch (error) {
+        alert('Lỗi khi lưu cuốn sách');
+    }
+  };
+
+  const handleDeleteCopy = async (id: string) => {
+    if (!window.confirm('Xác nhận xóa cuốn sách này?')) return;
+    try {
+        await DeleteCuonSach(id);
+        fetchData();
+        alert('Xóa thành công!');
+    } catch (error: any) {
+        alert(error.response?.data?.message || 'Không thể xóa cuốn sách');
+    }
+  };
+
   const openAddCategory = () => {
     setEditingId(null);
     setMetadataModalConfig({
@@ -268,10 +310,7 @@ const LibrarianPage: React.FC = () => {
       alert('Lỗi lưu sách');
     }
   };
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return 'N/A';
-    return new Date(dateStr).toLocaleDateString('vi-VN');
-  };
+
 
   // Tạo dữ liệu hoạt động nghiệp vụ động từ dữ liệu thực tế
   const getDynamicActivities = () => {
@@ -315,6 +354,7 @@ const LibrarianPage: React.FC = () => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1" /><rect width="7" height="5" x="14" y="3" rx="1" /><rect width="7" height="9" x="14" y="12" rx="1" /><rect width="7" height="5" x="3" y="16" rx="1" /></svg> },
     { id: 'books', label: 'Quản lý Kho Sách', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" /></svg> },
+    { id: 'copies', label: 'Quản lý Cuốn Sách', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> },
     { id: 'borrow', label: 'Quản lý Mượn/Trả', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><path d="M12 18v-6" /><path d="m9 15 3 3 3-3" /></svg> },
     { id: 'requests', label: 'Yêu Cầu Mượn', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" /><path d="M12 6v6l4 2" /></svg> },
     { id: 'readers', label: 'Quản lý Độc giả', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><circle cx="18" cy="7" r="4" /></svg> },
@@ -569,6 +609,103 @@ const LibrarianPage: React.FC = () => {
                   </tbody>
                 </table>
               </div>
+            </div>
+          )}
+
+          {activeTab === 'copies' && (
+            <div className={styles['admin-section']}>
+                <div className={styles['section-header']} style={{ flexWrap: 'wrap', gap: '15px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flex: 1 }}>
+                        <h2 className={styles['section-title']} style={{ margin: 0 }}>Quản lý Cuốn Sách Vật Lý</h2>
+                        <div className={styles['header-search']}>
+                            <input 
+                                type="text" 
+                                placeholder="Tìm mã vạch, tên sách..." 
+                                className={styles['form-control']} 
+                                style={{ width: '250px', padding: '8px 12px', fontSize: '13px', borderRadius: '20px' }} 
+                                value={copySearchTerm}
+                                onChange={(e) => setCopySearchTerm(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                    <button className={styles['section-action']} onClick={() => {
+                        setEditingCopy(null);
+                        setCopyFormData({ dauSachId: inventoryBooks[0]?.id || '', maVach: '', tinhTrang: 'Bình thường', trangThaiMuon: 1 });
+                        setShowCopyModal(true);
+                    }}>+ Thêm Cuốn Sách</button>
+                </div>
+
+                <div className={styles['table-responsive']}>
+                    <table className={styles['admin-table']}>
+                        <thead>
+                            <tr>
+                                <th>Mã Vạch</th>
+                                <th>Tên Sách</th>
+                                <th>Tình Trạng</th>
+                                <th>Trạng Thái</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {cuonSachs.filter(cs => 
+                                cs.maVach.toLowerCase().includes(copySearchTerm.toLowerCase()) || 
+                                cs.tenSach.toLowerCase().includes(copySearchTerm.toLowerCase())
+                            ).length === 0 ? (
+                                <tr><td colSpan={5} style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Không tìm thấy cuốn sách nào</td></tr>
+                            ) : (
+                                cuonSachs.filter(cs => 
+                                    cs.maVach.toLowerCase().includes(copySearchTerm.toLowerCase()) || 
+                                    cs.tenSach.toLowerCase().includes(copySearchTerm.toLowerCase())
+                                ).map(item => (
+                                    <tr key={item.id}>
+                                        <td><strong style={{ color: '#3b82f6' }}>{item.maVach}</strong></td>
+                                        <td style={{ fontWeight: '600' }}>{item.tenSach}</td>
+                                        <td>
+                                            <span style={{ 
+                                                fontSize: '12px', 
+                                                padding: '2px 8px', 
+                                                borderRadius: '4px',
+                                                background: item.tinhTrang === 'Bình thường' ? '#f1f5f9' : '#fff1f2',
+                                                color: item.tinhTrang === 'Bình thường' ? '#475569' : '#e11d48'
+                                            }}>
+                                                {item.tinhTrang}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span className={`${styles['status-badge']} ${
+                                                item.trangThaiMuon === 1 ? styles['status-active'] : 
+                                                item.trangThaiMuon === 2 ? styles['status-pending'] : 
+                                                styles['status-rejected']
+                                            }`}>
+                                                {item.trangThaiMuon === 1 ? 'Sẵn sàng' : 
+                                                 item.trangThaiMuon === 2 ? 'Đang mượn' : 'Bảo trì/Mất'}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div className={styles['action-buttons']}>
+                                                <button className={`${styles['btn-icon']} ${styles['view']}`} onClick={() => {
+                                                    setEditingCopy(item);
+                                                    setCopyFormData({ 
+                                                        dauSachId: item.dauSachId, 
+                                                        maVach: item.maVach, 
+                                                        tinhTrang: item.tinhTrang, 
+                                                        trangThaiMuon: item.trangThaiMuon 
+                                                    });
+                                                    setShowCopyModal(true);
+                                                }}>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                                                </button>
+                                                <button className={`${styles['btn-icon']} ${styles['delete']}`} onClick={() => handleDeleteCopy(item.id)}>
+                                                    <FiTrash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
           )}
 
@@ -1108,6 +1245,83 @@ const LibrarianPage: React.FC = () => {
           onClose={() => setShowCreateLoanModal(false)}
           onSuccess={fetchData}
         />
+        {showCopyModal && (
+          <div className={styles['modal-overlay']} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className={styles['modal-content']} style={{ maxWidth: '500px', width: '90%', background: 'white', borderRadius: '12px', overflow: 'hidden' }}>
+              <div className={styles['modal-header']} style={{ padding: '20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ margin: 0 }}>{editingCopy ? 'Chỉnh sửa Cuốn Sách' : 'Thêm Cuốn Sách Vật Lý'}</h3>
+                <button onClick={() => setShowCopyModal(false)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#64748b' }}><FiX size={20} /></button>
+              </div>
+              <form onSubmit={handleSaveCopy} style={{ padding: '20px' }}>
+                {!editingCopy && (
+                  <div className={styles['form-group']} style={{ marginBottom: '15px' }}>
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Đầu Sách</label>
+                    <select 
+                      className={styles['form-control']}
+                      style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                      value={copyFormData.dauSachId}
+                      onChange={(e) => setCopyFormData({ ...copyFormData, dauSachId: e.target.value })}
+                      required
+                    >
+                      <option value="">-- Chọn đầu sách --</option>
+                      {inventoryBooks.map(b => (
+                        <option key={b.id} value={b.id}>{b.tenSach}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                <div className={styles['form-group']} style={{ marginBottom: '15px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Mã Vạch (Barcode)</label>
+                  <input 
+                    type="text" 
+                    className={styles['form-control']}
+                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                    value={copyFormData.maVach}
+                    onChange={(e) => setCopyFormData({ ...copyFormData, maVach: e.target.value })}
+                    placeholder="VD: CS123456"
+                    required
+                  />
+                </div>
+                {editingCopy && (
+                  <>
+                    <div className={styles['form-group']} style={{ marginBottom: '15px' }}>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Tình Trạng</label>
+                      <select 
+                        className={styles['form-control']}
+                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                        value={copyFormData.tinhTrang}
+                        onChange={(e) => setCopyFormData({ ...copyFormData, tinhTrang: e.target.value })}
+                      >
+                        <option value="Bình thường">Bình thường</option>
+                        <option value="Cũ/Nát">Cũ/Nát</option>
+                        <option value="Hỏng">Hỏng</option>
+                        <option value="Mất">Mất</option>
+                      </select>
+                    </div>
+                    <div className={styles['form-group']} style={{ marginBottom: '15px' }}>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Trạng Thái Mượn</label>
+                      <select 
+                        className={styles['form-control']}
+                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                        value={copyFormData.trangThaiMuon}
+                        onChange={(e) => setCopyFormData({ ...copyFormData, trangThaiMuon: parseInt(e.target.value) })}
+                      >
+                        <option value={1}>Sẵn sàng</option>
+                        <option value={2}>Đang mượn</option>
+                        <option value={3}>Bảo trì</option>
+                        <option value={4}>Đã thanh lý</option>
+                      </select>
+                    </div>
+                  </>
+                )}
+                <div style={{ marginTop: '25px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                  <button type="button" onClick={() => setShowCopyModal(false)} className={styles['btn-secondary']} style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer' }}>Hủy</button>
+                  <button type="submit" className={styles['btn-primary']} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', fontWeight: '600', cursor: 'pointer' }}>Lưu thông tin</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </main>
 
       <MetadataModal
