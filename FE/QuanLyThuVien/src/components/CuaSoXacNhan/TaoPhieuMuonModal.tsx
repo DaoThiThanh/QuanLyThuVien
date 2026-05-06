@@ -20,6 +20,14 @@ interface SelectedBook {
     maVach: string | null;
 }
 
+interface BorrowLimitStatus {
+    currentCount: number;
+    maxLimit: number;
+    canBorrowMore: number;
+    hasOverdue: boolean;
+    currentBookIds: string[];
+}
+
 const TaoPhieuMuonModal: React.FC<TaoPhieuMuonModalProps> = ({ isOpen, onClose, onSuccess }) => {
     const [searchTermUser, setSearchTermUser] = useState('');
     const [searchTermBook, setSearchTermBook] = useState('');
@@ -29,7 +37,7 @@ const TaoPhieuMuonModal: React.FC<TaoPhieuMuonModalProps> = ({ isOpen, onClose, 
     const [selectedBooks, setSelectedBooks] = useState<SelectedBook[]>([]);
     const [loading, setLoading] = useState(false);
     const [barcodeInputs, setBarcodeInputs] = useState<{[key: string]: string}>({});
-    const [borrowLimit, setBorrowLimit] = useState<{currentCount: number, maxLimit: number, canBorrowMore: number} | null>(null);
+    const [borrowLimit, setBorrowLimit] = useState<BorrowLimitStatus | null>(null);
     const [searchingUser, setSearchingUser] = useState(false);
     const [searchingBook, setSearchingBook] = useState(false);
 
@@ -79,12 +87,28 @@ const TaoPhieuMuonModal: React.FC<TaoPhieuMuonModalProps> = ({ isOpen, onClose, 
     }, [searchTermBook]);
 
     const handleAddBook = (book: any) => {
+        if (borrowLimit?.hasOverdue) {
+            alert('Độc giả đang nợ sách quá hạn. Phải trả hết sách quá hạn mới có thể mượn tiếp.');
+            return;
+        }
+        if (borrowLimit && borrowLimit.canBorrowMore <= selectedBooks.length) {
+            alert(`Độc giả này chỉ có thể mượn thêm tối đa ${borrowLimit.canBorrowMore} cuốn theo quy định.`);
+            return;
+        }
         if (selectedBooks.length >= 5) {
             alert('Mỗi phiếu mượn tối đa 5 cuốn sách.');
             return;
         }
+        if (book.soLuongTon <= 0) {
+            alert(`Sách "${book.tenSach}" đã hết trong kho. Không thể cho mượn.`);
+            return;
+        }
+        if (borrowLimit && borrowLimit.currentBookIds.includes(book.id)) {
+            alert(`Độc giả đang mượn cuốn sách "${book.tenSach}" và chưa trả. Không thể mượn thêm cùng một đầu sách.`);
+            return;
+        }
         if (selectedBooks.find(b => b.id === book.id)) {
-            alert('Sách này đã có trong danh sách.');
+            alert('Sách này đã có trong danh sách chọn.');
             return;
         }
         setSelectedBooks([...selectedBooks, {
@@ -232,9 +256,40 @@ const TaoPhieuMuonModal: React.FC<TaoPhieuMuonModalProps> = ({ isOpen, onClose, 
                                         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                                             <span className={styles.infoLabel} style={{ marginBottom: 0 }}>{selectedUser.email}</span>
                                             {borrowLimit && (
-                                                <span style={{ fontSize: '11px', fontWeight: '700', color: borrowLimit.canBorrowMore > 0 ? '#10b981' : '#ef4444', background: borrowLimit.canBorrowMore > 0 ? '#dcfce7' : '#fee2e2', padding: '2px 8px', borderRadius: '10px' }}>
-                                                    {borrowLimit.canBorrowMore > 0 ? `Có thể mượn thêm ${borrowLimit.canBorrowMore} cuốn` : 'Đã đạt giới hạn mượn'}
-                                                </span>
+                                                <div style={{ fontSize: '12px', marginTop: '10px', padding: '10px', background: borrowLimit.hasOverdue ? '#fff1f2' : '#f0f9ff', borderRadius: '8px', border: borrowLimit.hasOverdue ? '1px solid #fecaca' : '1px solid #bae6fd' }}>
+                                                    <div style={{ color: borrowLimit.hasOverdue ? '#b91c1c' : '#0369a1', fontWeight: '700', marginBottom: '5px' }}>
+                                                        {borrowLimit.hasOverdue ? '⚠️ CẢNH BÁO: NỢ SÁCH QUÁ HẠN' : 'THÔNG TIN HẠN MỨC'}
+                                                    </div>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '5px', textAlign: 'center' }}>
+                                                        <div style={{ background: 'white', padding: '5px', borderRadius: '4px' }}>
+                                                            <div style={{ color: '#64748b', fontSize: '10px' }}>ĐANG GIỮ*</div>
+                                                            <div style={{ fontWeight: '700', fontSize: '14px' }}>{borrowLimit.currentCount}</div>
+                                                        </div>
+                                                        <div style={{ background: 'white', padding: '5px', borderRadius: '4px' }}>
+                                                            <div style={{ color: '#64748b', fontSize: '10px' }}>TỐI ĐA</div>
+                                                            <div style={{ fontWeight: '700', fontSize: '14px' }}>{borrowLimit.maxLimit}</div>
+                                                        </div>
+                                                        <div style={{ background: (borrowLimit.canBorrowMore > 0 && !borrowLimit.hasOverdue) ? '#dcfce7' : '#fee2e2', padding: '5px', borderRadius: '4px' }}>
+                                                            <div style={{ color: (borrowLimit.canBorrowMore > 0 && !borrowLimit.hasOverdue) ? '#059669' : '#b91c1c', fontSize: '10px' }}>CÒN LẠI</div>
+                                                            <div style={{ fontWeight: '700', fontSize: '14px', color: (borrowLimit.canBorrowMore > 0 && !borrowLimit.hasOverdue) ? '#059669' : '#b91c1c' }}>
+                                                                {borrowLimit.hasOverdue ? 0 : borrowLimit.canBorrowMore}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div style={{ fontSize: '10px', color: '#64748b', marginTop: '5px', fontStyle: 'italic' }}>
+                                                        *Đang giữ bao gồm cả các yêu cầu đang chờ/đã duyệt online.
+                                                    </div>
+                                                    {borrowLimit.hasOverdue && (
+                                                        <div style={{ color: '#ef4444', fontSize: '11px', marginTop: '8px', fontWeight: '600', textAlign: 'center' }}>
+                                                            Tài khoản bị tạm khóa do có sách quá hạn.
+                                                        </div>
+                                                    )}
+                                                    {!borrowLimit.hasOverdue && borrowLimit.canBorrowMore <= 0 && (
+                                                        <div style={{ color: '#ef4444', fontSize: '11px', marginTop: '8px', fontWeight: '600', textAlign: 'center' }}>
+                                                            ⚠️ Đã đạt giới hạn mượn. Cần trả sách trước khi mượn mới.
+                                                        </div>
+                                                    )}
+                                                </div>
                                             )}
                                         </div>
                                     </div>

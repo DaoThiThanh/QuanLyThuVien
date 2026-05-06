@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { FiX, FiSearch, FiCheck, FiBook } from 'react-icons/fi';
 import styles from './DuyetYeuCauModal.module.css';
 import { GetAvailableCopies, GetCuonSachByBarcode } from '../../dichVu/modules/dichVuSach';
-import { CreatePhieuMuon } from '../../dichVu/modules/dichVuMuonSach';
+import { CreatePhieuMuon, CheckBorrowingLimit } from '../../dichVu/modules/dichVuMuonSach';
 import { getUserId } from '../../dichVu/modules/dichVuXacThuc';
 
 interface DuyetYeuCauModalProps {
@@ -24,11 +24,16 @@ interface PhysicalAssignment {
 const DuyetYeuCauModal: React.FC<DuyetYeuCauModalProps> = ({ isOpen, onClose, onSuccess, yeuCau }) => {
     const [assignments, setAssignments] = useState<PhysicalAssignment[]>([]);
     const [loading, setLoading] = useState(false);
+    const [borrowLimit, setBorrowLimit] = useState<any>(null);
     const [barcodeInputs, setBarcodeInputs] = useState<{[key: string]: string}>({});
 
     useEffect(() => {
         if (isOpen && yeuCau && yeuCau.dauSachIds) {
             const fetchStatus = async () => {
+                // Kiểm tra hạn mức & quá hạn
+                const limit = await CheckBorrowingLimit(yeuCau.docGiaId);
+                setBorrowLimit(limit);
+
                 const initialAssignments = await Promise.all(yeuCau.dauSachIds.map(async (id: string, index: number) => {
                     const copies = await GetAvailableCopies(id);
                     return {
@@ -131,6 +136,17 @@ const DuyetYeuCauModal: React.FC<DuyetYeuCauModalProps> = ({ isOpen, onClose, on
                         </div>
                     </div>
 
+                    {borrowLimit?.hasOverdue && (
+                        <div style={{ padding: '12px', background: '#fff1f2', border: '1px solid #fecaca', borderRadius: '8px', marginBottom: '20px', color: '#b91c1c' }}>
+                            <div style={{ fontWeight: '700', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span>⚠️ KHÔNG THỂ BÀN GIAO SÁCH</span>
+                            </div>
+                            <p style={{ fontSize: '12px', margin: '5px 0 0 0' }}>
+                                Độc giả này đang có sách quá hạn chưa trả. Theo quy định, hệ thống đã tạm khóa chức năng mượn mới.
+                            </p>
+                        </div>
+                    )}
+
                     <h3 style={{fontSize: '15px', marginBottom: '12px', color: '#64748b', fontWeight: '600'}}>QUÉT MÃ VẠCH SÁCH ĐỂ CẤP</h3>
                     
                     <div className={styles.bookList}>
@@ -177,7 +193,7 @@ const DuyetYeuCauModal: React.FC<DuyetYeuCauModalProps> = ({ isOpen, onClose, on
                     <button 
                         className={styles.btnConfirm} 
                         onClick={handleConfirm}
-                        disabled={loading || !assignments.every(a => a.cuonSachId)}
+                        disabled={loading || !assignments.every(a => a.cuonSachId) || borrowLimit?.hasOverdue}
                     >
                         {loading ? 'Đang xử lý...' : 'Xác nhận & Hoàn tất bàn giao'}
                     </button>

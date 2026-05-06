@@ -11,7 +11,18 @@ import DuyetYeuCauModal from '../components/CuaSoXacNhan/DuyetYeuCauModal';
 import KiemTraKhoModal from '../components/CuaSoXacNhan/KiemTraKhoModal';
 import XacNhanTraSachModal from '../components/CuaSoXacNhan/XacNhanTraSachModal';
 import TaoPhieuMuonModal from '../components/CuaSoXacNhan/TaoPhieuMuonModal';
+import { FiX, FiSearch, FiUser, FiBook, FiPlus, FiTrash2, FiCalendar, FiCheck } from 'react-icons/fi';
 import { getAllUsers, type UserItem } from '../dichVu/modules/dichVuNguoiDung';
+
+const formatDate = (dateString: string) => {
+  if (!dateString) return '---';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+};
 
 const LibrarianPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -30,10 +41,11 @@ const LibrarianPage: React.FC = () => {
   const [danhMucs, setDanhMucs] = useState<CategoryItem[]>([]);
   const [quyDinh, setQuyDinh] = useState<any>(null);
   const [showReturnModal, setShowReturnModal] = useState(false);
+  const [loanSearchTerm, setLoanSearchTerm] = useState('');
+  const [loanStatusFilter, setLoanStatusFilter] = useState<'all' | 'active' | 'returned'>('active');
   const [selectedPhieuMuon, setSelectedPhieuMuon] = useState<any>(null);
   const [showCreateLoanModal, setShowCreateLoanModal] = useState(false);
   const [readerSearchTerm, setReaderSearchTerm] = useState('');
-  const [loanSearchTerm, setLoanSearchTerm] = useState('');
 
   // State cho Modal Metadata
   const [isMetadataModalOpen, setIsMetadataModalOpen] = useState(false);
@@ -570,21 +582,56 @@ const LibrarianPage: React.FC = () => {
                 </div>
 
                 <div className={styles['admin-section']}>
-                  <div className={styles['section-header']}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                      <h2 className={styles['section-title']}>Danh sách Sách đang mượn</h2>
+                  <div className={styles['section-header']} style={{ flexWrap: 'wrap', gap: '15px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flex: 1 }}>
+                      <h2 className={styles['section-title']} style={{ margin: 0 }}>Quản lý Mượn trả</h2>
                       <div className={styles['header-search']}>
                         <input 
                           type="text" 
                           placeholder="Tìm mã phiếu, độc giả..." 
                           className={styles['form-control']} 
-                          style={{ width: '220px', padding: '6px 12px', fontSize: '13px' }} 
+                          style={{ width: '220px', padding: '8px 12px', fontSize: '13px', borderRadius: '20px' }} 
                           value={loanSearchTerm}
                           onChange={(e) => setLoanSearchTerm(e.target.value)}
                         />
                       </div>
                     </div>
-                    <button className={styles['section-action']} onClick={() => setShowCreateLoanModal(true)}>+ Tạo Phiếu Mượn</button>
+                    
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', background: '#f1f5f9', padding: '4px', borderRadius: '8px' }}>
+                            <button 
+                                onClick={() => setLoanStatusFilter('active')}
+                                style={{ 
+                                    padding: '6px 12px', borderRadius: '6px', border: 'none', fontSize: '12px', fontWeight: '700',
+                                    background: loanStatusFilter === 'active' ? 'white' : 'transparent',
+                                    color: loanStatusFilter === 'active' ? '#3b82f6' : '#64748b',
+                                    boxShadow: loanStatusFilter === 'active' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                                    cursor: 'pointer'
+                                }}
+                            >Đang mượn</button>
+                            <button 
+                                onClick={() => setLoanStatusFilter('returned')}
+                                style={{ 
+                                    padding: '6px 12px', borderRadius: '6px', border: 'none', fontSize: '12px', fontWeight: '700',
+                                    background: loanStatusFilter === 'returned' ? 'white' : 'transparent',
+                                    color: loanStatusFilter === 'returned' ? '#10b981' : '#64748b',
+                                    boxShadow: loanStatusFilter === 'returned' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                                    cursor: 'pointer'
+                                }}
+                            >Đã trả</button>
+                            <button 
+                                onClick={() => setLoanStatusFilter('all')}
+                                style={{ 
+                                    padding: '6px 12px', borderRadius: '6px', border: 'none', fontSize: '12px', fontWeight: '700',
+                                    background: loanStatusFilter === 'all' ? 'white' : 'transparent',
+                                    color: loanStatusFilter === 'all' ? '#6366f1' : '#64748b',
+                                    boxShadow: loanStatusFilter === 'all' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                                    cursor: 'pointer'
+                                }}
+                            >Tất cả</button>
+                        </div>
+                        <button className={styles['section-action']} onClick={() => setShowCreateLoanModal(true)} style={{ padding: '8px 16px' }}>+ Mượn tại quầy</button>
+                    </div>
                   </div>
                   <div className={styles['table-responsive']}>
                     <table className={styles['admin-table']}>
@@ -592,61 +639,92 @@ const LibrarianPage: React.FC = () => {
                         <tr>
                           <th>Mã Phiếu</th>
                           <th>Độc Giả</th>
-                          <th>Tên Sách</th>
-                          <th>Ngày Mượn</th>
-                          <th>Hạn Trả</th>
+                          <th>Thông tin mượn</th>
+                          <th>Thời hạn</th>
+                          <th>Trạng thái</th>
                           <th>Thao Tác</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {borrowedBooks.filter(b => 
-                          String(b.id).includes(loanSearchTerm) || 
-                          b.tenDocGia.toLowerCase().includes(loanSearchTerm.toLowerCase())
-                        ).length === 0 ? (
-                          <tr><td colSpan={6} style={{ textAlign: 'center', padding: '20px' }}>Không tìm thấy phiếu mượn nào</td></tr>
+                        {borrowedBooks
+                          .filter(b => {
+                            const matchesSearch = String(b.id).includes(loanSearchTerm) || b.tenDocGia.toLowerCase().includes(loanSearchTerm.toLowerCase());
+                            const matchesStatus = loanStatusFilter === 'all' || 
+                                                 (loanStatusFilter === 'active' && b.trangThai === 1) || 
+                                                 (loanStatusFilter === 'returned' && b.trangThai === 2);
+                            return matchesSearch && matchesStatus;
+                          }).length === 0 ? (
+                          <tr><td colSpan={6} style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Không tìm thấy dữ liệu phù hợp</td></tr>
                         ) : (
-                          borrowedBooks.filter(b => 
-                            String(b.id).includes(loanSearchTerm) || 
-                            b.tenDocGia.toLowerCase().includes(loanSearchTerm.toLowerCase())
-                          ).map(item => {
-                            const isOverdue = new Date(item.hanTra) < new Date();
-                            return (
-                              <tr key={item.id} style={isOverdue ? { backgroundColor: '#fff1f2' } : {}}>
-                                <td>
-                                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                    <strong>#{String(item.id).substring(0, 8)}</strong>
-                                    {isOverdue && <span style={{ fontSize: '10px', color: '#ef4444', fontWeight: '700' }}>QUÁ HẠN</span>}
-                                  </div>
-                                </td>
-                                <td>{item.tenDocGia}</td>
-                                <td>
-                                  <div title={item.tenSach} style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                    {item.tenSach || "Nhiều sách"}
-                                  </div>
-                                </td>
-                                <td style={{ fontSize: '13px' }}>{formatDate(item.ngayMuon)}</td>
-                                <td>
-                                  <span style={{ color: isOverdue ? '#ef4444' : '#3b82f6', fontWeight: '600' }}>
-                                    {formatDate(item.hanTra)}
-                                  </span>
-                                </td>
-                                <td>
-                                  <div style={{ display: 'flex', gap: '8px' }}>
-                                    <button 
-                                      className={`${styles['status-badge']} ${styles['status-active']}`} 
-                                      style={{ border: 'none', cursor: 'pointer', padding: '4px 12px' }}
-                                      onClick={() => handleReturnClick(item.id)}
-                                    >
-                                      Trả sách
-                                    </button>
-                                    <button className={styles['action-btn-mini']} title="Chi tiết phiếu">
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            );
-                          })
+                          borrowedBooks
+                            .filter(b => {
+                              const matchesSearch = String(b.id).includes(loanSearchTerm) || b.tenDocGia.toLowerCase().includes(loanSearchTerm.toLowerCase());
+                              const matchesStatus = loanStatusFilter === 'all' || 
+                                                   (loanStatusFilter === 'active' && b.trangThai === 1) || 
+                                                   (loanStatusFilter === 'returned' && b.trangThai === 2);
+                              return matchesSearch && matchesStatus;
+                            })
+                            .map(item => {
+                              const isOverdue = item.trangThai === 1 && new Date(item.hanTra) < new Date();
+                              return (
+                                <tr key={item.id} style={isOverdue ? { backgroundColor: '#fff1f2' } : {}}>
+                                  <td>
+                                    <div style={{ fontWeight: '700', color: '#1e293b' }}>#{String(item.id).substring(0, 8)}</div>
+                                    <div style={{ fontSize: '11px', color: '#94a3b8' }}>
+                                      {item.kenhMuon === 2 ? 'Kênh Online' : 'Tại quầy'}
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <div style={{ fontWeight: '600' }}>{item.tenDocGia}</div>
+                                  </td>
+                                  <td>
+                                    <div style={{ fontSize: '13px', color: '#475569' }}>
+                                      <FiBook style={{ marginRight: '5px', verticalAlign: 'middle' }} />
+                                      {item.tenSach || "Nhiều sách"}
+                                    </div>
+                                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                                      Mượn ngày: {formatDate(item.ngayMuon)}
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                      <span style={{ color: isOverdue ? '#ef4444' : '#64748b', fontWeight: '600', fontSize: '13px' }}>
+                                        Hạn: {formatDate(item.hanTra)}
+                                      </span>
+                                      {isOverdue && <span style={{ fontSize: '10px', color: '#b91c1c', fontWeight: '800' }}>⚠️ TRỄ HẠN</span>}
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <span className={`${styles['status-badge']} ${item.trangThai === 2 ? styles['status-approved'] : (isOverdue ? styles['status-rejected'] : styles['status-pending'])}`}>
+                                      {item.trangThai === 2 ? 'Đã trả' : (isOverdue ? 'Quá hạn' : 'Đang mượn')}
+                                    </span>
+                                  </td>
+                                  <td>
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                      {item.trangThai === 1 && (
+                                        <button 
+                                          className={`${styles['status-badge']} ${styles['status-active']}`} 
+                                          style={{ border: 'none', cursor: 'pointer', padding: '6px 12px', background: '#3b82f6' }}
+                                          onClick={() => handleReturnClick(item.id)}
+                                        >
+                                          Trả sách
+                                        </button>
+                                      )}
+                                      <button 
+                                        className={styles['action-btn-mini']} 
+                                        title="Xem chi tiết"
+                                        onClick={() => {
+                                          setSelectedPhieuMuon(item);
+                                          // logic xem chi tiết nếu cần
+                                        }}
+                                      >
+                                        <FiSearch size={14} />
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })
                         )}
                       </tbody>
                   </table>

@@ -308,7 +308,7 @@ namespace QuanLyThuVien.Repositories
             using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
-
+ 
                 // Lấy quy định
                 int soSachToiDa = 5;
                 var tsQuery = "SELECT TOP 1 SoSachMuonToiDa FROM ThamSoQuyDinh ORDER BY NgayCapNhat DESC";
@@ -317,12 +317,12 @@ namespace QuanLyThuVien.Repositories
                     var val = await tsCommand.ExecuteScalarAsync();
                     if (val != null && val != DBNull.Value) soSachToiDa = (int)val;
                 }
-
-                // Tính số sách đang mượn + đang chờ duyệt
+ 
+                // Tính số sách đang mượn (PM trangThai 1) + đang chờ duyệt online (YC trangThai 0, 1)
                 var countQuery = @"
                     SELECT 
-                        (SELECT COUNT(*) FROM ChiTietPhieuMuon ct JOIN PhieuMuon pm ON ct.PhieuMuonId = pm.Id WHERE pm.DocGiaId = @DocGiaId AND pm.TrangThai = 1) +
-                        (SELECT COUNT(*) FROM ChiTietYeuCau ct JOIN YeuCauMuon yc ON ct.YeuCauId = yc.Id WHERE yc.DocGiaId = @DocGiaId AND yc.TrangThai = 0)";
+                        (SELECT COUNT(*) FROM ChiTietPhieuMuon ct JOIN PhieuMuon pm ON ct.PhieuMuonId = pm.Id WHERE pm.DocGiaId = @DocGiaId AND pm.TrangThai = 1 AND ct.NgayTraThucTe IS NULL) +
+                        (SELECT COUNT(*) FROM ChiTietYeuCau ct JOIN YeuCauMuon yc ON ct.YeuCauId = yc.Id WHERE yc.DocGiaId = @DocGiaId AND (yc.TrangThai = 0 OR yc.TrangThai = 1))";
                 
                 int dangMuon = 0;
                 using (var countCommand = new SqlCommand(countQuery, connection))
@@ -331,10 +331,40 @@ namespace QuanLyThuVien.Repositories
                     dangMuon = (int)await countCommand.ExecuteScalarAsync();
                 }
 
+                // Kiểm tra có sách quá hạn không
+                var overdueQuery = "SELECT COUNT(*) FROM PhieuMuon pm JOIN ChiTietPhieuMuon ct ON pm.Id = ct.PhieuMuonId WHERE pm.DocGiaId = @DocGiaId AND pm.TrangThai = 1 AND ct.NgayTraThucTe IS NULL AND pm.HanTra < GETDATE()";
+                bool hasOverdue = false;
+                using (var overdueCommand = new SqlCommand(overdueQuery, connection))
+                {
+                    overdueCommand.Parameters.AddWithValue("@DocGiaId", docGiaId);
+                    hasOverdue = (int)await overdueCommand.ExecuteScalarAsync() > 0;
+                }
+ 
+                // Lấy danh sách ID các đầu sách đang giữ
+                var bookIdsQuery = @"
+                    SELECT DauSachId FROM ChiTietYeuCau ct JOIN YeuCauMuon yc ON ct.YeuCauId = yc.Id WHERE yc.DocGiaId = @DocGiaId AND (yc.TrangThai = 0 OR yc.TrangThai = 1)
+                    UNION
+                    SELECT cs.DauSachId FROM ChiTietPhieuMuon ct JOIN PhieuMuon pm ON ct.PhieuMuonId = pm.Id JOIN CuonSach cs ON ct.CuonSachId = cs.Id WHERE pm.DocGiaId = @DocGiaId AND pm.TrangThai = 1 AND ct.NgayTraThucTe IS NULL";
+                
+                var currentBookIds = new List<Guid>();
+                using (var bookCommand = new SqlCommand(bookIdsQuery, connection))
+                {
+                    bookCommand.Parameters.AddWithValue("@DocGiaId", docGiaId);
+                    using (var reader = await bookCommand.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            currentBookIds.Add(reader.GetGuid(0));
+                        }
+                    }
+                }
+ 
                 return new { 
                     CurrentCount = dangMuon, 
                     MaxLimit = soSachToiDa, 
-                    CanBorrowMore = soSachToiDa - dangMuon 
+                    CanBorrowMore = soSachToiDa - dangMuon,
+                    HasOverdue = hasOverdue,
+                    CurrentBookIds = currentBookIds
                 };
             }
         }
