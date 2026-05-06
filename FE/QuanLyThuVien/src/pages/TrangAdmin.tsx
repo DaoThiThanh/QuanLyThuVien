@@ -4,23 +4,34 @@ import styles from './TrangAdmin.module.css';
 import { getAllUsers, type UserItem } from '../dichVu/modules/dichVuNguoiDung';
 import { getUserName } from '../dichVu/modules/dichVuXacThuc';
 import { getThongKeAdmin, type ThongKeAdminDto } from '../dichVu/modules/dichVuThongKe';
+import { GetTacGias, GetNhaXuatBans, GetCategories } from '../dichVu/modules/dichVuSach';
+import type { TacGiaItem, NhaXuatBanItem, CategoryItem } from '../kieuDuLieu/sach';
 
 const AdminPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [stats, setStats] = useState<ThongKeAdminDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<UserItem[]>([]);
+  const [tacGias, setTacGias] = useState<TacGiaItem[]>([]);
+  const [nhaXuatBans, setNhaXuatBans] = useState<NhaXuatBanItem[]>([]);
+  const [danhMucs, setDanhMucs] = useState<CategoryItem[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [statsData, usersData] = await Promise.all([
+        const [statsData, usersData, tacGiasData, nxbsData, dmData] = await Promise.all([
           getThongKeAdmin(),
-          getAllUsers()
+          getAllUsers(),
+          GetTacGias(),
+          GetNhaXuatBans(),
+          GetCategories()
         ]);
         setStats(statsData);
         setUsers(usersData);
+        setTacGias(tacGiasData || []);
+        setNhaXuatBans(nxbsData || []);
+        setDanhMucs(dmData || []);
       } catch (error) {
         console.error("Lỗi khi tải dữ liệu admin:", error);
       } finally {
@@ -44,7 +55,8 @@ const AdminPage: React.FC = () => {
     { id: 'dashboard', label: 'Dashboard', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg> },
     { id: 'users', label: 'Quản lý Độc giả', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> },
     { id: 'librarians', label: 'Quản lý Thủ thư', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> },
-    { id: 'settings', label: 'Cài đặt Tham số', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> },
+    { id: 'metadata', label: 'Quản lý Metadata', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" x2="21" y1="6" y2="6" /><line x1="8" x2="21" y1="12" y2="12" /><line x1="8" x2="21" y1="18" y2="18" /><line x1="3" x2="3.01" y1="6" y2="6" /><line x1="3" x2="3.01" y1="12" y2="12" /><line x1="3" x2="3.01" y1="18" y2="18" /></svg> },
+    { id: 'settings', label: 'Quy định Hệ thống', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> },
   ];
 
   return (
@@ -327,13 +339,88 @@ const AdminPage: React.FC = () => {
             </div>
           )}
 
+          {activeTab === 'metadata' && (
+            <div className={styles['admin-dashboard-grid']}>
+               <div className={styles['admin-section']}>
+                  <div className={styles['section-header']}>
+                    <h2 className={styles['section-title']}>Danh mục Sách</h2>
+                    <button className={styles['section-action-mini']}>+ Thêm</button>
+                  </div>
+                  <div className={styles['table-responsive']}>
+                    <table className={styles['admin-table']}>
+                      <thead>
+                        <tr>
+                          <th>Tên Danh Mục</th>
+                          <th>Thao tác</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {danhMucs.map(dm => (
+                          <tr key={dm.id}>
+                            <td>{dm.tenDanhMuc}</td>
+                            <td><button className={styles['btn-icon']}><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg></button></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+               </div>
+               <div className={styles['admin-section']}>
+                  <div className={styles['section-header']}>
+                    <h2 className={styles['section-title']}>Tác giả</h2>
+                    <button className={styles['section-action-mini']}>+ Thêm</button>
+                  </div>
+                  <div className={styles['table-responsive']}>
+                    <table className={styles['admin-table']}>
+                      <thead>
+                        <tr>
+                          <th>Tên Tác Giả</th>
+                          <th>Thao tác</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {tacGias.map(tg => (
+                          <tr key={tg.id}>
+                            <td>{tg.tenTacGia}</td>
+                            <td><button className={styles['btn-icon']}><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg></button></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+               </div>
+            </div>
+          )}
+
           {activeTab === 'settings' && (
-            <div className={styles['placeholder-content']}>
-              <div className={styles['placeholder-icon']}>
-                 {menuItems.find(m => m.id === activeTab)?.icon}
+            <div className={styles['admin-section']} style={{ maxWidth: '800px' }}>
+              <div className={styles['section-header']}>
+                <h2 className={styles['section-title']}>Cấu hình Quy định Hệ thống</h2>
+                <button className={styles['section-action']}>Lưu thay đổi</button>
               </div>
-              <h3>Giao diện {menuItems.find(m => m.id === activeTab)?.label} đang được phát triển</h3>
-              <p>Phần này sẽ sớm được hoàn thiện với các chức năng đầy đủ.</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px', padding: '20px' }}>
+                <div className={styles['form-group']}>
+                   <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Số sách mượn tối đa / Độc giả</label>
+                   <input type="number" defaultValue={5} className={styles['form-control']} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
+                </div>
+                <div className={styles['form-group']}>
+                   <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Số ngày mượn tối đa</label>
+                   <input type="number" defaultValue={14} className={styles['form-control']} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
+                </div>
+                <div className={styles['form-group']}>
+                   <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Phí phạt trễ hạn (₫/ngày)</label>
+                   <input type="number" defaultValue={5000} className={styles['form-control']} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
+                </div>
+                <div className={styles['form-group']}>
+                   <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Thời gian chờ nhận sách (giờ)</label>
+                   <input type="number" defaultValue={48} className={styles['form-control']} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
+                </div>
+              </div>
+              <div style={{ padding: '20px', background: '#fffbeb', borderRadius: '8px', margin: '20px', borderLeft: '4px solid #f59e0b' }}>
+                <p style={{ margin: 0, fontSize: '14px', color: '#92400e' }}>
+                   <strong>Lưu ý quan trọng:</strong> Các thay đổi về tham số hệ thống sẽ ảnh hưởng đến toàn bộ các nghiệp vụ tính toán tiền phạt và giới hạn mượn của độc giả.
+                </p>
+              </div>
             </div>
           )}
         </div>

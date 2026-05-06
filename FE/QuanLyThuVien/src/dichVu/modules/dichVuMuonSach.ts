@@ -42,6 +42,11 @@ export const GetDanhSachPhieuMuon = async (page: number = 1, pageSize: number = 
     return response.data;
 };
 
+export const GetPhieuMuonById = async (id: string) => {
+    const response = await CauHinhApi.get(`/phieu-muon/${id}`);
+    return response.data;
+};
+
 export const GetPhieuMuonQuaHan = async () => {
     const response = await CauHinhApi.get<any[]>('/phieu-muon/qua-han');
     return response.data;
@@ -58,5 +63,10 @@ export const TuChoiYeuCauMuon = async (id: string) => {
 };
 export const CheckBorrowingLimit = async (userId: string) => {
     const response = await CauHinhApi.get<{ currentCount: number, maxLimit: number, canBorrowMore: number }>(`/yeu-cau-muon/check-limit/${userId}`);
+    return response.data;
+};
+
+export const ReturnBook = async (payload: { phieuMuonId: string, cuonSachId: string, tinhTrang: string }) => {
+    const response = await CauHinhApi.post('/phieu-muon/return', payload);
     return response.data;
 };

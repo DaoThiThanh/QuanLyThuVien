@@ -3,11 +3,12 @@ import { Link } from 'react-router-dom';
 import styles from './TrangAdmin.module.css'; // Reusing the same rich CSS as Admin
 import { getThongKeThuThu, type ThongKeThuThuDto } from '../dichVu/modules/dichVuThongKe';
 import { getUserName } from '../dichVu/modules/dichVuXacThuc';
-import { GetAllYeuCauMuon, GetDanhSachPhieuMuon, GetPhieuMuonQuaHan, type YeuCauMuonDto } from '../dichVu/modules/dichVuMuonSach';
+import { GetAllYeuCauMuon, GetDanhSachPhieuMuon, GetPhieuMuonQuaHan, GetPhieuMuonById, type YeuCauMuonDto } from '../dichVu/modules/dichVuMuonSach';
 import { GetDanhSachSach, CreateBook, UpdateBook, DeleteBook, GetTacGias, GetNhaXuatBans, GetCategories } from '../dichVu/modules/dichVuSach';
 import type { TacGiaItem, NhaXuatBanItem, CategoryItem, UpsertSachDto } from '../kieuDuLieu/sach';
 import DuyetYeuCauModal from '../components/CuaSoXacNhan/DuyetYeuCauModal';
 import KiemTraKhoModal from '../components/CuaSoXacNhan/KiemTraKhoModal';
+import XacNhanTraSachModal from '../components/CuaSoXacNhan/XacNhanTraSachModal';
 
 const LibrarianPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -20,9 +21,13 @@ const LibrarianPage: React.FC = () => {
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showCheckStockModal, setShowCheckStockModal] = useState(false);
   const [inventoryBooks, setInventoryBooks] = useState<any[]>([]);
+  const [readers, setReaders] = useState<any[]>([]);
   const [tacGias, setTacGias] = useState<TacGiaItem[]>([]);
   const [nhaXuatBans, setNhaXuatBans] = useState<NhaXuatBanItem[]>([]);
   const [danhMucs, setDanhMucs] = useState<CategoryItem[]>([]);
+  const [quyDinh, setQuyDinh] = useState<any>(null);
+  const [showReturnModal, setShowReturnModal] = useState(false);
+  const [selectedPhieuMuon, setSelectedPhieuMuon] = useState<any>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBookId, setEditingBookId] = useState<string | null>(null);
@@ -101,6 +106,16 @@ const LibrarianPage: React.FC = () => {
     }
   };
 
+  const handleReturnClick = async (phieuId: string) => {
+    try {
+      const data = await GetPhieuMuonById(phieuId);
+      setSelectedPhieuMuon(data);
+      setShowReturnModal(true);
+    } catch (error) {
+      alert('Không thể tải chi tiết phiếu mượn');
+    }
+  };
+
   const handleSaveBook = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -133,7 +148,8 @@ const LibrarianPage: React.FC = () => {
     { id: 'books', label: 'Quản lý Kho Sách', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" /></svg> },
     { id: 'borrow', label: 'Quản lý Mượn/Trả', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><path d="M12 18v-6" /><path d="m9 15 3 3 3-3" /></svg> },
     { id: 'requests', label: 'Yêu Cầu Mượn', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" /><path d="M12 6v6l4 2" /></svg> },
-    { id: 'categories', label: 'Danh mục Sách', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" x2="21" y1="6" y2="6" /><line x1="8" x2="21" y1="12" y2="12" /><line x1="8" x2="21" y1="18" y2="18" /><line x1="3" x2="3.01" y1="6" y2="6" /><line x1="3" x2="3.01" y1="12" y2="12" /><line x1="3" x2="3.01" y1="18" y2="18" /></svg> },
+    { id: 'readers', label: 'Quản lý Độc giả', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><circle cx="18" cy="7" r="4" /></svg> },
+    { id: 'metadata', label: 'Danh mục & Tác giả', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" x2="21" y1="6" y2="6" /><line x1="8" x2="21" y1="12" y2="12" /><line x1="8" x2="21" y1="18" y2="18" /><line x1="3" x2="3.01" y1="6" y2="6" /><line x1="3" x2="3.01" y1="12" y2="12" /><line x1="3" x2="3.01" y1="18" y2="18" /></svg> },
   ];
 
   return (
@@ -407,7 +423,15 @@ const LibrarianPage: React.FC = () => {
                             <td>{item.tenSach || "Nhiều sách"}</td>
                             <td>{formatDate(item.ngayMuon)}</td>
                             <td><span style={{ color: '#3b82f6', fontWeight: '500' }}>{formatDate(item.hanTra)}</span></td>
-                            <td><button className={`${styles['status-badge']} ${styles['status-active']}`} style={{ border: 'none', cursor: 'pointer' }}>Trả sách</button></td>
+                            <td>
+                              <button 
+                                className={`${styles['status-badge']} ${styles['status-active']}`} 
+                                style={{ border: 'none', cursor: 'pointer' }}
+                                onClick={() => handleReturnClick(item.id)}
+                              >
+                                Trả sách
+                              </button>
+                            </td>
                           </tr>
                         ))
                       )}
@@ -535,13 +559,106 @@ const LibrarianPage: React.FC = () => {
             </div>
           )}
 
-          {activeTab === 'categories' && (
-            <div className={styles['placeholder-content']}>
-              <div className={styles['placeholder-icon']}>
-                {menuItems.find(m => m.id === activeTab)?.icon}
+          {activeTab === 'readers' && (
+            <div className={styles['admin-section']}>
+              <div className={styles['section-header']}>
+                <h2 className={styles['section-title']}>Quản lý Danh sách Độc giả</h2>
+                <div className={styles['header-search']}>
+                    <input type="text" placeholder="Tìm tên, email..." className={styles['form-control']} style={{ width: '250px' }} />
+                </div>
               </div>
-              <h3>Giao diện {menuItems.find(m => m.id === activeTab)?.label} đang được phát triển</h3>
-              <p>Phần này sẽ sớm được hoàn thiện with các chức năng đầy đủ của nghiệp vụ Thủ Thư.</p>
+              <div className={styles['table-responsive']}>
+                <table className={styles['admin-table']}>
+                  <thead>
+                    <tr>
+                      <th>Họ Tên</th>
+                      <th>Liên Hệ</th>
+                      <th>Trạng Thái</th>
+                      <th>Ngày tham gia</th>
+                      <th>Hoạt động</th>
+                      <th>Thao Tác</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {/* Mock data for readers for now since we don't have GetReaders service yet */}
+                    <tr>
+                      <td><strong>Nguyễn Văn A</strong></td>
+                      <td>
+                        <div>vana@email.com</div>
+                        <div style={{ fontSize: '12px' }}>090xxxxxxx</div>
+                      </td>
+                      <td><span className={`${styles['status-badge']} ${styles['status-active']}`}>Hoạt động</span></td>
+                      <td>01/01/2026</td>
+                      <td>Đang mượn 2 cuốn</td>
+                      <td><button className={styles['action-btn-mini']}>Xem hồ sơ</button></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Lê Thị B</strong></td>
+                      <td>
+                        <div>lethib@email.com</div>
+                        <div style={{ fontSize: '12px' }}>091xxxxxxx</div>
+                      </td>
+                      <td><span className={`${styles['status-badge']} ${styles['status-active']}`}>Hoạt động</span></td>
+                      <td>15/02/2026</td>
+                      <td>Không có sách mượn</td>
+                      <td><button className={styles['action-btn-mini']}>Xem hồ sơ</button></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'metadata' && (
+            <div className={styles['admin-dashboard-grid']}>
+               <div className={styles['admin-section']}>
+                  <div className={styles['section-header']}>
+                    <h2 className={styles['section-title']}>Danh mục Sách</h2>
+                    <button className={styles['section-action-mini']}>+ Thêm</button>
+                  </div>
+                  <div className={styles['table-responsive']}>
+                    <table className={styles['admin-table']}>
+                      <thead>
+                        <tr>
+                          <th>Tên Danh Mục</th>
+                          <th>Thao tác</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {danhMucs.map(dm => (
+                          <tr key={dm.id}>
+                            <td>{dm.tenDanhMuc}</td>
+                            <td><button className={styles['btn-icon']}><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg></button></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+               </div>
+               <div className={styles['admin-section']}>
+                  <div className={styles['section-header']}>
+                    <h2 className={styles['section-title']}>Tác giả</h2>
+                    <button className={styles['section-action-mini']}>+ Thêm</button>
+                  </div>
+                  <div className={styles['table-responsive']}>
+                    <table className={styles['admin-table']}>
+                      <thead>
+                        <tr>
+                          <th>Tên Tác Giả</th>
+                          <th>Thao tác</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {tacGias.map(tg => (
+                          <tr key={tg.id}>
+                            <td>{tg.tenTacGia}</td>
+                            <td><button className={styles['btn-icon']}><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg></button></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+               </div>
             </div>
           )}
         </div>
@@ -628,6 +745,13 @@ const LibrarianPage: React.FC = () => {
             }}
           />
         )}
+
+        <XacNhanTraSachModal 
+          isOpen={showReturnModal}
+          onClose={() => setShowReturnModal(false)}
+          onSuccess={fetchData}
+          phieuMuon={selectedPhieuMuon}
+        />
       </main>
     </div>
   );

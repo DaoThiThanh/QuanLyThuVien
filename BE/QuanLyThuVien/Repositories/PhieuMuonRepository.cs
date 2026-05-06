@@ -10,6 +10,7 @@ namespace QuanLyThuVien.Repositories
         Task<PhieuMuonDto> GetPhieuMuonByIdAsync(Guid id);
         Task<bool> CreatePhieuMuonAsync(CreatePhieuMuonRequest request);
         Task<List<PhieuMuonDto>> GetPhieuMuonQuaHanAsync();
+        Task<bool> TraSachAsync(Guid phieuMuonId, Guid cuonSachId, string tinhTrang);
     }
 
     public class PhieuMuonRepository : IPhieuMuonRepository
@@ -313,6 +314,115 @@ namespace QuanLyThuVien.Repositories
             }
 
             return result;
+        }
+        public async Task<bool> TraSachAsync(Guid phieuMuonId, Guid cuonSachId, string tinhTrang)
+        {
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+                using (var transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        // 1. Lấy thông tin hạn trả và phí phạt từ tham số
+                        DateTime hanTra = DateTime.MinValue;
+                        decimal phiMoiNgay = 5000;
+
+                        var infoQuery = @"
+                            SELECT pm.HanTra, 
+                                   ISNULL((SELECT TOP 1 PhiPhatTreHanMoiNgay FROM ThamSoQuyDinh ORDER BY NgayCapNhat DESC), 5000) as PhiPhat
+                            FROM PhieuMuon pm WHERE pm.Id = @PhieuMuonId";
+                        
+                        using (var command = new SqlCommand(infoQuery, connection, transaction))
+                        {
+                            command.Parameters.AddWithValue("@PhieuMuonId", phieuMuonId);
+                            using (var reader = await command.ExecuteReaderAsync())
+                            {
+                                if (await reader.ReadAsync())
+                                {
+                                    hanTra = reader.GetDateTime(0);
+                                    phiMoiNgay = reader.GetDecimal(1);
+                                }
+                            }
+                        }
+
+                        // 2. Tính tiền phạt
+                        decimal tienPhat = 0;
+                        if (DateTime.Now.Date > hanTra.Date)
+                        {
+                            int trễ = (int)(DateTime.Now.Date - hanTra.Date).TotalDays;
+                            tienPhat = trễ * phiMoiNgay;
+                        }
+
+                        // 3. Cập nhật ChiTietPhieuMuon
+                        var updateCtQuery = @"
+                            UPDATE ChiTietPhieuMuon 
+                            SET NgayTraThucTe = GETDATE(), 
+                                TinhTrangKhiTra = @TinhTrang,
+                                TienPhat = @TienPhat
+                            WHERE PhieuMuonId = @PhieuMuonId AND CuonSachId = @CuonSachId";
+                        
+                        using (var command = new SqlCommand(updateCtQuery, connection, transaction))
+                        {
+                            command.Parameters.AddWithValue("@PhieuMuonId", phieuMuonId);
+                            command.Parameters.AddWithValue("@CuonSachId", cuonSachId);
+                            command.Parameters.AddWithValue("@TinhTrang", tinhTrang);
+                            command.Parameters.AddWithValue("@TienPhat", tienPhat);
+                            await command.ExecuteNonQueryAsync();
+                        }
+
+                        // 4. Cập nhật trạng thái CuonSach sang 1 (Sẵn sàng)
+                        var updateCsQuery = "UPDATE CuonSach SET TrangThaiMuon = 1 WHERE Id = @CuonSachId";
+                        using (var command = new SqlCommand(updateCsQuery, connection, transaction))
+                        {
+                            command.Parameters.AddWithValue("@CuonSachId", cuonSachId);
+                            await command.ExecuteNonQueryAsync();
+                        }
+
+                        // 5. Cập nhật SoLuongTon trong DauSach
+                        var updateDsQuery = @"
+                            UPDATE DauSach SET SoLuongTon = SoLuongTon + 1 
+                            WHERE Id = (SELECT DauSachId FROM CuonSach WHERE Id = @CuonSachId)";
+                        using (var command = new SqlCommand(updateDsQuery, connection, transaction))
+                        {
+                            command.Parameters.AddWithValue("@CuonSachId", cuonSachId);
+                            await command.ExecuteNonQueryAsync();
+                        }
+
+                        // 6. Kiểm tra xem tất cả sách trong phiếu đã trả chưa
+                        var checkAllQuery = @"
+                            SELECT COUNT(*) FROM ChiTietPhieuMuon 
+                            WHERE PhieuMuonId = @PhieuMuonId AND NgayTraThucTe IS NULL";
+                        
+                        bool allReturned = false;
+                        using (var command = new SqlCommand(checkAllQuery, connection, transaction))
+                        {
+                            command.Parameters.AddWithValue("@PhieuMuonId", phieuMuonId);
+                            allReturned = (int)await command.ExecuteScalarAsync() == 0;
+                        }
+
+                        if (allReturned)
+                        {
+                            var updatePmQuery = "UPDATE PhieuMuon SET TrangThai = 2 WHERE Id = @PhieuMuonId"; // 2 = Đã trả
+                            using (var command = new SqlCommand(updatePmQuery, connection, transaction))
+                            {
+                                command.Parameters.AddWithValue("@PhieuMuonId", phieuMuonId);
+                                await command.ExecuteNonQueryAsync();
+                            }
+                        }
+
+                        transaction.Commit();
+                        return true;
+                    }
+                    catch (Exception)
+                    {
+                        transaction.Rollback();
+                        return false;
+                    }
+                }
+            }
         }
     }
 }

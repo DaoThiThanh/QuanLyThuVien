@@ -55,5 +55,22 @@ namespace QuanLyThuVien.Controllers
             var result = await _phieuMuonRepository.GetPhieuMuonQuaHanAsync();
             return Ok(result);
         }
+
+        [HttpPost("return")]
+        public async Task<IActionResult> ReturnBook([FromBody] ReturnBookRequest request)
+        {
+            var success = await _phieuMuonRepository.TraSachAsync(request.PhieuMuonId, request.CuonSachId, request.TinhTrang);
+            if (success)
+            {
+                return Ok(new { Message = "Trả sách thành công" });
+            }
+            return BadRequest(new { Message = "Lỗi khi xử lý trả sách" });
+        }
+
+        public class ReturnBookRequest {
+            public Guid PhieuMuonId { get; set; }
+            public Guid CuonSachId { get; set; }
+            public string TinhTrang { get; set; }
+        }
     }
 }
