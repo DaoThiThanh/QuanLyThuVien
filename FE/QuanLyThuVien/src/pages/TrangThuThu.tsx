@@ -10,6 +10,7 @@ import MetadataModal from '../components/common/MetadataModal';
 import DuyetYeuCauModal from '../components/CuaSoXacNhan/DuyetYeuCauModal';
 import KiemTraKhoModal from '../components/CuaSoXacNhan/KiemTraKhoModal';
 import XacNhanTraSachModal from '../components/CuaSoXacNhan/XacNhanTraSachModal';
+import TaoPhieuMuonModal from '../components/CuaSoXacNhan/TaoPhieuMuonModal';
 import { getAllUsers, type UserItem } from '../dichVu/modules/dichVuNguoiDung';
 
 const LibrarianPage: React.FC = () => {
@@ -30,7 +31,9 @@ const LibrarianPage: React.FC = () => {
   const [quyDinh, setQuyDinh] = useState<any>(null);
   const [showReturnModal, setShowReturnModal] = useState(false);
   const [selectedPhieuMuon, setSelectedPhieuMuon] = useState<any>(null);
+  const [showCreateLoanModal, setShowCreateLoanModal] = useState(false);
   const [readerSearchTerm, setReaderSearchTerm] = useState('');
+  const [loanSearchTerm, setLoanSearchTerm] = useState('');
 
   // State cho Modal Metadata
   const [isMetadataModalOpen, setIsMetadataModalOpen] = useState(false);
@@ -64,18 +67,22 @@ const LibrarianPage: React.FC = () => {
         getAllUsers(3)
       ]);
 
+      const normalizeData = (data: any) => {
+        if (Array.isArray(data)) return data;
+        if (data && data.data && Array.isArray(data.data)) return data.data;
+        if (data && Array.isArray(data.items)) return data.items;
+        return [];
+      };
+
       setStats(statsData);
-      setRequests(requestsData || []);
-      setBorrowedBooks(borrowedData?.items || []);
-      setOverdueBooks(overdueData || []);
-      setInventoryBooks(inventoryData?.items || []);
-      // @ts-ignore
-      setTacGias(tacGiasData || []);
-      // @ts-ignore
-      setNhaXuatBans(nxbsData || []);
-      // @ts-ignore
-      setDanhMucs(dmData || []);
-      setReaders(readersData || []);
+      setRequests(normalizeData(requestsData));
+      setBorrowedBooks(normalizeData(borrowedData));
+      setOverdueBooks(normalizeData(overdueData));
+      setInventoryBooks(normalizeData(inventoryData));
+      setTacGias(normalizeData(tacGiasData));
+      setNhaXuatBans(normalizeData(nxbsData));
+      setDanhMucs(normalizeData(dmData));
+      setReaders(normalizeData(readersData));
     } catch (error) {
       console.error("Lỗi khi tải dữ liệu thủ thư:", error);
     } finally {
@@ -254,12 +261,43 @@ const LibrarianPage: React.FC = () => {
     return new Date(dateStr).toLocaleDateString('vi-VN');
   };
 
-  const recentLibrarianActivities = [
-    { id: 1, user: 'Nguyễn Văn A', action: 'vừa trả sách "Lập trình React"', time: '5 phút trước', type: 'return' },
-    { id: 2, user: 'Lê Thị B', action: 'mượn 02 cuốn sách Kinh tế', time: '15 phút trước', type: 'borrow' },
-    { id: 3, user: 'Trần C', action: 'gia hạn thêm 07 ngày mượn', time: '1 giờ trước', type: 'extend' },
-    { id: 4, user: 'Hệ thống', action: 'cập nhật 50 đầu sách mới nhập', time: '2 giờ trước', type: 'update' },
-  ];
+  // Tạo dữ liệu hoạt động nghiệp vụ động từ dữ liệu thực tế
+  const getDynamicActivities = () => {
+    const activities: any[] = [];
+    
+    // Thêm các yêu cầu mượn mới nhất
+    requests.slice(0, 2).forEach((req, idx) => {
+      activities.push({
+        id: `req-${idx}`,
+        user: req.tenDocGia,
+        action: `vừa gửi yêu cầu mượn ${req.tenCacSach?.length || 0} cuốn sách online`,
+        time: 'Mới nhận',
+        type: 'borrow'
+      });
+    });
+
+    // Thêm các phiếu mượn đang mượn
+    borrowedBooks.slice(0, 2).forEach((loan, idx) => {
+      activities.push({
+        id: `loan-${idx}`,
+        user: loan.tenDocGia,
+        action: `đang mượn cuốn "${loan.tenSach || 'Nhiều sách'}"`,
+        time: 'Đang mượn',
+        type: 'update'
+      });
+    });
+
+    // Nếu không có dữ liệu thực tế thì mới dùng mock để giao diện không trống
+    if (activities.length === 0) {
+      return [
+        { id: 1, user: 'Hệ thống', action: 'Chưa có hoạt động nghiệp vụ nào mới', time: '--', type: 'system' }
+      ];
+    }
+
+    return activities;
+  };
+
+  const recentLibrarianActivities = getDynamicActivities();
 
 
   const menuItems = [
@@ -515,47 +553,102 @@ const LibrarianPage: React.FC = () => {
 
           {activeTab === 'borrow' && (
             <div className={styles['admin-dashboard-grid']} style={{ gridTemplateColumns: '1fr' }}>
-              <div className={styles['admin-section']}>
-                <div className={styles['section-header']}>
-                  <h2 className={styles['section-title']}>Danh sách Sách đang mượn</h2>
-                  <button className={styles['section-action']}>+ Tạo Phiếu Mượn</button>
+                {/* Thống kê nhanh cho tab Mượn trả */}
+                <div className={styles['dashboard-stats']} style={{ marginBottom: '25px', gap: '15px' }}>
+                  <div className={styles['stat-card']} style={{ padding: '15px', background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', border: '1px solid #bfdbfe' }}>
+                    <div style={{ color: '#1e40af', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', marginBottom: '5px' }}>Đang cho mượn</div>
+                    <div style={{ fontSize: '24px', fontWeight: '800', color: '#1e3a8a' }}>{borrowedBooks.length}</div>
+                  </div>
+                  <div className={styles['stat-card']} style={{ padding: '15px', background: 'linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%)', border: '1px solid #fecaca' }}>
+                    <div style={{ color: '#991b1b', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', marginBottom: '5px' }}>Quá hạn</div>
+                    <div style={{ fontSize: '24px', fontWeight: '800', color: '#7f1d1d' }}>{overdueBooks.length}</div>
+                  </div>
+                  <div className={styles['stat-card']} style={{ padding: '15px', background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', border: '1px solid #bbf7d0' }}>
+                    <div style={{ color: '#166534', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', marginBottom: '5px' }}>Tỉ lệ đúng hạn</div>
+                    <div style={{ fontSize: '24px', fontWeight: '800', color: '#14532d' }}>{borrowedBooks.length > 0 ? Math.round(((borrowedBooks.length - overdueBooks.length) / borrowedBooks.length) * 100) : 100}%</div>
+                  </div>
                 </div>
-                <div className={styles['table-responsive']}>
-                  <table className={styles['admin-table']}>
-                    <thead>
-                      <tr>
-                        <th>Mã Phiếu</th>
-                        <th>Độc Giả</th>
-                        <th>Tên Sách</th>
-                        <th>Ngày Mượn</th>
-                        <th>Hạn Trả</th>
-                        <th>Thao Tác</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {borrowedBooks.length === 0 ? (
-                        <tr><td colSpan={6} style={{ textAlign: 'center', padding: '20px' }}>Không có sách nào đang được mượn</td></tr>
-                      ) : (
-                        borrowedBooks.map(item => (
-                          <tr key={item.id}>
-                            <td><strong>#{String(item.id).substring(0, 8)}</strong></td>
-                            <td>{item.tenDocGia}</td>
-                            <td>{item.tenSach || "Nhiều sách"}</td>
-                            <td>{formatDate(item.ngayMuon)}</td>
-                            <td><span style={{ color: '#3b82f6', fontWeight: '500' }}>{formatDate(item.hanTra)}</span></td>
-                            <td>
-                              <button 
-                                className={`${styles['status-badge']} ${styles['status-active']}`} 
-                                style={{ border: 'none', cursor: 'pointer' }}
-                                onClick={() => handleReturnClick(item.id)}
-                              >
-                                Trả sách
-                              </button>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
+
+                <div className={styles['admin-section']}>
+                  <div className={styles['section-header']}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                      <h2 className={styles['section-title']}>Danh sách Sách đang mượn</h2>
+                      <div className={styles['header-search']}>
+                        <input 
+                          type="text" 
+                          placeholder="Tìm mã phiếu, độc giả..." 
+                          className={styles['form-control']} 
+                          style={{ width: '220px', padding: '6px 12px', fontSize: '13px' }} 
+                          value={loanSearchTerm}
+                          onChange={(e) => setLoanSearchTerm(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <button className={styles['section-action']} onClick={() => setShowCreateLoanModal(true)}>+ Tạo Phiếu Mượn</button>
+                  </div>
+                  <div className={styles['table-responsive']}>
+                    <table className={styles['admin-table']}>
+                      <thead>
+                        <tr>
+                          <th>Mã Phiếu</th>
+                          <th>Độc Giả</th>
+                          <th>Tên Sách</th>
+                          <th>Ngày Mượn</th>
+                          <th>Hạn Trả</th>
+                          <th>Thao Tác</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {borrowedBooks.filter(b => 
+                          String(b.id).includes(loanSearchTerm) || 
+                          b.tenDocGia.toLowerCase().includes(loanSearchTerm.toLowerCase())
+                        ).length === 0 ? (
+                          <tr><td colSpan={6} style={{ textAlign: 'center', padding: '20px' }}>Không tìm thấy phiếu mượn nào</td></tr>
+                        ) : (
+                          borrowedBooks.filter(b => 
+                            String(b.id).includes(loanSearchTerm) || 
+                            b.tenDocGia.toLowerCase().includes(loanSearchTerm.toLowerCase())
+                          ).map(item => {
+                            const isOverdue = new Date(item.hanTra) < new Date();
+                            return (
+                              <tr key={item.id} style={isOverdue ? { backgroundColor: '#fff1f2' } : {}}>
+                                <td>
+                                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <strong>#{String(item.id).substring(0, 8)}</strong>
+                                    {isOverdue && <span style={{ fontSize: '10px', color: '#ef4444', fontWeight: '700' }}>QUÁ HẠN</span>}
+                                  </div>
+                                </td>
+                                <td>{item.tenDocGia}</td>
+                                <td>
+                                  <div title={item.tenSach} style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {item.tenSach || "Nhiều sách"}
+                                  </div>
+                                </td>
+                                <td style={{ fontSize: '13px' }}>{formatDate(item.ngayMuon)}</td>
+                                <td>
+                                  <span style={{ color: isOverdue ? '#ef4444' : '#3b82f6', fontWeight: '600' }}>
+                                    {formatDate(item.hanTra)}
+                                  </span>
+                                </td>
+                                <td>
+                                  <div style={{ display: 'flex', gap: '8px' }}>
+                                    <button 
+                                      className={`${styles['status-badge']} ${styles['status-active']}`} 
+                                      style={{ border: 'none', cursor: 'pointer', padding: '4px 12px' }}
+                                      onClick={() => handleReturnClick(item.id)}
+                                    >
+                                      Trả sách
+                                    </button>
+                                    <button className={styles['action-btn-mini']} title="Chi tiết phiếu">
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
                   </table>
                 </div>
               </div>
@@ -738,7 +831,18 @@ const LibrarianPage: React.FC = () => {
                             </span>
                           </td>
                           <td style={{ fontSize: '13px' }}>{formatDate(reader.ngayTao)}</td>
-                          <td>--</td>
+                          <td>
+                            {(() => {
+                              const joinDate = new Date(reader.ngayTao);
+                              const thirtyDaysAgo = new Date();
+                              thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                              return joinDate > thirtyDaysAgo ? (
+                                <span style={{ color: '#10b981', fontWeight: '500', fontSize: '12px' }}>Thành viên mới</span>
+                              ) : (
+                                <span style={{ color: '#64748b', fontSize: '12px' }}>Đang hoạt động</span>
+                              );
+                            })()}
+                          </td>
                           <td>
                             <button className={styles['action-btn-mini']} title="Xem hồ sơ">Chi tiết</button>
                           </td>
@@ -887,9 +991,7 @@ const LibrarianPage: React.FC = () => {
             isOpen={showCheckStockModal}
             onClose={() => setShowCheckStockModal(false)}
             yeuCau={selectedYeuCau}
-            onSuccess={() => {
-              fetchData();
-            }}
+            onSuccess={fetchData}
           />
         )}
 
@@ -899,9 +1001,7 @@ const LibrarianPage: React.FC = () => {
             isOpen={showApproveModal}
             onClose={() => setShowApproveModal(false)}
             yeuCau={selectedYeuCau}
-            onSuccess={() => {
-              fetchData();
-            }}
+            onSuccess={fetchData}
           />
         )}
 
@@ -910,6 +1010,12 @@ const LibrarianPage: React.FC = () => {
           onClose={() => setShowReturnModal(false)}
           onSuccess={fetchData}
           phieuMuon={selectedPhieuMuon}
+        />
+
+        <TaoPhieuMuonModal 
+          isOpen={showCreateLoanModal}
+          onClose={() => setShowCreateLoanModal(false)}
+          onSuccess={fetchData}
         />
       </main>
 
