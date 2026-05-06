@@ -1,30 +1,33 @@
-
 import styles from "./BorrowedBookList.module.css";
 
 
 // Component to display the list of borrowed books
 export interface BorrowedBook {
-
     id: string;
     title: string;
     author: string;
     borrowDate: string;
     dueDate: string;
     returnDate?: string;
-    status: "borrowing" | "returned" | "overdue";
+    status: "borrowing" | "returned" | "overdue" | "pending" | "rejected" | "approved";
     coverImage: string;
+    isRequest?: boolean;
 }
 
 type BorrowedBookListProps = {
     books: BorrowedBook[];
+    onCancelRequest?: (id: string) => void;
 };
 
-function BorrowedBookList({ books }: BorrowedBookListProps) {
+function BorrowedBookList({ books, onCancelRequest }: BorrowedBookListProps) {
     const getStatusLabel = (status: BorrowedBook["status"]) => {
         switch (status) {
             case "borrowing": return "Đang mượn";
             case "returned": return "Đã trả";
             case "overdue": return "Quá hạn";
+            case "pending": return "Chờ duyệt";
+            case "rejected": return "Đã hủy/từ chối";
+            case "approved": return "Đã duyệt";
             default: return "";
         }
     };
@@ -57,12 +60,20 @@ function BorrowedBookList({ books }: BorrowedBookListProps) {
                             <td>{book.borrowDate}</td>
                             <td>{book.dueDate}</td>
                             <td>{book.returnDate || "-"}</td>
-                            <td>
+                             <td>
                                 <span className={`${styles['status-badge']} ${styles[book.status]}`}>
                                     {getStatusLabel(book.status)}
                                 </span>
                             </td>
                             <td>
+                                {book.status === "pending" && (
+                                    <button 
+                                        className={`${styles['action-btn']} ${styles['cancel-btn']}`}
+                                        onClick={() => onCancelRequest && onCancelRequest(book.id)}
+                                    >
+                                        Hủy yêu cầu
+                                    </button>
+                                )}
                                 <button className={styles['action-btn']}>Chi tiết</button>
                             </td>
                         </tr>

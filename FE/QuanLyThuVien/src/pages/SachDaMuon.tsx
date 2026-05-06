@@ -7,44 +7,94 @@ import BorrowStatsSection from "../components/MuonSach/BorrowStatsSection";
 import BorrowTabs from "../components/MuonSach/BorrowTabs";
 import BorrowedBookList from "../components/MuonSach/BorrowedBookList";
 import type { BorrowedBook } from "../components/MuonSach/BorrowedBookList";
+import { GetYeuCauByDocGiaAsync, GetDanhSachPhieuMuon, TuChoiYeuCauMuon } from "../dichVu/modules/dichVuMuonSach";
+import { getUserId } from "../dichVu/modules/dichVuXacThuc";
+import { useEffect } from "react";
 
 
 function BorrowedBooksPage() {
-    const [overdueCount] = useState(1);
-    const [activeTab, setActiveTab] = useState<"all" | "borrowing" | "returned" | "overdue">("all");
+    const [overdueCount, setOverdueCount] = useState(0);
+    const [activeTab, setActiveTab] = useState<any>("all");
+    const [books, setBooks] = useState<BorrowedBook[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    const mockBooks: BorrowedBook[] = [
-        {
-            id: "1",
-            title: "Đắc Nhân Tâm",
-            author: "Dale Carnegie",
-            borrowDate: "15/04/2026",
-            dueDate: "29/04/2026",
-            status: "overdue",
-            coverImage: "https://vnn-imgs-f.vgcloud.vn/2020/03/17/14/dac-nhan-tam.jpg"
-        },
-        {
-            id: "2",
-            title: "Nhà Giả Kim",
-            author: "Paulo Coelho",
-            borrowDate: "20/04/2026",
-            dueDate: "04/05/2026",
-            status: "borrowing",
-            coverImage: "https://salt.tikicdn.com/cache/w1200/ts/product/45/3d/e3/0eb667db5e0a303038a35f71822ad35e.jpg"
-        },
-        {
-            id: "3",
-            title: "Tuổi Trẻ Đáng Giá Bao Nhiêu",
-            author: "Rosie Nguyễn",
-            borrowDate: "01/04/2026",
-            dueDate: "15/04/2026",
-            returnDate: "14/04/2026",
-            status: "returned",
-            coverImage: "https://salt.tikicdn.com/cache/w1200/ts/product/ee/3d/89/3e3f05f426214151778939c381c8f13c.jpg"
+    const fetchData = async () => {
+        const userId = getUserId();
+        if (!userId) return;
+
+        setLoading(true);
+        try {
+            const [requests, loans] = await Promise.all([
+                GetYeuCauByDocGiaAsync(userId),
+                GetDanhSachPhieuMuon(1, 50) // Giả định reader chỉ lấy 50 cuốn gần nhất
+            ]);
+
+            const mappedData: BorrowedBook[] = [];
+
+            // Mapping Yêu cầu mượn (Online)
+            if (Array.isArray(requests)) {
+                requests.forEach(yc => {
+                    const status: any = yc.trangThai === 0 ? "pending" : (yc.trangThai === 2 ? "rejected" : "approved");
+                    
+                    // Gom tất cả sách trong 1 yêu cầu thành 1 dòng duy nhất để hủy theo "Phiếu"
+                    mappedData.push({
+                        id: yc.id, 
+                        title: yc.tenCacSach && yc.tenCacSach.length > 0 ? yc.tenCacSach.join(", ") : "Chưa rõ tên sách",
+                        author: `Số lượng: ${yc.tenCacSach ? yc.tenCacSach.length : 0} cuốn`,
+                        borrowDate: new Date(yc.ngayYeuCau).toLocaleDateString('vi-VN'),
+                        dueDate: yc.ngayHenNhan ? new Date(yc.ngayHenNhan).toLocaleDateString('vi-VN') : "Chưa xác định",
+                        status: status,
+                        coverImage: "https://cdn-icons-png.flaticon.com/512/2232/2232688.png", // Icon tập hồ sơ/phiếu
+                        isRequest: true
+                    });
+                });
+            }
+
+            // Mapping Phiếu mượn thực tế
+            if (loans && loans.items) {
+                let overdue = 0;
+                loans.items.forEach((item: any) => {
+                    const isOverdue = new Date(item.hanTra) < new Date() && !item.ngayTra;
+                    if (isOverdue) overdue++;
+
+                    mappedData.push({
+                        id: item.id,
+                        title: item.tenSach || "Nhiều sách",
+                        author: item.tenTacGia || "Thư viện",
+                        borrowDate: new Date(item.ngayMuon).toLocaleDateString('vi-VN'),
+                        dueDate: new Date(item.hanTra).toLocaleDateString('vi-VN'),
+                        returnDate: item.ngayTra ? new Date(item.ngayTra).toLocaleDateString('vi-VN') : undefined,
+                        status: item.ngayTra ? "returned" : (isOverdue ? "overdue" : "borrowing"),
+                        coverImage: item.hinhAnh || "https://placehold.co/400x600/e2e8f0/1e293b?text=Book"
+                    });
+                });
+                setOverdueCount(overdue);
+            }
+
+            setBooks(mappedData);
+        } catch (error) {
+            console.error("Lỗi khi tải lịch sử mượn:", error);
+        } finally {
+            setLoading(false);
         }
-    ];
+    };
 
-    const filteredBooks = mockBooks.filter(book => {
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const handleCancelRequest = async (id: string) => {
+        if (!window.confirm('Bạn có chắc chắn muốn hủy yêu cầu mượn này?')) return;
+        try {
+            await TuChoiYeuCauMuon(id);
+            alert('Đã hủy yêu cầu mượn thành công.');
+            fetchData();
+        } catch (error: any) {
+            alert('Lỗi: ' + (error.message || 'Không thể hủy yêu cầu'));
+        }
+    };
+
+    const filteredBooks = books.filter(book => {
         if (activeTab === "all") return true;
         return book.status === activeTab;
     });
@@ -64,7 +114,11 @@ function BorrowedBooksPage() {
                 
                 <BorrowTabs activeTab={activeTab} onTabChange={setActiveTab} />
                 
-                <BorrowedBookList books={filteredBooks} />
+                {loading ? (
+                    <div style={{ textAlign: 'center', padding: '40px' }}>Đang tải lịch sử mượn...</div>
+                ) : (
+                    <BorrowedBookList books={filteredBooks} onCancelRequest={handleCancelRequest} />
+                )}
             </main>
             <Footer />
         </div>
