@@ -34,8 +34,8 @@ const DuyetYeuCauModal: React.FC<DuyetYeuCauModalProps> = ({ isOpen, onClose, on
                     return {
                         dauSachId: id,
                         tenSach: yeuCau.tenCacSach[index],
-                        cuonSachId: copies.length > 0 ? copies[0].id : null,
-                        maVach: copies.length > 0 ? copies[0].maVach : null,
+                        cuonSachId: null, // Bắt buộc quét thủ công
+                        maVach: null,
                         availableCount: copies.length
                     };
                 }));
@@ -52,15 +52,29 @@ const DuyetYeuCauModal: React.FC<DuyetYeuCauModalProps> = ({ isOpen, onClose, on
         try {
             const copy = await GetCuonSachByBarcode(barcode);
             if (copy) {
-                // Kiểm tra xem cuốn sách này có thuộc đầu sách đang cần không 
-                // (Logic này cần khớp tên hoặc ID)
+                // Kiểm tra xem cuốn sách này có thuộc đầu sách đang cần không
+                const assignment = assignments[index];
+                
+                if (copy.dauSachId.toLowerCase() !== yeuCau.dauSachIds[index].toLowerCase()) {
+                    alert(`Mã vạch này thuộc sách '${copy.tenSach}', không phải '${assignment.tenSach}'. Vui lòng quét đúng sách.`);
+                    return;
+                }
+
+                if (copy.trangThaiMuon !== 1) {
+                    alert('Cuốn sách này hiện không sẵn sàng để mượn (Đang mượn hoặc Đã mất).');
+                    return;
+                }
+
                 const newAssignments = [...assignments];
                 newAssignments[index].cuonSachId = copy.id;
                 newAssignments[index].maVach = copy.maVach;
                 setAssignments(newAssignments);
+                
+                // Clear input after successful scan
+                setBarcodeInputs({...barcodeInputs, [index]: ''});
             }
         } catch (error) {
-            alert('Không tìm thấy mã vạch này hoặc sách không sẵn sàng.');
+            alert('Không tìm thấy mã vạch này trong hệ thống.');
         }
     };
 
@@ -70,7 +84,7 @@ const DuyetYeuCauModal: React.FC<DuyetYeuCauModalProps> = ({ isOpen, onClose, on
 
         const allAssigned = assignments.every(a => a.cuonSachId);
         if (!allAssigned) {
-            alert('Vui lòng gán mã vạch cho tất cả các cuốn sách trước khi duyệt.');
+            alert('Vui lòng quét mã vạch cho tất cả các cuốn sách trước khi bàn giao.');
             return;
         }
 
@@ -85,7 +99,7 @@ const DuyetYeuCauModal: React.FC<DuyetYeuCauModalProps> = ({ isOpen, onClose, on
                 yeuCauId: yeuCau.id
             });
             
-            alert('Đã duyệt và tạo phiếu mượn thành công!');
+            alert('Đã tạo phiếu mượn và bàn giao sách thành công!');
             onSuccess();
             onClose();
         } catch (error: any) {
@@ -101,7 +115,7 @@ const DuyetYeuCauModal: React.FC<DuyetYeuCauModalProps> = ({ isOpen, onClose, on
         <div className={styles.overlay}>
             <div className={styles.modal}>
                 <div className={styles.header}>
-                    <h2>Duyệt Yêu Cầu & Cấp Sách</h2>
+                    <h2>Bàn giao sách vật lý</h2>
                     <button className={styles.closeBtn} onClick={onClose}><FiX size={20} /></button>
                 </div>
 
@@ -112,14 +126,12 @@ const DuyetYeuCauModal: React.FC<DuyetYeuCauModalProps> = ({ isOpen, onClose, on
                             <span className={styles.infoValue}>{yeuCau.tenDocGia}</span>
                         </div>
                         <div>
-                            <span className={styles.infoLabel}>Ngày hẹn nhận</span>
-                            <span className={styles.infoValue}>
-                                {yeuCau.ngayHenNhan ? new Date(yeuCau.ngayHenNhan).toLocaleDateString('vi-VN') : 'N/A'}
-                            </span>
+                            <span className={styles.infoLabel}>Email</span>
+                            <span className={styles.infoValue}>{yeuCau.email}</span>
                         </div>
                     </div>
 
-                    <h3 style={{fontSize: '15px', marginBottom: '12px', color: '#64748b'}}>DANH SÁCH SÁCH CẦN CẤP</h3>
+                    <h3 style={{fontSize: '15px', marginBottom: '12px', color: '#64748b', fontWeight: '600'}}>QUÉT MÃ VẠCH SÁCH ĐỂ CẤP</h3>
                     
                     <div className={styles.bookList}>
                         {assignments.map((assignment, index) => (
@@ -130,23 +142,30 @@ const DuyetYeuCauModal: React.FC<DuyetYeuCauModalProps> = ({ isOpen, onClose, on
                                 </div>
 
                                 <div className={styles.assignmentArea}>
-                                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                                        <div style={{fontSize: '14px'}}>
-                                            Trạng thái kho: 
-                                            <span style={{ 
-                                                marginLeft: '8px', 
-                                                fontWeight: '700', 
-                                                color: assignment.availableCount > 0 ? '#10b981' : '#ef4444' 
-                                            }}>
-                                                {assignment.availableCount > 0 ? `${assignment.availableCount} cuốn sẵn sàng` : 'Hết sách'}
-                                            </span>
-                                        </div>
-                                        {assignment.cuonSachId && (
-                                            <div style={{fontSize: '13px', color: '#64748b'}}>
-                                                Sẽ cấp mã: <strong>{assignment.maVach}</strong>
-                                            </div>
-                                        )}
+                                    <div className={styles.searchGroup}>
+                                        <input 
+                                            type="text" 
+                                            className={styles.inputField} 
+                                            placeholder="Quét mã vạch cuốn sách này..." 
+                                            value={barcodeInputs[index] || ''}
+                                            onChange={(e) => setBarcodeInputs({...barcodeInputs, [index]: e.target.value})}
+                                            onKeyPress={(e) => e.key === 'Enter' && handleBarcodeSearch(index)}
+                                            autoFocus={index === assignments.findIndex(a => !a.cuonSachId)}
+                                        />
+                                        <button className={styles.scanBtn} onClick={() => handleBarcodeSearch(index)}>
+                                            <FiSearch /> Gán mã
+                                        </button>
                                     </div>
+
+                                    {assignment.cuonSachId ? (
+                                        <div style={{display: 'flex', alignItems: 'center', gap: '8px', color: '#10b981', fontSize: '14px', fontWeight: '700', background: '#f0fdf4', padding: '8px', borderRadius: '6px'}}>
+                                            <FiCheck /> Đã chọn cuốn: {assignment.maVach}
+                                        </div>
+                                    ) : (
+                                        <div style={{color: '#64748b', fontSize: '13px', fontStyle: 'italic'}}>
+                                            (Hiện có {assignment.availableCount} bản sẵn sàng trong kho)
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))}
@@ -160,7 +179,7 @@ const DuyetYeuCauModal: React.FC<DuyetYeuCauModalProps> = ({ isOpen, onClose, on
                         onClick={handleConfirm}
                         disabled={loading || !assignments.every(a => a.cuonSachId)}
                     >
-                        {loading ? 'Đang xử lý...' : 'Xác nhận & Tạo phiếu mượn'}
+                        {loading ? 'Đang xử lý...' : 'Xác nhận & Hoàn tất bàn giao'}
                     </button>
                 </div>
             </div>
