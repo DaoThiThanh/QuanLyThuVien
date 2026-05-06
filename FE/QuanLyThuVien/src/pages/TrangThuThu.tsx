@@ -4,8 +4,9 @@ import styles from './TrangAdmin.module.css'; // Reusing the same rich CSS as Ad
 import { getThongKeThuThu, type ThongKeThuThuDto } from '../dichVu/modules/dichVuThongKe';
 import { getUserName } from '../dichVu/modules/dichVuXacThuc';
 import { GetAllYeuCauMuon, GetDanhSachPhieuMuon, GetPhieuMuonQuaHan, GetPhieuMuonById, type YeuCauMuonDto } from '../dichVu/modules/dichVuMuonSach';
-import { GetDanhSachSach, CreateBook, UpdateBook, DeleteBook, GetTacGias, GetNhaXuatBans, GetCategories, DeleteCategory, DeleteTacGia } from '../dichVu/modules/dichVuSach';
+import { GetDanhSachSach, CreateBook, UpdateBook, DeleteBook, GetTacGias, GetNhaXuatBans, GetCategories, DeleteCategory, DeleteTacGia, CreateCategory, CreateTacGia, UpdateCategory, UpdateTacGia } from '../dichVu/modules/dichVuSach';
 import type { TacGiaItem, NhaXuatBanItem, CategoryItem, UpsertSachDto } from '../kieuDuLieu/sach';
+import MetadataModal from '../components/common/MetadataModal';
 import DuyetYeuCauModal from '../components/CuaSoXacNhan/DuyetYeuCauModal';
 import KiemTraKhoModal from '../components/CuaSoXacNhan/KiemTraKhoModal';
 import XacNhanTraSachModal from '../components/CuaSoXacNhan/XacNhanTraSachModal';
@@ -28,6 +29,17 @@ const LibrarianPage: React.FC = () => {
   const [quyDinh, setQuyDinh] = useState<any>(null);
   const [showReturnModal, setShowReturnModal] = useState(false);
   const [selectedPhieuMuon, setSelectedPhieuMuon] = useState<any>(null);
+
+  // State cho Modal Metadata
+  const [isMetadataModalOpen, setIsMetadataModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [metadataModalConfig, setMetadataModalConfig] = useState({
+    title: '',
+    placeholder: '',
+    initialValue: '',
+    initialIcon: '',
+    type: 'category' as 'category' | 'author'
+  });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBookId, setEditingBookId] = useState<string | null>(null);
@@ -129,6 +141,84 @@ const LibrarianPage: React.FC = () => {
     } catch (error) {
       alert('Lỗi khi xóa tác giả');
     }
+  };
+
+  const handleCreateCategory = async (name: string, icon?: string) => {
+    try {
+      if (editingId) {
+        await UpdateCategory(editingId, name, icon);
+      } else {
+        await CreateCategory(name, icon);
+      }
+      const dmData = await GetCategories();
+      setDanhMucs(Array.isArray(dmData) ? dmData : (dmData as any)?.data || []);
+      setEditingId(null);
+    } catch (error) {
+      alert('Lỗi khi lưu danh mục');
+    }
+  };
+
+  const handleCreateAuthor = async (name: string) => {
+    try {
+      if (editingId) {
+        await UpdateTacGia(editingId, name);
+      } else {
+        await CreateTacGia(name);
+      }
+      const tacGiasData = await GetTacGias();
+      setTacGias(Array.isArray(tacGiasData) ? tacGiasData : (tacGiasData as any)?.data || []);
+      setEditingId(null);
+    } catch (error) {
+      alert('Lỗi khi lưu tác giả');
+    }
+  };
+
+  const openAddCategory = () => {
+    setEditingId(null);
+    setMetadataModalConfig({
+      title: 'Thêm Danh mục Mới',
+      placeholder: 'Nhập tên danh mục...',
+      initialValue: '',
+      initialIcon: '📁',
+      type: 'category'
+    });
+    setIsMetadataModalOpen(true);
+  };
+
+  const openEditCategory = (dm: CategoryItem) => {
+    setEditingId(dm.id);
+    setMetadataModalConfig({
+      title: 'Chỉnh sửa Danh mục',
+      placeholder: 'Nhập tên danh mục...',
+      initialValue: dm.tenDanhMuc,
+      initialIcon: dm.icon || '📁',
+      type: 'category'
+    });
+    setIsMetadataModalOpen(true);
+  };
+
+  const openAddAuthor = () => {
+    setEditingId(null);
+    setMetadataModalConfig({
+      title: 'Thêm Tác giả Mới',
+      placeholder: 'Nhập tên tác giả...',
+      initialValue: '',
+      initialIcon: '',
+      type: 'author'
+    });
+    setIsMetadataModalOpen(true);
+  };
+
+  const openEditAuthor = (tg: TacGiaItem) => {
+    setEditingId(tg.id);
+    setMetadataModalConfig({
+      title: 'Chỉnh sửa Tác giả',
+      placeholder: 'Nhập tên tác giả...',
+      initialValue: tg.tenTacGia,
+      initialIcon: '',
+      type: 'author'
+    });
+    setIsMetadataModalOpen(true);
   };
 
   const handleReturnClick = async (phieuId: string) => {
@@ -639,7 +729,7 @@ const LibrarianPage: React.FC = () => {
             <div className={styles['admin-section']}>
                <div className={styles['section-header']}>
                  <h2 className={styles['section-title']}>Danh mục Sách</h2>
-                 <button className={styles['section-action']} style={{ background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', padding: '8px 16px', borderRadius: '8px', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', fontWeight: '600' }}>
+                 <button onClick={openAddCategory} className={styles['section-action']} style={{ background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', padding: '8px 16px', borderRadius: '8px', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', fontWeight: '600' }}>
                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                    Thêm mới
                  </button>
@@ -655,12 +745,21 @@ const LibrarianPage: React.FC = () => {
                    <tbody>
                      {danhMucs.map(dm => (
                        <tr key={dm.id}>
-                         <td>{dm.tenDanhMuc}</td>
-                         <td>
-                           <div className={styles['action-buttons']}>
-                             <button className={`${styles['btn-icon']} ${styles['view']}`} title="Chỉnh sửa"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg></button>
-                             <button onClick={() => handleDeleteCategory(dm.id)} className={`${styles['btn-icon']} ${styles['reject']}`} title="Xóa"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>
-                           </div>
+                         <td style={{ display: 'flex', alignItems: 'center', fontWeight: '600', padding: '16px' }}>
+                            <span style={{ marginRight: '12px', fontSize: '20px', display: 'flex' }}>
+                              {dm.icon || '📁'}
+                            </span>
+                            {dm.tenDanhMuc}
+                         </td>
+                         <td style={{ padding: '16px' }}>
+                            <div className={styles['action-buttons']}>
+                              <button onClick={() => openEditCategory(dm)} className={`${styles['btn-icon']} ${styles['edit']}`} title="Sửa">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                              </button>
+                              <button onClick={() => handleDeleteCategory(dm.id)} className={`${styles['btn-icon']} ${styles['delete']}`} title="Xóa">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                              </button>
+                            </div>
                          </td>
                        </tr>
                      ))}
@@ -674,7 +773,7 @@ const LibrarianPage: React.FC = () => {
             <div className={styles['admin-section']}>
                <div className={styles['section-header']}>
                  <h2 className={styles['section-title']}>Tác giả</h2>
-                 <button className={styles['section-action']} style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', padding: '8px 16px', borderRadius: '8px', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', fontWeight: '600' }}>
+                 <button onClick={openAddAuthor} className={styles['section-action']} style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', padding: '8px 16px', borderRadius: '8px', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', fontWeight: '600' }}>
                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                    Thêm mới
                  </button>
@@ -796,6 +895,17 @@ const LibrarianPage: React.FC = () => {
           phieuMuon={selectedPhieuMuon}
         />
       </main>
+
+      <MetadataModal
+        isOpen={isMetadataModalOpen}
+        onClose={() => setIsMetadataModalOpen(false)}
+        onSave={metadataModalConfig.type === 'category' ? handleCreateCategory : handleCreateAuthor}
+        title={metadataModalConfig.title}
+        placeholder={metadataModalConfig.placeholder}
+        initialValue={metadataModalConfig.initialValue}
+        initialIcon={metadataModalConfig.initialIcon}
+        showIconField={metadataModalConfig.type === 'category'}
+      />
     </div>
   );
 };

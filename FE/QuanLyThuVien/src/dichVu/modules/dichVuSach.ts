@@ -23,8 +23,12 @@ export async function DeleteCategory(id: string): Promise<any> {
     const response = await CauHinhApi.delete(`/danh-muc/${id}`);
     return response.data;
 }
-export async function CreateCategory(name: string): Promise<any> {
-    const response = await CauHinhApi.post('/danh-muc', { tenDanhMuc: name });
+export async function CreateCategory(name: string, icon?: string): Promise<any> {
+    const response = await CauHinhApi.post('/danh-muc', { tenDanhMuc: name, icon: icon });
+    return response.data;
+}
+export async function UpdateCategory(id: string, name: string, icon?: string): Promise<any> {
+    const response = await CauHinhApi.put(`/danh-muc/${id}`, { tenDanhMuc: name, icon: icon });
     return response.data;
 }
 export async function GetNewBooks(): Promise<NewBookItem[] | ApiResponse<NewBookItem[]>> {
@@ -65,6 +69,10 @@ export async function DeleteTacGia(id: string): Promise<any> {
 }
 export async function CreateTacGia(name: string): Promise<any> {
     const response = await CauHinhApi.post('/sach/tac-gia', { tenTacGia: name });
+    return response.data;
+}
+export async function UpdateTacGia(id: string, name: string): Promise<any> {
+    const response = await CauHinhApi.put(`/sach/tac-gia/${id}`, { tenTacGia: name });
     return response.data;
 }
 

@@ -28,5 +28,54 @@ namespace QuanLyThuVien.Controllers
                 return StatusCode(500, $"Lỗi server: {ex.Message}");
             }
         }
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreateDanhMucDto dto)
+        {
+            try
+            {
+                var id = await _danhMucRepository.CreateDanhMucAsync(dto.TenDanhMuc, dto.Icon);
+                return Ok(new { Id = id });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi server: {ex.Message}");
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] CreateDanhMucDto dto)
+        {
+            try
+            {
+                var success = await _danhMucRepository.UpdateDanhMucAsync(id, dto.TenDanhMuc, dto.Icon);
+                if (!success) return NotFound();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi server: {ex.Message}");
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            try
+            {
+                var success = await _danhMucRepository.DeleteDanhMucAsync(id);
+                if (!success) return BadRequest("Không thể xóa danh mục (Có thể do danh mục đang chứa sách).");
+                return Ok(new { Success = true });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi server: {ex.Message}");
+            }
+        }
+    }
+
+    public class CreateDanhMucDto
+    {
+        public string TenDanhMuc { get; set; } = string.Empty;
+        public string? Icon { get; set; }
     }
 }

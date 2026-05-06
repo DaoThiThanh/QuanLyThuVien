@@ -529,6 +529,28 @@
   color: var(--text-h);
 }
 
+.btn-icon.edit {
+  background-color: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
+}
+
+.btn-icon.edit:hover {
+  background-color: #6366f1;
+  color: white;
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+}
+
+.btn-icon.delete {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.btn-icon.delete:hover {
+  background-color: #ef4444;
+  color: white;
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+}
+
 .action-btn-mini {
   padding: 8px 16px;
   border-radius: 10px;

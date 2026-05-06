@@ -17,6 +17,9 @@ namespace QuanLyThuVien.Repositories
         Task<IEnumerable<NhaXuatBanDto>> GetNhaXuatBansAsync();
         Task<object> GetCuonSachByBarcodeAsync(string barcode);
         Task<IEnumerable<object>> GetAvailableCuonSachsByDauSachAsync(Guid dauSachId);
+        Task<Guid> CreateTacGiaAsync(string tenTacGia);
+        Task<bool> UpdateTacGiaAsync(Guid id, string tenTacGia);
+        Task<bool> DeleteTacGiaAsync(Guid id);
     }
     
     public class SachRepository : ISachRepository
@@ -453,6 +456,70 @@ namespace QuanLyThuVien.Repositories
                 }
             }
             return result;
+        }
+        public async Task<Guid> CreateTacGiaAsync(string tenTacGia)
+        {
+            var id = Guid.NewGuid();
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+                var query = "INSERT INTO TacGia (Id, TenTacGia) VALUES (@Id, @TenTacGia)";
+
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Id", id);
+                    command.Parameters.AddWithValue("@TenTacGia", tenTacGia);
+                    await command.ExecuteNonQueryAsync();
+                }
+            }
+            return id;
+        }
+        public async Task<bool> UpdateTacGiaAsync(Guid id, string tenTacGia)
+        {
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+                var query = "UPDATE TacGia SET TenTacGia = @TenTacGia WHERE Id = @Id";
+
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Id", id);
+                    command.Parameters.AddWithValue("@TenTacGia", tenTacGia);
+                    var rows = await command.ExecuteNonQueryAsync();
+                    return rows > 0;
+                }
+            }
+        }
+
+        public async Task<bool> DeleteTacGiaAsync(Guid id)
+        {
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+                
+                // Kiểm tra xem có sách nào thuộc tác giả này không
+                var checkQuery = "SELECT COUNT(1) FROM DauSach WHERE TacGiaId = @Id";
+                using (var checkCommand = new SqlCommand(checkQuery, connection))
+                {
+                    checkCommand.Parameters.AddWithValue("@Id", id);
+                    var count = (int)await checkCommand.ExecuteScalarAsync();
+                    if (count > 0) return false;
+                }
+
+                var query = "DELETE FROM TacGia WHERE Id = @Id";
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Id", id);
+                    var rows = await command.ExecuteNonQueryAsync();
+                    return rows > 0;
+                }
+            }
         }
     }
 }

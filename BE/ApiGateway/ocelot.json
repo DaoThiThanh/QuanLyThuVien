@@ -124,7 +124,27 @@
       ],
       "UpstreamPathTemplate": "/gateway/danh-muc",
       "UpstreamHttpMethod": [
-        "Get"
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
+      ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/DanhMuc/{id}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 7031
+        }
+      ],
+      "UpstreamPathTemplate": "/gateway/danh-muc/{id}",
+      "UpstreamHttpMethod": [
+        "Get",
+        "Post",
+        "Put",
+        "Delete"
       ]
     },
     {

@@ -170,5 +170,53 @@ namespace QuanLyThuVien.Controllers
             var result = await _sachRepository.GetAvailableCuonSachsByDauSachAsync(dauSachId);
             return Ok(result);
         }
+        [HttpPost("tac-gia")]
+        public async Task<IActionResult> CreateTacGia([FromBody] CreateTacGiaDto dto)
+        {
+            try
+            {
+                var id = await _sachRepository.CreateTacGiaAsync(dto.TenTacGia);
+                return Ok(new { Id = id });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi server: {ex.Message}");
+            }
+        }
+
+        [HttpPut("tac-gia/{id}")]
+        public async Task<IActionResult> UpdateTacGia(Guid id, [FromBody] CreateTacGiaDto dto)
+        {
+            try
+            {
+                var success = await _sachRepository.UpdateTacGiaAsync(id, dto.TenTacGia);
+                if (!success) return NotFound();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi server: {ex.Message}");
+            }
+        }
+
+        [HttpDelete("tac-gia/{id}")]
+        public async Task<IActionResult> DeleteTacGia(Guid id)
+        {
+            try
+            {
+                var success = await _sachRepository.DeleteTacGiaAsync(id);
+                if (!success) return BadRequest("Không thể xóa tác giả (Có thể do tác giả đang có sách trong thư viện).");
+                return Ok(new { Success = true });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi server: {ex.Message}");
+            }
+        }
+    }
+
+    public class CreateTacGiaDto
+    {
+        public string TenTacGia { get; set; } = string.Empty;
     }
 }

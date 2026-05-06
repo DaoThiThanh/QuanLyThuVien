@@ -7,6 +7,9 @@ namespace QuanLyThuVien.Repositories
     public interface IDanhMucRepository
     {
         Task<IEnumerable<DanhMucSach>> GetAllDanhMucAsync();
+        Task<Guid> CreateDanhMucAsync(string tenDanhMuc, string? icon);
+        Task<bool> UpdateDanhMucAsync(Guid id, string tenDanhMuc, string? icon);
+        Task<bool> DeleteDanhMucAsync(Guid id);
     }
     public class DanhMucRepository : IDanhMucRepository
     {
@@ -46,6 +49,73 @@ namespace QuanLyThuVien.Repositories
             }
 
             return result;
+        }
+        public async Task<Guid> CreateDanhMucAsync(string tenDanhMuc, string? icon)
+        {
+            var id = Guid.NewGuid();
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+                var query = "INSERT INTO DanhMucSach (Id, TenDanhMuc, ICON) VALUES (@Id, @TenDanhMuc, @Icon)";
+
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Id", id);
+                    command.Parameters.AddWithValue("@TenDanhMuc", tenDanhMuc);
+                    command.Parameters.AddWithValue("@Icon", (object?)icon ?? DBNull.Value);
+                    await command.ExecuteNonQueryAsync();
+                }
+            }
+            return id;
+        }
+
+        public async Task<bool> UpdateDanhMucAsync(Guid id, string tenDanhMuc, string? icon)
+        {
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+                var query = "UPDATE DanhMucSach SET TenDanhMuc = @TenDanhMuc, ICON = @Icon WHERE Id = @Id";
+
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Id", id);
+                    command.Parameters.AddWithValue("@TenDanhMuc", tenDanhMuc);
+                    command.Parameters.AddWithValue("@Icon", (object?)icon ?? DBNull.Value);
+                    var rows = await command.ExecuteNonQueryAsync();
+                    return rows > 0;
+                }
+            }
+        }
+
+        public async Task<bool> DeleteDanhMucAsync(Guid id)
+        {
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+                
+                // Kiểm tra xem có sách nào thuộc danh mục này không
+                var checkQuery = "SELECT COUNT(1) FROM DauSach WHERE DanhMucId = @Id";
+                using (var checkCommand = new SqlCommand(checkQuery, connection))
+                {
+                    checkCommand.Parameters.AddWithValue("@Id", id);
+                    var count = (int)await checkCommand.ExecuteScalarAsync();
+                    if (count > 0) return false;
+                }
+
+                var query = "DELETE FROM DanhMucSach WHERE Id = @Id";
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Id", id);
+                    var rows = await command.ExecuteNonQueryAsync();
+                    return rows > 0;
+                }
+            }
         }
     }
 }
