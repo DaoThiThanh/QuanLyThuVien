@@ -4,7 +4,7 @@ import styles from './TrangAdmin.module.css';
 import { getAllUsers, type UserItem } from '../dichVu/modules/dichVuNguoiDung';
 import { getUserName } from '../dichVu/modules/dichVuXacThuc';
 import { getThongKeAdmin, type ThongKeAdminDto } from '../dichVu/modules/dichVuThongKe';
-import { GetTacGias, GetNhaXuatBans, GetCategories } from '../dichVu/modules/dichVuSach';
+import { GetTacGias, GetNhaXuatBans, GetCategories, DeleteCategory, DeleteTacGia } from '../dichVu/modules/dichVuSach';
 import type { TacGiaItem, NhaXuatBanItem, CategoryItem } from '../kieuDuLieu/sach';
 
 const AdminPage: React.FC = () => {
@@ -29,9 +29,11 @@ const AdminPage: React.FC = () => {
         ]);
         setStats(statsData);
         setUsers(usersData);
-        setTacGias(tacGiasData || []);
-        setNhaXuatBans(nxbsData || []);
-        setDanhMucs(dmData || []);
+        
+        // Xử lý dữ liệu có thể bọc trong ApiResponse
+        setTacGias(Array.isArray(tacGiasData) ? tacGiasData : (tacGiasData as any)?.data || []);
+        setNhaXuatBans(Array.isArray(nxbsData) ? nxbsData : (nxbsData as any)?.data || []);
+        setDanhMucs(Array.isArray(dmData) ? dmData : (dmData as any)?.data || []);
       } catch (error) {
         console.error("Lỗi khi tải dữ liệu admin:", error);
       } finally {
@@ -41,6 +43,30 @@ const AdminPage: React.FC = () => {
 
     fetchData();
   }, []);
+
+  const handleDeleteCategory = async (id: string) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa danh mục này?')) return;
+    try {
+      await DeleteCategory(id);
+      const dmData = await GetCategories();
+      setDanhMucs(Array.isArray(dmData) ? dmData : (dmData as any)?.data || []);
+      alert('Xóa thành công!');
+    } catch (error) {
+      alert('Lỗi khi xóa danh mục');
+    }
+  };
+
+  const handleDeleteAuthor = async (id: string) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa tác giả này?')) return;
+    try {
+      await DeleteTacGia(id);
+      const tacGiasData = await GetTacGias();
+      setTacGias(Array.isArray(tacGiasData) ? tacGiasData : (tacGiasData as any)?.data || []);
+      alert('Xóa thành công!');
+    } catch (error) {
+      alert('Lỗi khi xóa tác giả');
+    }
+  };
 
   const recentActivities = [
     { id: 1, user: 'Trần Quản trị', action: 'Duyệt yêu cầu mượn sách', time: '10 phút trước', type: 'approve' },
@@ -55,7 +81,8 @@ const AdminPage: React.FC = () => {
     { id: 'dashboard', label: 'Dashboard', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg> },
     { id: 'users', label: 'Quản lý Độc giả', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> },
     { id: 'librarians', label: 'Quản lý Thủ thư', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> },
-    { id: 'metadata', label: 'Quản lý Metadata', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" x2="21" y1="6" y2="6" /><line x1="8" x2="21" y1="12" y2="12" /><line x1="8" x2="21" y1="18" y2="18" /><line x1="3" x2="3.01" y1="6" y2="6" /><line x1="3" x2="3.01" y1="12" y2="12" /><line x1="3" x2="3.01" y1="18" y2="18" /></svg> },
+    { id: 'categories', label: 'Quản lý Danh mục', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> },
+    { id: 'authors', label: 'Quản lý Tác giả', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> },
     { id: 'settings', label: 'Quy định Hệ thống', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> },
   ];
 
@@ -339,55 +366,76 @@ const AdminPage: React.FC = () => {
             </div>
           )}
 
-          {activeTab === 'metadata' && (
-            <div className={styles['admin-dashboard-grid']}>
-               <div className={styles['admin-section']}>
-                  <div className={styles['section-header']}>
-                    <h2 className={styles['section-title']}>Danh mục Sách</h2>
-                    <button className={styles['section-action-mini']}>+ Thêm</button>
-                  </div>
-                  <div className={styles['table-responsive']}>
-                    <table className={styles['admin-table']}>
-                      <thead>
-                        <tr>
-                          <th>Tên Danh Mục</th>
-                          <th>Thao tác</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {danhMucs.map(dm => (
-                          <tr key={dm.id}>
-                            <td>{dm.tenDanhMuc}</td>
-                            <td><button className={styles['btn-icon']}><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg></button></td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+          {activeTab === 'categories' && (
+            <div className={styles['admin-section']}>
+               <div className={styles['section-header']}>
+                 <h2 className={styles['section-title']}>Danh mục Sách</h2>
+                 <button className={styles['section-action']} style={{ background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)' }}>
+                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                   Thêm Danh Mục
+                 </button>
                </div>
-               <div className={styles['admin-section']}>
-                  <div className={styles['section-header']}>
-                    <h2 className={styles['section-title']}>Tác giả</h2>
-                    <button className={styles['section-action-mini']}>+ Thêm</button>
-                  </div>
-                  <div className={styles['table-responsive']}>
-                    <table className={styles['admin-table']}>
-                      <thead>
-                        <tr>
-                          <th>Tên Tác Giả</th>
-                          <th>Thao tác</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {tacGias.map(tg => (
-                          <tr key={tg.id}>
-                            <td>{tg.tenTacGia}</td>
-                            <td><button className={styles['btn-icon']}><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg></button></td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+               <div className={styles['table-responsive']}>
+                 <table className={styles['admin-table']}>
+                   <thead>
+                     <tr>
+                       <th>Tên Danh Mục</th>
+                       <th>Số lượng sách</th>
+                       <th>Thao tác</th>
+                     </tr>
+                   </thead>
+                   <tbody>
+                     {danhMucs.map(dm => (
+                       <tr key={dm.id}>
+                         <td style={{ fontWeight: '600' }}>{dm.tenDanhMuc}</td>
+                         <td>--</td>
+                         <td>
+                           <div className={styles['action-buttons']}>
+                             <button className={`${styles['btn-icon']} ${styles['view']}`} title="Chỉnh sửa"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg></button>
+                             <button onClick={() => handleDeleteCategory(dm.id)} className={`${styles['btn-icon']} ${styles['reject']}`} title="Xóa"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>
+                           </div>
+                         </td>
+                       </tr>
+                     ))}
+                   </tbody>
+                 </table>
+               </div>
+            </div>
+          )}
+
+          {activeTab === 'authors' && (
+            <div className={styles['admin-section']}>
+               <div className={styles['section-header']}>
+                 <h2 className={styles['section-title']}>Tác giả</h2>
+                 <button className={styles['section-action']} style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Thêm Tác Giả
+                 </button>
+               </div>
+               <div className={styles['table-responsive']}>
+                 <table className={styles['admin-table']}>
+                   <thead>
+                     <tr>
+                       <th>Tên Tác Giả</th>
+                       <th>Quê quán</th>
+                       <th>Thao tác</th>
+                     </tr>
+                   </thead>
+                   <tbody>
+                     {tacGias.map(tg => (
+                       <tr key={tg.id}>
+                         <td style={{ fontWeight: '600' }}>{tg.tenTacGia}</td>
+                         <td>Việt Nam</td>
+                         <td>
+                            <div className={styles['action-buttons']}>
+                              <button className={`${styles['btn-icon']} ${styles['view']}`} title="Chỉnh sửa"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg></button>
+                              <button onClick={() => handleDeleteAuthor(tg.id)} className={`${styles['btn-icon']} ${styles['reject']}`} title="Xóa"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>
+                            </div>
+                         </td>
+                       </tr>
+                     ))}
+                   </tbody>
+                 </table>
                </div>
             </div>
           )}

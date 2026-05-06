@@ -4,7 +4,7 @@ import styles from './TrangAdmin.module.css'; // Reusing the same rich CSS as Ad
 import { getThongKeThuThu, type ThongKeThuThuDto } from '../dichVu/modules/dichVuThongKe';
 import { getUserName } from '../dichVu/modules/dichVuXacThuc';
 import { GetAllYeuCauMuon, GetDanhSachPhieuMuon, GetPhieuMuonQuaHan, GetPhieuMuonById, type YeuCauMuonDto } from '../dichVu/modules/dichVuMuonSach';
-import { GetDanhSachSach, CreateBook, UpdateBook, DeleteBook, GetTacGias, GetNhaXuatBans, GetCategories } from '../dichVu/modules/dichVuSach';
+import { GetDanhSachSach, CreateBook, UpdateBook, DeleteBook, GetTacGias, GetNhaXuatBans, GetCategories, DeleteCategory, DeleteTacGia } from '../dichVu/modules/dichVuSach';
 import type { TacGiaItem, NhaXuatBanItem, CategoryItem, UpsertSachDto } from '../kieuDuLieu/sach';
 import DuyetYeuCauModal from '../components/CuaSoXacNhan/DuyetYeuCauModal';
 import KiemTraKhoModal from '../components/CuaSoXacNhan/KiemTraKhoModal';
@@ -101,8 +101,33 @@ const LibrarianPage: React.FC = () => {
     try {
       await DeleteBook(id);
       fetchData();
-    } catch (e) {
-      alert('Không thể xóa sách này');
+      alert('Xóa thành công!');
+    } catch (error) {
+      alert('Lỗi khi xóa sách');
+    }
+  };
+
+  const handleDeleteCategory = async (id: string) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa danh mục này?')) return;
+    try {
+      await DeleteCategory(id);
+      const dmData = await GetCategories();
+      setDanhMucs(Array.isArray(dmData) ? dmData : (dmData as any)?.data || []);
+      alert('Xóa thành công!');
+    } catch (error) {
+      alert('Lỗi khi xóa danh mục');
+    }
+  };
+
+  const handleDeleteAuthor = async (id: string) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa tác giả này?')) return;
+    try {
+      await DeleteTacGia(id);
+      const tacGiasData = await GetTacGias();
+      setTacGias(Array.isArray(tacGiasData) ? tacGiasData : (tacGiasData as any)?.data || []);
+      alert('Xóa thành công!');
+    } catch (error) {
+      alert('Lỗi khi xóa tác giả');
     }
   };
 
@@ -149,7 +174,8 @@ const LibrarianPage: React.FC = () => {
     { id: 'borrow', label: 'Quản lý Mượn/Trả', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><path d="M12 18v-6" /><path d="m9 15 3 3 3-3" /></svg> },
     { id: 'requests', label: 'Yêu Cầu Mượn', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" /><path d="M12 6v6l4 2" /></svg> },
     { id: 'readers', label: 'Quản lý Độc giả', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><circle cx="18" cy="7" r="4" /></svg> },
-    { id: 'metadata', label: 'Danh mục & Tác giả', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" x2="21" y1="6" y2="6" /><line x1="8" x2="21" y1="12" y2="12" /><line x1="8" x2="21" y1="18" y2="18" /><line x1="3" x2="3.01" y1="6" y2="6" /><line x1="3" x2="3.01" y1="12" y2="12" /><line x1="3" x2="3.01" y1="18" y2="18" /></svg> },
+    { id: 'categories', label: 'Danh mục Sách', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> },
+    { id: 'authors', label: 'Tác giả', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> },
   ];
 
   return (
@@ -609,55 +635,72 @@ const LibrarianPage: React.FC = () => {
             </div>
           )}
 
-          {activeTab === 'metadata' && (
-            <div className={styles['admin-dashboard-grid']}>
-               <div className={styles['admin-section']}>
-                  <div className={styles['section-header']}>
-                    <h2 className={styles['section-title']}>Danh mục Sách</h2>
-                    <button className={styles['section-action-mini']}>+ Thêm</button>
-                  </div>
-                  <div className={styles['table-responsive']}>
-                    <table className={styles['admin-table']}>
-                      <thead>
-                        <tr>
-                          <th>Tên Danh Mục</th>
-                          <th>Thao tác</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {danhMucs.map(dm => (
-                          <tr key={dm.id}>
-                            <td>{dm.tenDanhMuc}</td>
-                            <td><button className={styles['btn-icon']}><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg></button></td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+          {activeTab === 'categories' && (
+            <div className={styles['admin-section']}>
+               <div className={styles['section-header']}>
+                 <h2 className={styles['section-title']}>Danh mục Sách</h2>
+                 <button className={styles['section-action']} style={{ background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', padding: '8px 16px', borderRadius: '8px', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', fontWeight: '600' }}>
+                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                   Thêm mới
+                 </button>
                </div>
-               <div className={styles['admin-section']}>
-                  <div className={styles['section-header']}>
-                    <h2 className={styles['section-title']}>Tác giả</h2>
-                    <button className={styles['section-action-mini']}>+ Thêm</button>
-                  </div>
-                  <div className={styles['table-responsive']}>
-                    <table className={styles['admin-table']}>
-                      <thead>
-                        <tr>
-                          <th>Tên Tác Giả</th>
-                          <th>Thao tác</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {tacGias.map(tg => (
-                          <tr key={tg.id}>
-                            <td>{tg.tenTacGia}</td>
-                            <td><button className={styles['btn-icon']}><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg></button></td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+               <div className={styles['table-responsive']}>
+                 <table className={styles['admin-table']}>
+                   <thead>
+                     <tr>
+                       <th>Tên Danh Mục</th>
+                       <th>Thao tác</th>
+                     </tr>
+                   </thead>
+                   <tbody>
+                     {danhMucs.map(dm => (
+                       <tr key={dm.id}>
+                         <td>{dm.tenDanhMuc}</td>
+                         <td>
+                           <div className={styles['action-buttons']}>
+                             <button className={`${styles['btn-icon']} ${styles['view']}`} title="Chỉnh sửa"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg></button>
+                             <button onClick={() => handleDeleteCategory(dm.id)} className={`${styles['btn-icon']} ${styles['reject']}`} title="Xóa"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>
+                           </div>
+                         </td>
+                       </tr>
+                     ))}
+                   </tbody>
+                 </table>
+               </div>
+            </div>
+          )}
+
+          {activeTab === 'authors' && (
+            <div className={styles['admin-section']}>
+               <div className={styles['section-header']}>
+                 <h2 className={styles['section-title']}>Tác giả</h2>
+                 <button className={styles['section-action']} style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', padding: '8px 16px', borderRadius: '8px', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', fontWeight: '600' }}>
+                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                   Thêm mới
+                 </button>
+               </div>
+               <div className={styles['table-responsive']}>
+                 <table className={styles['admin-table']}>
+                   <thead>
+                     <tr>
+                       <th>Tên Tác Giả</th>
+                       <th>Thao tác</th>
+                     </tr>
+                   </thead>
+                   <tbody>
+                     {tacGias.map(tg => (
+                       <tr key={tg.id}>
+                         <td>{tg.tenTacGia}</td>
+                         <td>
+                           <div className={styles['action-buttons']}>
+                             <button className={`${styles['btn-icon']} ${styles['view']}`} title="Chỉnh sửa"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg></button>
+                             <button onClick={() => handleDeleteAuthor(tg.id)} className={`${styles['btn-icon']} ${styles['reject']}`} title="Xóa"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>
+                           </div>
+                         </td>
+                       </tr>
+                     ))}
+                   </tbody>
+                 </table>
                </div>
             </div>
           )}

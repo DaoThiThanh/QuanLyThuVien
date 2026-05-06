@@ -19,6 +19,14 @@ export async function GetCategories(): Promise<CategoryItem[] | ApiResponse<Cate
     const response = await CauHinhApi.get<CategoryItem[] | ApiResponse<CategoryItem[]>>('/danh-muc');
     return response.data;
 }
+export async function DeleteCategory(id: string): Promise<any> {
+    const response = await CauHinhApi.delete(`/danh-muc/${id}`);
+    return response.data;
+}
+export async function CreateCategory(name: string): Promise<any> {
+    const response = await CauHinhApi.post('/danh-muc', { tenDanhMuc: name });
+    return response.data;
+}
 export async function GetNewBooks(): Promise<NewBookItem[] | ApiResponse<NewBookItem[]>> {
     const response = await CauHinhApi.get<NewBookItem[] | ApiResponse<NewBookItem[]>>('/sach/moi-bo-sung');
     return response.data;
@@ -49,6 +57,14 @@ export async function DeleteBook(id: string): Promise<any> {
 
 export async function GetTacGias(): Promise<TacGiaItem[]> {
     const response = await CauHinhApi.get<TacGiaItem[]>('/sach/tac-gia');
+    return response.data;
+}
+export async function DeleteTacGia(id: string): Promise<any> {
+    const response = await CauHinhApi.delete(`/sach/tac-gia/${id}`);
+    return response.data;
+}
+export async function CreateTacGia(name: string): Promise<any> {
+    const response = await CauHinhApi.post('/sach/tac-gia', { tenTacGia: name });
     return response.data;
 }
 
