@@ -51,12 +51,17 @@ const LibrarianPage: React.FC = () => {
   const [bookPage, setBookPage] = useState(1);
   const [bookTotalPages, setBookTotalPages] = useState(1);
   const [bookSearchTerm, setBookSearchTerm] = useState('');
-  const [bookPageSize] = useState(10);
+  const [bookPageSize] = useState(6);
 
   // Phân trang & Tìm kiếm cho Cuốn sách vật lý
   const [copyPage, setCopyPage] = useState(1);
   const [copyTotalPages, setCopyTotalPages] = useState(1);
-  const [copyPageSize] = useState(10);
+  const [copyPageSize] = useState(6);
+
+  // Phân trang & Tìm kiếm cho Mượn trả
+  const [loanPage, setLoanPage] = useState(1);
+  const [loanTotalPages, setLoanTotalPages] = useState(1);
+  const [loanPageSize] = useState(6);
 
   // State cho Modal Metadata
   const [isMetadataModalOpen, setIsMetadataModalOpen] = useState(false);
@@ -87,7 +92,7 @@ const LibrarianPage: React.FC = () => {
       const [statsData, requestsData, borrowedData, overdueData, inventoryData, tacGiasData, nxbsData, dmData, readersData, copiesData] = await Promise.all([
         getThongKeThuThu(),
         GetAllYeuCauMuon(),
-        GetDanhSachPhieuMuon(1, 100),
+        GetDanhSachPhieuMuon(loanPage, loanPageSize, loanSearchTerm, loanStatusFilter),
         GetPhieuMuonQuaHan(),
         GetDanhSachSach(bookPage, bookPageSize), // Use state for books
         GetTacGias(),
@@ -106,7 +111,15 @@ const LibrarianPage: React.FC = () => {
 
       setStats(statsData);
       setRequests(normalizeData(requestsData));
-      setBorrowedBooks(normalizeData(borrowedData));
+      
+      // Handle paginated loans
+      if (borrowedData && borrowedData.items) {
+          setBorrowedBooks(borrowedData.items);
+          setLoanTotalPages(borrowedData.totalPages || 1);
+      } else {
+          setBorrowedBooks(normalizeData(borrowedData));
+      }
+
       setOverdueBooks(normalizeData(overdueData));
       
       // Handle paginated books
@@ -133,6 +146,19 @@ const LibrarianPage: React.FC = () => {
       console.error("Lỗi khi tải dữ liệu thủ thư:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Hàm chuyên biệt để tải lại danh sách mượn trả
+  const fetchLoans = async () => {
+    try {
+      const data = await GetDanhSachPhieuMuon(loanPage, loanPageSize, loanSearchTerm, loanStatusFilter);
+      if (data && data.items) {
+        setBorrowedBooks(data.items);
+        setLoanTotalPages(data.totalPages || 1);
+      }
+    } catch (error) {
+      console.error("Lỗi khi tải danh sách mượn trả:", error);
     }
   };
 
@@ -207,6 +233,27 @@ const LibrarianPage: React.FC = () => {
 
     return () => clearTimeout(handler);
   }, [copySearchTerm]);
+
+  useEffect(() => {
+    if (activeTab === 'borrow') {
+        fetchLoans();
+    }
+  }, [loanPage, loanStatusFilter]);
+
+  // Debounce tìm kiếm mượn trả
+  useEffect(() => {
+    if (activeTab !== 'borrow') return;
+    
+    const handler = setTimeout(() => {
+        if (loanPage !== 1) {
+            setLoanPage(1); 
+        } else {
+            fetchLoans();
+        }
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [loanSearchTerm]);
 
   const handleOpenCheckStock = (yeuCau: any) => {
     setSelectedYeuCau(yeuCau);
@@ -996,25 +1043,10 @@ const LibrarianPage: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {borrowedBooks
-                          .filter(b => {
-                            const matchesSearch = String(b.id).includes(loanSearchTerm) || b.tenDocGia.toLowerCase().includes(loanSearchTerm.toLowerCase());
-                            const matchesStatus = loanStatusFilter === 'all' || 
-                                                 (loanStatusFilter === 'active' && b.trangThai === 1) || 
-                                                 (loanStatusFilter === 'returned' && b.trangThai === 2);
-                            return matchesSearch && matchesStatus;
-                          }).length === 0 ? (
+                        {borrowedBooks.length === 0 ? (
                           <tr><td colSpan={6} style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Không tìm thấy dữ liệu phù hợp</td></tr>
                         ) : (
-                          borrowedBooks
-                            .filter(b => {
-                              const matchesSearch = String(b.id).includes(loanSearchTerm) || b.tenDocGia.toLowerCase().includes(loanSearchTerm.toLowerCase());
-                              const matchesStatus = loanStatusFilter === 'all' || 
-                                                   (loanStatusFilter === 'active' && b.trangThai === 1) || 
-                                                   (loanStatusFilter === 'returned' && b.trangThai === 2);
-                              return matchesSearch && matchesStatus;
-                            })
-                            .map(item => {
+                          borrowedBooks.map(item => {
                               const isOverdue = item.trangThai === 1 && new Date(item.hanTra) < new Date();
                               return (
                                 <tr key={item.id} style={isOverdue ? { backgroundColor: '#fff1f2' } : {}}>
@@ -1065,7 +1097,6 @@ const LibrarianPage: React.FC = () => {
                                         title="Xem chi tiết"
                                         onClick={() => {
                                           setSelectedPhieuMuon(item);
-                                          // logic xem chi tiết nếu cần
                                         }}
                                       >
                                         <FiSearch size={14} />
@@ -1079,6 +1110,48 @@ const LibrarianPage: React.FC = () => {
                       </tbody>
                   </table>
                 </div>
+
+                {/* Pagination UI for Loans */}
+                {loanTotalPages > 1 && (
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '24px', gap: '10px' }}>
+                        <button 
+                            disabled={loanPage === 1}
+                            onClick={() => setLoanPage(prev => prev - 1)}
+                            style={{ 
+                                padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', 
+                                background: 'white', cursor: loanPage === 1 ? 'not-allowed' : 'pointer',
+                                opacity: loanPage === 1 ? 0.5 : 1, fontWeight: '600', color: '#64748b'
+                            }}
+                        >Trước</button>
+                        
+                        <div style={{ display: 'flex', gap: '5px' }}>
+                            {[...Array(loanTotalPages)].map((_, i) => (
+                                <button
+                                    key={i + 1}
+                                    onClick={() => setLoanPage(i + 1)}
+                                    style={{
+                                        width: '36px', height: '36px', borderRadius: '8px', border: 'none',
+                                        background: loanPage === i + 1 ? 'linear-gradient(135deg, #6366f1, #4f46e5)' : '#f1f5f9',
+                                        color: loanPage === i + 1 ? 'white' : '#64748b',
+                                        fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s'
+                                    }}
+                                >
+                                    {i + 1}
+                                </button>
+                            ))}
+                        </div>
+
+                        <button 
+                            disabled={loanPage === loanTotalPages}
+                            onClick={() => setLoanPage(prev => prev + 1)}
+                            style={{ 
+                                padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', 
+                                background: 'white', cursor: loanPage === loanTotalPages ? 'not-allowed' : 'pointer',
+                                opacity: loanPage === loanTotalPages ? 0.5 : 1, fontWeight: '600', color: '#64748b'
+                            }}
+                        >Sau</button>
+                    </div>
+                )}
               </div>
 
               <div className={styles['admin-section']} style={{ marginTop: '30px' }}>

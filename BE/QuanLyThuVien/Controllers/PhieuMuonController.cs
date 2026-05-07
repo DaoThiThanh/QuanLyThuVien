@@ -16,9 +16,9 @@ namespace QuanLyThuVien.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetDanhSach([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetDanhSach([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string searchTerm = "", [FromQuery] string statusFilter = "all")
         {
-            var result = await _phieuMuonRepository.GetDanhSachPhieuMuonAsync(page, pageSize);
+            var result = await _phieuMuonRepository.GetDanhSachPhieuMuonAsync(page, pageSize, searchTerm, statusFilter);
             return Ok(result);
         }
 

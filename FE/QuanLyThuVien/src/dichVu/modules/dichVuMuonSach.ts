@@ -37,8 +37,8 @@ export const GetAllYeuCauMuon = async () => {
     return response.data;
 };
 
-export const GetDanhSachPhieuMuon = async (page: number = 1, pageSize: number = 10) => {
-    const response = await CauHinhApi.get(`/phieu-muon?page=${page}&pageSize=${pageSize}`);
+export const GetDanhSachPhieuMuon = async (page: number = 1, pageSize: number = 10, searchTerm: string = "", statusFilter: string = "all") => {
+    const response = await CauHinhApi.get(`/phieu-muon?page=${page}&pageSize=${pageSize}&searchTerm=${searchTerm}&statusFilter=${statusFilter}`);
     return response.data;
 };
 

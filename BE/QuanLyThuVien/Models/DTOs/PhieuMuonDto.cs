@@ -10,6 +10,7 @@ namespace QuanLyThuVien.Models.DTOs
         public DateTime NgayMuon { get; set; }
         public DateTime HanTra { get; set; }
         public int TrangThai { get; set; }
+        public string? TenSach { get; set; }
         public List<ChiTietPhieuMuonDto> ChiTiet { get; set; } = new List<ChiTietPhieuMuonDto>();
     }
 }

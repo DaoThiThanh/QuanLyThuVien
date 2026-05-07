@@ -6,7 +6,7 @@ namespace QuanLyThuVien.Repositories
 {
     public interface IPhieuMuonRepository
     {
-        Task<PagedResult<PhieuMuonDto>> GetDanhSachPhieuMuonAsync(int page, int pageSize);
+        Task<PagedResult<PhieuMuonDto>> GetDanhSachPhieuMuonAsync(int page, int pageSize, string searchTerm = "", string statusFilter = "all");
         Task<PhieuMuonDto> GetPhieuMuonByIdAsync(Guid id);
         Task<bool> CreatePhieuMuonAsync(CreatePhieuMuonRequest request);
         Task<List<PhieuMuonDto>> GetPhieuMuonQuaHanAsync();
@@ -23,7 +23,7 @@ namespace QuanLyThuVien.Repositories
             _configuration = configuration;
         }
 
-        public async Task<PagedResult<PhieuMuonDto>> GetDanhSachPhieuMuonAsync(int page, int pageSize)
+        public async Task<PagedResult<PhieuMuonDto>> GetDanhSachPhieuMuonAsync(int page, int pageSize, string searchTerm = "", string statusFilter = "all")
         {
             var result = new PagedResult<PhieuMuonDto>
             {
@@ -38,15 +38,26 @@ namespace QuanLyThuVien.Repositories
             {
                 await connection.OpenAsync();
 
-                var countQuery = "SELECT COUNT(*) FROM PhieuMuon";
+                var whereClause = "WHERE (@SearchTerm = '' OR nd.HoTen LIKE @SearchPattern OR CAST(pm.Id AS NVARCHAR(36)) LIKE @SearchPattern) ";
+                if (statusFilter == "active") whereClause += "AND pm.TrangThai = 1 ";
+                else if (statusFilter == "returned") whereClause += "AND pm.TrangThai = 2 ";
+
+                var countQuery = $@"
+                    SELECT COUNT(*) 
+                    FROM PhieuMuon pm
+                    LEFT JOIN NguoiDung nd ON pm.DocGiaId = nd.Id
+                    {whereClause}";
+
                 using (var countCommand = new SqlCommand(countQuery, connection))
                 {
+                    countCommand.Parameters.AddWithValue("@SearchTerm", searchTerm ?? "");
+                    countCommand.Parameters.AddWithValue("@SearchPattern", $"%{(searchTerm ?? "")}%");
                     result.TotalItems = Convert.ToInt32(await countCommand.ExecuteScalarAsync());
                 }
 
                 result.TotalPages = (int)Math.Ceiling(result.TotalItems / (double)pageSize);
 
-                var query = @"
+                var query = $@"
                     SELECT 
                         pm.Id, 
                         pm.DocGiaId, 
@@ -55,9 +66,14 @@ namespace QuanLyThuVien.Repositories
                         pm.KenhMuon, 
                         pm.NgayMuon, 
                         pm.HanTra, 
-                        pm.TrangThai
+                        pm.TrangThai,
+                        (SELECT TOP 1 ds.TenSach FROM ChiTietPhieuMuon ct 
+                         JOIN CuonSach cs ON ct.CuonSachId = cs.Id 
+                         JOIN DauSach ds ON cs.DauSachId = ds.Id 
+                         WHERE ct.PhieuMuonId = pm.Id) as TenSach
                     FROM PhieuMuon pm
                     LEFT JOIN NguoiDung nd ON pm.DocGiaId = nd.Id
+                    {whereClause}
                     ORDER BY pm.NgayMuon DESC
                     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
@@ -65,13 +81,15 @@ namespace QuanLyThuVien.Repositories
                 {
                     command.Parameters.AddWithValue("@Offset", (page - 1) * pageSize);
                     command.Parameters.AddWithValue("@PageSize", pageSize);
+                    command.Parameters.AddWithValue("@SearchTerm", searchTerm ?? "");
+                    command.Parameters.AddWithValue("@SearchPattern", $"%{(searchTerm ?? "")}%");
 
                     using (var reader = await command.ExecuteReaderAsync())
                     {
                         var items = new List<PhieuMuonDto>();
                         while (await reader.ReadAsync())
                         {
-                            items.Add(new PhieuMuonDto
+                            var dto = new PhieuMuonDto
                             {
                                 Id = reader.GetGuid(reader.GetOrdinal("Id")),
                                 DocGiaId = reader.GetGuid(reader.GetOrdinal("DocGiaId")),
@@ -80,8 +98,11 @@ namespace QuanLyThuVien.Repositories
                                 KenhMuon = reader.IsDBNull(reader.GetOrdinal("KenhMuon")) ? 1 : reader.GetInt32(reader.GetOrdinal("KenhMuon")),
                                 NgayMuon = reader.IsDBNull(reader.GetOrdinal("NgayMuon")) ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("NgayMuon")),
                                 HanTra = reader.IsDBNull(reader.GetOrdinal("HanTra")) ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("HanTra")),
-                                TrangThai = reader.IsDBNull(reader.GetOrdinal("TrangThai")) ? 1 : reader.GetInt32(reader.GetOrdinal("TrangThai"))
-                            });
+                                TrangThai = reader.IsDBNull(reader.GetOrdinal("TrangThai")) ? 1 : reader.GetInt32(reader.GetOrdinal("TrangThai")),
+                                TenSach = reader.IsDBNull(reader.GetOrdinal("TenSach")) ? string.Empty : reader.GetString(reader.GetOrdinal("TenSach"))
+                            };
+                            
+                            items.Add(dto);
                         }
                         result.Items = items;
                     }
