@@ -317,35 +317,48 @@ const LibrarianPage: React.FC = () => {
     const activities: any[] = [];
     
     // Thêm các yêu cầu mượn mới nhất
-    requests.slice(0, 2).forEach((req, idx) => {
+    requests.slice(0, 3).forEach((req, idx) => {
       activities.push({
         id: `req-${idx}`,
         user: req.tenDocGia,
-        action: `vừa gửi yêu cầu mượn ${req.tenCacSach?.length || 0} cuốn sách online`,
+        action: `vừa gửi yêu cầu mượn "${req.tenCacSach?.[0] || 'Sách'}" qua ứng dụng`,
         time: 'Mới nhận',
-        type: 'borrow'
+        type: 'user'
+      });
+    });
+ 
+    // Thêm các sách quá hạn (nhiều hơn)
+    overdueBooks.slice(0, 3).forEach((loan, idx) => {
+      activities.push({
+        id: `overdue-${idx}`,
+        user: loan.tenDocGia,
+        action: `đã trễ hạn trả cuốn "${loan.tenSach}"`,
+        time: 'Cần xử lý gấp',
+        type: 'warning'
       });
     });
 
-    // Thêm các phiếu mượn đang mượn
+    // Thêm các phiếu mượn vừa thực hiện
     borrowedBooks.slice(0, 2).forEach((loan, idx) => {
       activities.push({
         id: `loan-${idx}`,
         user: loan.tenDocGia,
-        action: `đang mượn cuốn "${loan.tenSach || 'Nhiều sách'}"`,
-        time: 'Đang mượn',
-        type: 'update'
+        action: `đã nhận sách "${loan.tenSach || 'Sách'}" thành công`,
+        time: 'Bàn giao xong',
+        type: 'approve'
       });
     });
-
-    // Nếu không có dữ liệu thực tế thì mới dùng mock để giao diện không trống
+ 
     if (activities.length === 0) {
       return [
-        { id: 1, user: 'Hệ thống', action: 'Chưa có hoạt động nghiệp vụ nào mới', time: '--', type: 'system' }
+        { id: 1, user: 'Hệ thống', action: 'Tất cả dịch vụ thư viện đang hoạt động tối ưu', time: 'Vừa xong', type: 'system' }
       ];
     }
-
-    return activities;
+ 
+    return activities.sort((a, b) => {
+        const order = { 'warning': 0, 'user': 1, 'approve': 2, 'system': 3 };
+        return (order as any)[a.type] - (order as any)[b.type];
+    });
   };
 
   const recentLibrarianActivities = getDynamicActivities();
@@ -537,9 +550,12 @@ const LibrarianPage: React.FC = () => {
                   <div className={styles['activity-list']}>
                     {recentLibrarianActivities.map(activity => (
                       <div key={activity.id} className={styles['activity-item']}>
-                        <div className={`${styles['activity-icon-box']} ${activity.type === 'borrow' ? styles['user'] : activity.type === 'return' ? styles['approve'] : activity.type === 'extend' ? styles['warning'] : styles['system']}`}>
+                        <div className={`${styles['activity-icon-box']} ${styles[activity.type]}`}>
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            {activity.type === 'borrow' ? <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></> : activity.type === 'return' ? <polyline points="20 6 9 17 4 12" /> : activity.type === 'extend' ? <><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></> : <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />}
+                            {activity.type === 'user' ? <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></> : 
+                             activity.type === 'approve' ? <polyline points="20 6 9 17 4 12" /> : 
+                             activity.type === 'warning' ? <><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></> : 
+                             <path d="M22 12h-4l-3 9L9 3l-3 9H2" />}
                           </svg>
                         </div>
                         <div className={styles['activity-info']}>
