@@ -259,6 +259,32 @@ namespace IdentityService.Repositories
             }
             return isSuccess;
         }
-    }
 
+        // Cập nhật trạng thái người dùng (Khóa/Mở khóa)
+        public async Task<(bool, string)> UpdateUserStatusAsync(Guid id, int status)
+        {
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                await conn.OpenAsync();
+
+                string query = "UPDATE NguoiDung SET TrangThai = @TrangThai WHERE Id = @Id";
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@TrangThai", status);
+                    cmd.Parameters.AddWithValue("@Id", id);
+
+                    int rowsAffected = await cmd.ExecuteNonQueryAsync();
+                    if (rowsAffected > 0)
+                    {
+                        string message = status == 1 ? "Đã mở khóa tài khoản thành công!" : "Đã khóa tài khoản thành công!";
+                        return (true, message);
+                    }
+                    else
+                    {
+                        return (false, "Không tìm thấy người dùng hoặc cập nhật thất bại.");
+                    }
+                }
+            }
+        }
+    }
 }

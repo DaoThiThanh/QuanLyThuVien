@@ -49,10 +49,29 @@ namespace IdentityService.Controllers
 
             return Ok(ResultRepository<object>.Ok(null, message));
         }
+
+        // PUT: api/User/{id}/status
+        [HttpPut("{id}/status")]
+        public async Task<IActionResult> UpdateUserStatus(Guid id, [FromBody] UpdateStatusRequest request)
+        {
+            var (isSuccess, message) = await _userRepo.UpdateUserStatusAsync(id, request.NewStatus);
+
+            if (!isSuccess)
+            {
+                return BadRequest(ResultRepository<object>.Fail(message));
+            }
+
+            return Ok(ResultRepository<object>.Ok(null, message));
+        }
     }
 
     public class UpdateRoleRequest
     {
         public int NewRole { get; set; }
+    }
+
+    public class UpdateStatusRequest
+    {
+        public int NewStatus { get; set; }
     }
 }

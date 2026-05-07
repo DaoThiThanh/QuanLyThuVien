@@ -96,6 +96,40 @@ namespace QuanLyThuVien.Repositories
                 {
                     result.ActiveLoans = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                 }
+
+                // 5. Hoạt động gần đây (Top 5)
+                var queryActivities = @"
+                    SELECT TOP 5 [User], [Action], [Time], [Type] FROM (
+                        SELECT HoTen as [User], N'đã đăng ký tài khoản' as [Action], NgayTao as [Time], 'user' as [Type] FROM NguoiDung
+                        UNION ALL
+                        SELECT n.HoTen as [User], N'đã mượn sách' as [Action], pm.NgayMuon as [Time], 'approve' as [Type] FROM PhieuMuon pm JOIN NguoiDung n ON pm.DocGiaId = n.Id
+                        UNION ALL
+                        SELECT n.HoTen as [User], N'đã gửi yêu cầu mượn' as [Action], y.NgayYeuCau as [Time], 'warning' as [Type] FROM YeuCauMuon y JOIN NguoiDung n ON y.DocGiaId = n.Id
+                    ) as Activities ORDER BY [Time] DESC";
+
+                using (var cmd = new SqlCommand(queryActivities, connection))
+                {
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            var time = reader.GetDateTime(reader.GetOrdinal("Time"));
+                            var diff = DateTime.Now - time;
+                            string timeStr;
+                            if (diff.TotalMinutes < 60) timeStr = $"{(int)diff.TotalMinutes} phút trước";
+                            else if (diff.TotalHours < 24) timeStr = $"{(int)diff.TotalHours} giờ trước";
+                            else timeStr = time.ToString("dd/MM/yyyy");
+
+                            result.RecentActivities.Add(new RecentActivityDto
+                            {
+                                User = reader.GetString(reader.GetOrdinal("User")),
+                                Action = reader.GetString(reader.GetOrdinal("Action")),
+                                Time = timeStr,
+                                Type = reader.GetString(reader.GetOrdinal("Type"))
+                            });
+                        }
+                    }
+                }
             }
 
             return result;
