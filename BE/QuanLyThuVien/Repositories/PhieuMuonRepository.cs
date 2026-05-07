@@ -11,6 +11,7 @@ namespace QuanLyThuVien.Repositories
         Task<bool> CreatePhieuMuonAsync(CreatePhieuMuonRequest request);
         Task<List<PhieuMuonDto>> GetPhieuMuonQuaHanAsync();
         Task<bool> TraSachAsync(Guid phieuMuonId, Guid cuonSachId, string tinhTrang);
+        Task<List<PhieuMuonDto>> GetPhieuMuonByDocGiaAsync(Guid docGiaId);
     }
 
     public class PhieuMuonRepository : IPhieuMuonRepository
@@ -423,6 +424,103 @@ namespace QuanLyThuVien.Repositories
                     }
                 }
             }
+        }
+
+        public async Task<List<PhieuMuonDto>> GetPhieuMuonByDocGiaAsync(Guid docGiaId)
+        {
+            var result = new List<PhieuMuonDto>();
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+
+                var query = @"
+                    SELECT 
+                        pm.Id, 
+                        pm.DocGiaId, 
+                        nd.HoTen as TenDocGia, 
+                        pm.ThuThuId, 
+                        pm.KenhMuon, 
+                        pm.NgayMuon, 
+                        pm.HanTra, 
+                        pm.TrangThai
+                    FROM PhieuMuon pm
+                    LEFT JOIN NguoiDung nd ON pm.DocGiaId = nd.Id
+                    WHERE pm.DocGiaId = @DocGiaId
+                    ORDER BY pm.NgayMuon DESC";
+
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@DocGiaId", docGiaId);
+
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            result.Add(new PhieuMuonDto
+                            {
+                                Id = reader.GetGuid(reader.GetOrdinal("Id")),
+                                DocGiaId = reader.GetGuid(reader.GetOrdinal("DocGiaId")),
+                                TenDocGia = reader.IsDBNull(reader.GetOrdinal("TenDocGia")) ? string.Empty : reader.GetString(reader.GetOrdinal("TenDocGia")),
+                                ThuThuId = reader.IsDBNull(reader.GetOrdinal("ThuThuId")) ? null : reader.GetGuid(reader.GetOrdinal("ThuThuId")),
+                                KenhMuon = reader.IsDBNull(reader.GetOrdinal("KenhMuon")) ? 1 : reader.GetInt32(reader.GetOrdinal("KenhMuon")),
+                                NgayMuon = reader.IsDBNull(reader.GetOrdinal("NgayMuon")) ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("NgayMuon")),
+                                HanTra = reader.IsDBNull(reader.GetOrdinal("HanTra")) ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("HanTra")),
+                                TrangThai = reader.IsDBNull(reader.GetOrdinal("TrangThai")) ? 1 : reader.GetInt32(reader.GetOrdinal("TrangThai")),
+                                ChiTiet = new List<ChiTietPhieuMuonDto>()
+                            });
+                        }
+                    }
+                }
+
+                // Lấy chi tiết cho từng phiếu
+                foreach (var pm in result)
+                {
+                    var ctQuery = @"
+                        SELECT 
+                            ct.Id, 
+                            ct.CuonSachId, 
+                            ct.NgayTraThucTe, 
+                            ct.TinhTrangKhiTra, 
+                            ct.TienPhat,
+                            cs.MaVach, 
+                            ds.TenSach,
+                            ds.HinhAnh,
+                            tg.TenTacGia
+                        FROM ChiTietPhieuMuon ct
+                        JOIN CuonSach cs ON ct.CuonSachId = cs.Id
+                        JOIN DauSach ds ON cs.DauSachId = ds.Id
+                        LEFT JOIN TacGia tg ON ds.TacGiaId = tg.Id
+                        WHERE ct.PhieuMuonId = @PhieuMuonId";
+
+                    using (var command = new SqlCommand(ctQuery, connection))
+                    {
+                        command.Parameters.AddWithValue("@PhieuMuonId", pm.Id);
+
+                        using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                pm.ChiTiet.Add(new ChiTietPhieuMuonDto
+                                {
+                                    Id = reader.GetGuid(reader.GetOrdinal("Id")),
+                                    CuonSachId = reader.GetGuid(reader.GetOrdinal("CuonSachId")),
+                                    TenSach = reader.IsDBNull(reader.GetOrdinal("TenSach")) ? string.Empty : reader.GetString(reader.GetOrdinal("TenSach")),
+                                    MaVach = reader.IsDBNull(reader.GetOrdinal("MaVach")) ? string.Empty : reader.GetString(reader.GetOrdinal("MaVach")),
+                                    NgayTraThucTe = reader.IsDBNull(reader.GetOrdinal("NgayTraThucTe")) ? null : reader.GetDateTime(reader.GetOrdinal("NgayTraThucTe")),
+                                    TinhTrangKhiTra = reader.IsDBNull(reader.GetOrdinal("TinhTrangKhiTra")) ? null : reader.GetString(reader.GetOrdinal("TinhTrangKhiTra")),
+                                    TienPhat = reader.IsDBNull(reader.GetOrdinal("TienPhat")) ? 0 : reader.GetDecimal(reader.GetOrdinal("TienPhat")),
+                                    HinhAnh = reader.IsDBNull(reader.GetOrdinal("HinhAnh")) ? string.Empty : reader.GetString(reader.GetOrdinal("HinhAnh")),
+                                    TenTacGia = reader.IsDBNull(reader.GetOrdinal("TenTacGia")) ? string.Empty : reader.GetString(reader.GetOrdinal("TenTacGia"))
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
+            return result;
         }
     }
 }

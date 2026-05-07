@@ -22,31 +22,38 @@ const StatItem = ({ icon, label, value, color }: StatItemProps) => (
     </div>
 );
 
-function BorrowStatsSection() {
+type BorrowStatsSectionProps = {
+    total?: number;
+    borrowing?: number;
+    returned?: number;
+    overdue?: number;
+};
+
+function BorrowStatsSection({ total = 0, borrowing = 0, returned = 0, overdue = 0 }: BorrowStatsSectionProps) {
     return (
         <div className={styles['borrow-stats-section']}>
             <StatItem 
                 icon={<FiBook size={20} />} 
                 label="Tổng số sách" 
-                value={12} 
+                value={total} 
                 color="#3b82f6" 
             />
             <StatItem 
                 icon={<FiClock size={20} />} 
                 label="Đang mượn" 
-                value={4} 
+                value={borrowing} 
                 color="#f59e0b" 
             />
             <StatItem 
                 icon={<FiCheckCircle size={20} />} 
                 label="Đã trả" 
-                value={7} 
+                value={returned} 
                 color="#10b981" 
             />
             <StatItem 
                 icon={<FiAlertCircle size={20} />} 
                 label="Quá hạn" 
-                value={1} 
+                value={overdue} 
                 color="#ef4444" 
             />
         </div>

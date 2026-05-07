@@ -42,6 +42,11 @@ export const GetDanhSachPhieuMuon = async (page: number = 1, pageSize: number = 
     return response.data;
 };
 
+export const GetPhieuMuonByUser = async (userId: string) => {
+    const response = await CauHinhApi.get<any[]>(`/phieu-muon/user/${userId}`);
+    return response.data;
+};
+
 export const GetPhieuMuonById = async (id: string) => {
     const response = await CauHinhApi.get(`/phieu-muon/${id}`);
     return response.data;

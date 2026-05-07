@@ -7,28 +7,35 @@
 }
 
 .stat-card {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    border: 1px solid #e5e7eb;
     display: flex;
     align-items: center;
-    gap: 16px;
-    transition: transform 0.2s, box-shadow 0.2s;
+    padding: 24px;
+    background: #f8fafc;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    border: 1px solid #f1f5f9;
 }
 
 .stat-card:hover {
+    background: white;
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.04);
+    border-color: #e2e8f0;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .stat-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 10px;
+    width: 54px;
+    height: 54px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-right: 18px;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover .stat-icon {
+    transform: scale(1.1) rotate(5deg);
 }
 
 .stat-info {
@@ -37,14 +44,29 @@
 }
 
 .stat-value {
-    font-size: 24px;
-    font-weight: 700;
-    color: #111827;
+    font-size: 26px;
+    font-weight: 800;
+    color: #1e293b;
     line-height: 1;
+    margin-bottom: 4px;
 }
 
 .stat-label {
-    font-size: 14px;
-    color: #6b7280;
-    margin-top: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+@media (max-width: 1024px) {
+    .borrow-stats-section {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .borrow-stats-section {
+        grid-template-columns: 1fr;
+    }
 }

@@ -22,6 +22,13 @@ namespace QuanLyThuVien.Controllers
             return Ok(result);
         }
 
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetByUser(Guid userId)
+        {
+            var result = await _phieuMuonRepository.GetPhieuMuonByDocGiaAsync(userId);
+            return Ok(result);
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {

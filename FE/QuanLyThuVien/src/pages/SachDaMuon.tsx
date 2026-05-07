@@ -7,7 +7,7 @@ import BorrowStatsSection from "../components/MuonSach/BorrowStatsSection";
 import BorrowTabs from "../components/MuonSach/BorrowTabs";
 import BorrowedBookList from "../components/MuonSach/BorrowedBookList";
 import type { BorrowedBook } from "../components/MuonSach/BorrowedBookList";
-import { GetYeuCauByDocGiaAsync, GetDanhSachPhieuMuon, TuChoiYeuCauMuon } from "../dichVu/modules/dichVuMuonSach";
+import { GetYeuCauByDocGiaAsync, GetPhieuMuonByUser, TuChoiYeuCauMuon } from "../dichVu/modules/dichVuMuonSach";
 import { getUserId } from "../dichVu/modules/dichVuXacThuc";
 import { useEffect } from "react";
 
@@ -26,7 +26,7 @@ function BorrowedBooksPage() {
         try {
             const [requests, loans] = await Promise.all([
                 GetYeuCauByDocGiaAsync(userId),
-                GetDanhSachPhieuMuon(1, 50) // Giả định reader chỉ lấy 50 cuốn gần nhất
+                GetPhieuMuonByUser(userId)
             ]);
 
             const mappedData: BorrowedBook[] = [];
@@ -36,7 +36,6 @@ function BorrowedBooksPage() {
                 requests.forEach(yc => {
                     const status: any = yc.trangThai === 0 ? "pending" : (yc.trangThai === 2 ? "rejected" : "approved");
                     
-                    // Gom tất cả sách trong 1 yêu cầu thành 1 dòng duy nhất để hủy theo "Phiếu"
                     mappedData.push({
                         id: yc.id, 
                         title: yc.tenCacSach && yc.tenCacSach.length > 0 ? yc.tenCacSach.join(", ") : "Chưa rõ tên sách",
@@ -51,21 +50,23 @@ function BorrowedBooksPage() {
             }
 
             // Mapping Phiếu mượn thực tế
-            if (loans && loans.items) {
+            if (Array.isArray(loans)) {
                 let overdue = 0;
-                loans.items.forEach((item: any) => {
-                    const isOverdue = new Date(item.hanTra) < new Date() && !item.ngayTra;
-                    if (isOverdue) overdue++;
+                loans.forEach((pm: any) => {
+                    pm.chiTiet.forEach((ct: any) => {
+                        const isOverdue = new Date(pm.hanTra) < new Date() && !ct.ngayTraThucTe;
+                        if (isOverdue) overdue++;
 
-                    mappedData.push({
-                        id: item.id,
-                        title: item.tenSach || "Nhiều sách",
-                        author: item.tenTacGia || "Thư viện",
-                        borrowDate: new Date(item.ngayMuon).toLocaleDateString('vi-VN'),
-                        dueDate: new Date(item.hanTra).toLocaleDateString('vi-VN'),
-                        returnDate: item.ngayTra ? new Date(item.ngayTra).toLocaleDateString('vi-VN') : undefined,
-                        status: item.ngayTra ? "returned" : (isOverdue ? "overdue" : "borrowing"),
-                        coverImage: item.hinhAnh || "https://placehold.co/400x600/e2e8f0/1e293b?text=Book"
+                        mappedData.push({
+                            id: ct.id,
+                            title: ct.tenSach || "Chưa rõ tên sách",
+                            author: ct.tenTacGia || "Thư viện",
+                            borrowDate: new Date(pm.ngayMuon).toLocaleDateString('vi-VN'),
+                            dueDate: new Date(pm.hanTra).toLocaleDateString('vi-VN'),
+                            returnDate: ct.ngayTraThucTe ? new Date(ct.ngayTraThucTe).toLocaleDateString('vi-VN') : undefined,
+                            status: ct.ngayTraThucTe ? "returned" : (isOverdue ? "overdue" : "borrowing"),
+                            coverImage: ct.hinhAnh || "https://placehold.co/400x600/e2e8f0/1e293b?text=Book"
+                        });
                     });
                 });
                 setOverdueCount(overdue);
@@ -100,27 +101,89 @@ function BorrowedBooksPage() {
     });
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+        <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            minHeight: '100vh', 
+            backgroundColor: '#f8fafc',
+            backgroundImage: 'radial-gradient(at 0% 0%, hsla(210,100%,98%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(220,100%,97%,1) 0, transparent 50%)'
+        }}>
             <Header />
-            <main style={{ flex: 1, padding: '40px 24px', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
-                <BorrowedTitle 
-                    title="Lịch sử mượn"
-                    subtitle="Danh sách sách bạn đã mượn và đang mượn" 
-                />
+            <main style={{ 
+                flex: 1, 
+                padding: '60px 24px', 
+                maxWidth: '1280px', 
+                margin: '0 auto', 
+                width: '100%',
+                animation: 'fadeIn 0.6s ease-out'
+            }}>
+                <div style={{ marginBottom: '40px' }}>
+                    <BorrowedTitle 
+                        title="Lịch sử mượn sách"
+                        subtitle="Theo dõi quá trình mượn trả và trạng thái các yêu cầu của bạn" 
+                    />
+                </div>
                 
-                {overdueCount > 0 && <OverdueWarningBanner overdueCount={overdueCount} />}
-                
-                <BorrowStatsSection />
-                
-                <BorrowTabs activeTab={activeTab} onTabChange={setActiveTab} />
-                
-                {loading ? (
-                    <div style={{ textAlign: 'center', padding: '40px' }}>Đang tải lịch sử mượn...</div>
-                ) : (
-                    <BorrowedBookList books={filteredBooks} onCancelRequest={handleCancelRequest} />
+                {overdueCount > 0 && (
+                    <div style={{ marginBottom: '24px' }}>
+                        <OverdueWarningBanner overdueCount={overdueCount} />
+                    </div>
                 )}
+                
+                <div style={{ 
+                    background: 'white', 
+                    borderRadius: '24px', 
+                    padding: '32px', 
+                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05)',
+                    border: '1px solid rgba(226, 232, 240, 0.8)'
+                }}>
+                    <div style={{ marginBottom: '32px' }}>
+                        <BorrowStatsSection 
+                            total={books.filter(b => !b.isRequest).length}
+                            borrowing={books.filter(b => b.status === 'borrowing').length}
+                            returned={books.filter(b => b.status === 'returned').length}
+                            overdue={overdueCount}
+                        />
+                    </div>
+                    
+                    <div style={{ borderBottom: '1px solid #f1f5f9', marginBottom: '32px' }}>
+                        <BorrowTabs activeTab={activeTab} onTabChange={setActiveTab} />
+                    </div>
+                    
+                    {loading ? (
+                        <div style={{ 
+                            textAlign: 'center', 
+                            padding: '100px 0',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '16px'
+                        }}>
+                            <div className="loading-spinner" style={{
+                                width: '40px',
+                                height: '40px',
+                                border: '3px solid #f3f4f6',
+                                borderTop: '3px solid #3b82f6',
+                                borderRadius: '50%',
+                                animation: 'spin 1s linear infinite'
+                            }}></div>
+                            <span style={{ color: '#64748b', fontWeight: 500 }}>Đang tải dữ liệu lịch sử...</span>
+                        </div>
+                    ) : (
+                        <BorrowedBookList books={filteredBooks} onCancelRequest={handleCancelRequest} />
+                    )}
+                </div>
             </main>
             <Footer />
+            <style>{`
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                @keyframes spin {
+                    to { transform: rotate(360deg); }
+                }
+            `}</style>
         </div>
     );
 }

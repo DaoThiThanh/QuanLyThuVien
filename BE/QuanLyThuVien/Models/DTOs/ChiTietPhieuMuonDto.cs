@@ -9,5 +9,7 @@ namespace QuanLyThuVien.Models.DTOs
         public DateTime? NgayTraThucTe { get; set; }
         public string TinhTrangKhiTra { get; set; }
         public decimal TienPhat { get; set; }
+        public string HinhAnh { get; set; }
+        public string TenTacGia { get; set; }
     }
 }
