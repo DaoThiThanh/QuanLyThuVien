@@ -46,9 +46,9 @@ namespace QuanLyThuVien.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllYeuCau()
+        public async Task<IActionResult> GetAllYeuCau([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _yeuCauMuonRepository.GetAllYeuCauMuonAsync();
+            var result = await _yeuCauMuonRepository.GetAllYeuCauMuonAsync(page, pageSize);
             return Ok(result);
         }
 

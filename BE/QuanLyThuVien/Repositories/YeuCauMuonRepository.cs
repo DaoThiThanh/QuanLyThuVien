@@ -8,7 +8,7 @@ namespace QuanLyThuVien.Repositories
     {
         Task<bool> CreateYeuCauMuonAsync(CreateYeuCauMuonRequest request);
         Task<List<YeuCauMuonDto>> GetYeuCauByDocGiaAsync(Guid docGiaId);
-        Task<List<YeuCauMuonDto>> GetAllYeuCauMuonAsync();
+        Task<PagedResult<YeuCauMuonDto>> GetAllYeuCauMuonAsync(int page, int pageSize);
         Task<bool> UpdateTrangThaiAsync(Guid id, int trangThai);
         Task<object> GetBorrowingLimitStatusAsync(Guid docGiaId);
     }
@@ -181,15 +181,29 @@ namespace QuanLyThuVien.Repositories
             return result;
         }
 
-        public async Task<List<YeuCauMuonDto>> GetAllYeuCauMuonAsync()
+        public async Task<PagedResult<YeuCauMuonDto>> GetAllYeuCauMuonAsync(int page, int pageSize)
         {
             var connectionString = _configuration.GetConnectionString("DefaultConnection");
-            var result = new List<YeuCauMuonDto>();
+            var result = new PagedResult<YeuCauMuonDto>
+            {
+                CurrentPage = page,
+                PageSize = pageSize,
+                Items = new List<YeuCauMuonDto>()
+            };
 
             using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
 
+                // 1. Count total
+                var countQuery = "SELECT COUNT(*) FROM YeuCauMuon";
+                using (var countCmd = new SqlCommand(countQuery, connection))
+                {
+                    result.TotalItems = Convert.ToInt32(await countCmd.ExecuteScalarAsync());
+                }
+                result.TotalPages = (int)Math.Ceiling(result.TotalItems / (double)pageSize);
+
+                // 2. Get paged items
                 var query = @"
                     SELECT 
                         yc.Id, 
@@ -201,10 +215,14 @@ namespace QuanLyThuVien.Repositories
                         nd.Email
                     FROM YeuCauMuon yc
                     JOIN NguoiDung nd ON yc.DocGiaId = nd.Id
-                    ORDER BY yc.NgayYeuCau DESC";
+                    ORDER BY yc.NgayYeuCau DESC
+                    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
                 using (var command = new SqlCommand(query, connection))
                 {
+                    command.Parameters.AddWithValue("@Offset", (page - 1) * pageSize);
+                    command.Parameters.AddWithValue("@PageSize", pageSize);
+
                     using (var reader = await command.ExecuteReaderAsync())
                     {
                         while (await reader.ReadAsync())
@@ -219,16 +237,33 @@ namespace QuanLyThuVien.Repositories
                                 NgayHenNhan = reader.IsDBNull(reader.GetOrdinal("NgayHenNhan")) ? null : reader.GetDateTime(reader.GetOrdinal("NgayHenNhan")),
                                 TrangThai = reader.GetInt32(reader.GetOrdinal("TrangThai"))
                             };
-                            // Note: If you want to add Email to DTO, update the DTO model first. 
-                            // For now I'll just focus on getting book titles.
-                            result.Add(dto);
+                            result.Items.Add(dto);
                         }
                     }
                 }
 
-                foreach (var yc in result)
+                // 3. Get book titles for each request
+                foreach (var yc in result.Items)
                 {
-                    await PopulateChiTietYeuCauAsync(yc, connection);
+                    var bookQuery = @"
+                        SELECT ds.TenSach 
+                        FROM ChiTietYeuCau ct
+                        JOIN DauSach ds ON ct.DauSachId = ds.Id
+                        WHERE ct.YeuCauId = @YeuCauId";
+
+                    using (var command = new SqlCommand(bookQuery, connection))
+                    {
+                        command.Parameters.AddWithValue("@YeuCauId", yc.Id);
+                        var books = new List<string>();
+                        using (var bookReader = await command.ExecuteReaderAsync())
+                        {
+                            while (await bookReader.ReadAsync())
+                            {
+                                books.Add(bookReader.GetString(0));
+                            }
+                        }
+                        yc.TenCacSach = books;
+                    }
                 }
             }
 

@@ -63,6 +63,11 @@ const LibrarianPage: React.FC = () => {
   const [loanTotalPages, setLoanTotalPages] = useState(1);
   const [loanPageSize] = useState(6);
 
+  // Phân trang cho Yêu cầu mượn
+  const [requestPage, setRequestPage] = useState(1);
+  const [requestTotalPages, setRequestTotalPages] = useState(1);
+  const [requestPageSize] = useState(6);
+
   // State cho Modal Metadata
   const [isMetadataModalOpen, setIsMetadataModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -91,7 +96,7 @@ const LibrarianPage: React.FC = () => {
     try {
       const [statsData, requestsData, borrowedData, overdueData, inventoryData, tacGiasData, nxbsData, dmData, readersData, copiesData] = await Promise.all([
         getThongKeThuThu(),
-        GetAllYeuCauMuon(),
+        GetAllYeuCauMuon(requestPage, requestPageSize),
         GetDanhSachPhieuMuon(loanPage, loanPageSize, loanSearchTerm, loanStatusFilter),
         GetPhieuMuonQuaHan(),
         GetDanhSachSach(bookPage, bookPageSize), // Use state for books
@@ -110,7 +115,14 @@ const LibrarianPage: React.FC = () => {
       };
 
       setStats(statsData);
-      setRequests(normalizeData(requestsData));
+      
+      // Handle paginated requests
+      if (requestsData && requestsData.items) {
+          setRequests(requestsData.items);
+          setRequestTotalPages(requestsData.totalPages || 1);
+      } else {
+          setRequests(normalizeData(requestsData));
+      }
       
       // Handle paginated loans
       if (borrowedData && borrowedData.items) {
@@ -146,6 +158,19 @@ const LibrarianPage: React.FC = () => {
       console.error("Lỗi khi tải dữ liệu thủ thư:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Hàm chuyên biệt để tải lại danh sách yêu cầu
+  const fetchRequests = async () => {
+    try {
+      const data = await GetAllYeuCauMuon(requestPage, requestPageSize);
+      if (data && data.items) {
+        setRequests(data.items);
+        setRequestTotalPages(data.totalPages || 1);
+      }
+    } catch (error) {
+      console.error("Lỗi khi tải danh sách yêu cầu:", error);
     }
   };
 
@@ -239,6 +264,12 @@ const LibrarianPage: React.FC = () => {
         fetchLoans();
     }
   }, [loanPage, loanStatusFilter]);
+
+  useEffect(() => {
+    if (activeTab === 'dashboard') {
+        fetchRequests();
+    }
+  }, [requestPage]);
 
   // Debounce tìm kiếm mượn trả
   useEffect(() => {
@@ -1270,6 +1301,48 @@ const LibrarianPage: React.FC = () => {
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination UI for Requests */}
+              {requestTotalPages > 1 && (
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '24px', gap: '10px' }}>
+                      <button 
+                          disabled={requestPage === 1}
+                          onClick={() => setRequestPage(prev => prev - 1)}
+                          style={{ 
+                              padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', 
+                              background: 'white', cursor: requestPage === 1 ? 'not-allowed' : 'pointer',
+                              opacity: requestPage === 1 ? 0.5 : 1, fontWeight: '600', color: '#64748b'
+                          }}
+                      >Trước</button>
+                      
+                      <div style={{ display: 'flex', gap: '5px' }}>
+                          {[...Array(requestTotalPages)].map((_, i) => (
+                              <button
+                                  key={i + 1}
+                                  onClick={() => setRequestPage(i + 1)}
+                                  style={{
+                                      width: '36px', height: '36px', borderRadius: '8px', border: 'none',
+                                      background: requestPage === i + 1 ? 'linear-gradient(135deg, #6366f1, #4f46e5)' : '#f1f5f9',
+                                      color: requestPage === i + 1 ? 'white' : '#64748b',
+                                      fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s'
+                                  }}
+                              >
+                                  {i + 1}
+                              </button>
+                          ))}
+                      </div>
+
+                      <button 
+                          disabled={requestPage === requestTotalPages}
+                          onClick={() => setRequestPage(prev => prev + 1)}
+                          style={{ 
+                              padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', 
+                              background: 'white', cursor: requestPage === requestTotalPages ? 'not-allowed' : 'pointer',
+                              opacity: requestPage === requestTotalPages ? 0.5 : 1, fontWeight: '600', color: '#64748b'
+                          }}
+                      >Sau</button>
+                  </div>
+              )}
             </div>
           )}
 

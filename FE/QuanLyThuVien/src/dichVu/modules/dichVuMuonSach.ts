@@ -32,8 +32,8 @@ export const GetYeuCauByDocGiaAsync = async (userId: string) => {
     return response.data;
 };
 
-export const GetAllYeuCauMuon = async () => {
-    const response = await CauHinhApi.get<YeuCauMuonDto[]>('/yeu-cau-muon');
+export const GetAllYeuCauMuon = async (page: number = 1, pageSize: number = 10) => {
+    const response = await CauHinhApi.get(`/yeu-cau-muon?page=${page}&pageSize=${pageSize}`);
     return response.data;
 };
 
