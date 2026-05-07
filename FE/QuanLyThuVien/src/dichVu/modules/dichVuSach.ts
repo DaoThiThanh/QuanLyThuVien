@@ -35,8 +35,8 @@ export async function GetNewBooks(): Promise<NewBookItem[] | ApiResponse<NewBook
     const response = await CauHinhApi.get<NewBookItem[] | ApiResponse<NewBookItem[]>>('/sach/moi-bo-sung');
     return response.data;
 }
-export async function GetDanhSachSach(page: number = 1, pageSize: number = 12): Promise<PaginatedResponse<PaginatedBookItem>> {
-    const response = await CauHinhApi.get<PaginatedResponse<PaginatedBookItem>>(`/sach?page=${page}&pageSize=${pageSize}`);
+export async function GetDanhSachSach(page: number = 1, pageSize: number = 12, searchTerm: string = ""): Promise<PaginatedResponse<PaginatedBookItem>> {
+    const response = await CauHinhApi.get<PaginatedResponse<PaginatedBookItem>>(`/sach?page=${page}&pageSize=${pageSize}&searchTerm=${searchTerm}`);
     return response.data;
 }
 export async function GetBookById(id: string): Promise<any> {

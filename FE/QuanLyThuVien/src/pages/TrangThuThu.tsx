@@ -46,6 +46,12 @@ const LibrarianPage: React.FC = () => {
   const [selectedPhieuMuon, setSelectedPhieuMuon] = useState<any>(null);
   const [showCreateLoanModal, setShowCreateLoanModal] = useState(false);
   const [readerSearchTerm, setReaderSearchTerm] = useState('');
+  
+  // Phân trang & Tìm kiếm cho Kho sách
+  const [bookPage, setBookPage] = useState(1);
+  const [bookTotalPages, setBookTotalPages] = useState(1);
+  const [bookSearchTerm, setBookSearchTerm] = useState('');
+  const [bookPageSize] = useState(10);
 
   // State cho Modal Metadata
   const [isMetadataModalOpen, setIsMetadataModalOpen] = useState(false);
@@ -78,7 +84,7 @@ const LibrarianPage: React.FC = () => {
         GetAllYeuCauMuon(),
         GetDanhSachPhieuMuon(1, 100),
         GetPhieuMuonQuaHan(),
-        GetDanhSachSach(1, 100),
+        GetDanhSachSach(bookPage, bookPageSize), // Use state for books
         GetTacGias(),
         GetNhaXuatBans(),
         GetCategories(),
@@ -97,7 +103,15 @@ const LibrarianPage: React.FC = () => {
       setRequests(normalizeData(requestsData));
       setBorrowedBooks(normalizeData(borrowedData));
       setOverdueBooks(normalizeData(overdueData));
-      setInventoryBooks(normalizeData(inventoryData));
+      
+      // Handle paginated books
+      if (inventoryData && inventoryData.items) {
+          setInventoryBooks(inventoryData.items);
+          setBookTotalPages(inventoryData.totalPages || 1);
+      } else {
+          setInventoryBooks(normalizeData(inventoryData));
+      }
+
       setTacGias(normalizeData(tacGiasData));
       setNhaXuatBans(normalizeData(nxbsData));
       setDanhMucs(normalizeData(dmData));
@@ -110,9 +124,43 @@ const LibrarianPage: React.FC = () => {
     }
   };
 
+  // Hàm chuyên biệt để tải lại danh sách sách khi đổi trang hoặc tìm kiếm
+  const fetchBooks = async () => {
+    try {
+      const data = await GetDanhSachSach(bookPage, bookPageSize, bookSearchTerm);
+      if (data && data.items) {
+        setInventoryBooks(data.items);
+        setBookTotalPages(data.totalPages || 1);
+      }
+    } catch (error) {
+      console.error("Lỗi khi tải danh sách sách:", error);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'books') {
+        fetchBooks();
+    }
+  }, [bookPage]);
+
+  // Debounce tìm kiếm sách
+  useEffect(() => {
+    if (activeTab !== 'books') return;
+    
+    const handler = setTimeout(() => {
+        if (bookPage !== 1) {
+            setBookPage(1); // Reset về trang 1 khi tìm kiếm
+        } else {
+            fetchBooks();
+        }
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [bookSearchTerm]);
 
   const handleOpenCheckStock = (yeuCau: any) => {
     setSelectedYeuCau(yeuCau);
@@ -573,7 +621,19 @@ const LibrarianPage: React.FC = () => {
           {activeTab === 'books' && (
             <div className={styles['admin-section']}>
               <div className={styles['section-header']}>
-                <h2 className={styles['section-title']}>Kho Sách Thư Viện</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flex: 1 }}>
+                  <h2 className={styles['section-title']}>Kho Sách Thư Viện</h2>
+                  <div className={styles['header-search']}>
+                    <input 
+                      type="text" 
+                      placeholder="Tìm tên sách, tác giả..." 
+                      className={styles['form-control']} 
+                      style={{ width: '250px', padding: '8px 12px', fontSize: '13px', borderRadius: '20px' }} 
+                      value={bookSearchTerm}
+                      onChange={(e) => setBookSearchTerm(e.target.value)}
+                    />
+                  </div>
+                </div>
                 <button className={styles['section-action']} onClick={() => {
                   setEditingBookId(null);
                   setFormData({ tenSach: '', soLuongTon: 0, danhMucId: danhMucs[0]?.id || '', tacGiaId: tacGias[0]?.id || '', nxbId: nhaXuatBans[0]?.id || '', namXuatBan: new Date().getFullYear() });
@@ -595,7 +655,7 @@ const LibrarianPage: React.FC = () => {
                   </thead>
                   <tbody>
                     {inventoryBooks.length === 0 ? (
-                      <tr><td colSpan={6} style={{ textAlign: 'center', padding: '20px' }}>Kho sách trống</td></tr>
+                      <tr><td colSpan={7} style={{ textAlign: 'center', padding: '20px' }}>Kho sách trống</td></tr>
                     ) : (
                       inventoryBooks.map(book => (
                         <tr key={book.id}>
@@ -625,6 +685,48 @@ const LibrarianPage: React.FC = () => {
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination UI for Books */}
+              {bookTotalPages > 1 && (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '24px', gap: '10px' }}>
+                  <button 
+                    disabled={bookPage === 1}
+                    onClick={() => setBookPage(prev => prev - 1)}
+                    style={{ 
+                      padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', 
+                      background: 'white', cursor: bookPage === 1 ? 'not-allowed' : 'pointer',
+                      opacity: bookPage === 1 ? 0.5 : 1, fontWeight: '600', color: '#64748b'
+                    }}
+                  >Trước</button>
+                  
+                  <div style={{ display: 'flex', gap: '5px' }}>
+                    {[...Array(bookTotalPages)].map((_, i) => (
+                      <button
+                        key={i + 1}
+                        onClick={() => setBookPage(i + 1)}
+                        style={{
+                          width: '36px', height: '36px', borderRadius: '8px', border: 'none',
+                          background: bookPage === i + 1 ? 'linear-gradient(135deg, #6366f1, #4f46e5)' : '#f1f5f9',
+                          color: bookPage === i + 1 ? 'white' : '#64748b',
+                          fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s'
+                        }}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button 
+                    disabled={bookPage === bookTotalPages}
+                    onClick={() => setBookPage(prev => prev + 1)}
+                    style={{ 
+                      padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', 
+                      background: 'white', cursor: bookPage === bookTotalPages ? 'not-allowed' : 'pointer',
+                      opacity: bookPage === bookTotalPages ? 0.5 : 1, fontWeight: '600', color: '#64748b'
+                    }}
+                  >Sau</button>
+                </div>
+              )}
             </div>
           )}
 

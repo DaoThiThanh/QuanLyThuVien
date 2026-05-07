@@ -51,14 +51,14 @@ namespace QuanLyThuVien.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetDanhSach([FromQuery] int page = 1, [FromQuery] int pageSize = 12)
+        public async Task<IActionResult> GetDanhSach([FromQuery] int page = 1, [FromQuery] int pageSize = 12, [FromQuery] string searchTerm = "")
         {
             try
             {
                 if (page <= 0) page = 1;
                 if (pageSize <= 0) pageSize = 12;
 
-                var result = await _sachRepository.GetDanhSachSachAsync(page, pageSize);
+                var result = await _sachRepository.GetDanhSachSachAsync(page, pageSize, searchTerm);
 
                 return Ok(result);
             }

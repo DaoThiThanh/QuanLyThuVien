@@ -10,7 +10,7 @@ namespace QuanLyThuVien.Repositories
     {
         Task<IEnumerable<SachNoiBatDto>> GetSachNoiBatAsync(int top);
         Task<IEnumerable<SachMoiBoSungDto>> GetSachMoiBoSungAsync(int top);
-        Task<PagedResult<SachDto>> GetDanhSachSachAsync(int page, int pageSize);
+        Task<PagedResult<SachDto>> GetDanhSachSachAsync(int page, int pageSize, string searchTerm = "");
         Task<SachDto> GetSachByIdAsync(Guid id);
         Task<Guid> CreateSachAsync(UpsertSachDto dto);
         Task<bool> UpdateSachAsync(Guid id, UpsertSachDto dto);
@@ -126,7 +126,7 @@ namespace QuanLyThuVien.Repositories
             return result;
         }
 
-        public async Task<PagedResult<SachDto>> GetDanhSachSachAsync(int page, int pageSize)
+        public async Task<PagedResult<SachDto>> GetDanhSachSachAsync(int page, int pageSize, string searchTerm = "")
         {
             var result = new PagedResult<SachDto>
             {
@@ -141,14 +141,24 @@ namespace QuanLyThuVien.Repositories
             {
                 await connection.OpenAsync();
 
-                var countQuery = "SELECT COUNT(*) FROM DauSach";
+                // Count total items
+                var countQuery = @"
+                    SELECT COUNT(*) 
+                    FROM DauSach ds
+                    LEFT JOIN TacGia tg ON ds.TacGiaId = tg.Id
+                    LEFT JOIN DanhMucSach dm ON ds.DanhMucId = dm.Id
+                    WHERE (@SearchTerm = '' OR ds.TenSach LIKE @SearchPattern OR tg.TenTacGia LIKE @SearchPattern OR dm.TenDanhMuc LIKE @SearchPattern)";
+
                 using (var countCommand = new SqlCommand(countQuery, connection))
                 {
+                    countCommand.Parameters.AddWithValue("@SearchTerm", searchTerm ?? "");
+                    countCommand.Parameters.AddWithValue("@SearchPattern", $"%{(searchTerm ?? "")}%");
                     result.TotalItems = Convert.ToInt32(await countCommand.ExecuteScalarAsync());
                 }
 
                 result.TotalPages = (int)Math.Ceiling(result.TotalItems / (double)pageSize);
 
+                // Get paged items
                 var query = @"
                     SELECT 
                         ds.Id, 
@@ -160,6 +170,7 @@ namespace QuanLyThuVien.Repositories
                     FROM DauSach ds
                     LEFT JOIN DanhMucSach dm ON ds.DanhMucId = dm.Id
                     LEFT JOIN TacGia tg ON ds.TacGiaId = tg.Id
+                    WHERE (@SearchTerm = '' OR ds.TenSach LIKE @SearchPattern OR tg.TenTacGia LIKE @SearchPattern OR dm.TenDanhMuc LIKE @SearchPattern)
                     ORDER BY ds.TenSach
                     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
 
@@ -167,6 +178,8 @@ namespace QuanLyThuVien.Repositories
                 {
                     command.Parameters.AddWithValue("@Offset", (page - 1) * pageSize);
                     command.Parameters.AddWithValue("@PageSize", pageSize);
+                    command.Parameters.AddWithValue("@SearchTerm", searchTerm ?? "");
+                    command.Parameters.AddWithValue("@SearchPattern", $"%{(searchTerm ?? "")}%");
 
                     using (var reader = await command.ExecuteReaderAsync())
                     {
