@@ -53,6 +53,11 @@ const LibrarianPage: React.FC = () => {
   const [bookSearchTerm, setBookSearchTerm] = useState('');
   const [bookPageSize] = useState(10);
 
+  // Phân trang & Tìm kiếm cho Cuốn sách vật lý
+  const [copyPage, setCopyPage] = useState(1);
+  const [copyTotalPages, setCopyTotalPages] = useState(1);
+  const [copyPageSize] = useState(10);
+
   // State cho Modal Metadata
   const [isMetadataModalOpen, setIsMetadataModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -89,7 +94,7 @@ const LibrarianPage: React.FC = () => {
         GetNhaXuatBans(),
         GetCategories(),
         getAllUsers(3),
-        GetPagedCuonSachs(1, 100)
+        GetPagedCuonSachs(copyPage, copyPageSize, copySearchTerm)
       ]);
 
       const normalizeData = (data: any) => {
@@ -116,7 +121,14 @@ const LibrarianPage: React.FC = () => {
       setNhaXuatBans(normalizeData(nxbsData));
       setDanhMucs(normalizeData(dmData));
       setReaders(normalizeData(readersData));
-      setCuonSachs(normalizeData(copiesData));
+      
+      // Handle paginated copies
+      if (copiesData && copiesData.items) {
+          setCuonSachs(copiesData.items);
+          setCopyTotalPages(copiesData.totalPages || 1);
+      } else {
+          setCuonSachs(normalizeData(copiesData));
+      }
     } catch (error) {
       console.error("Lỗi khi tải dữ liệu thủ thư:", error);
     } finally {
@@ -137,6 +149,19 @@ const LibrarianPage: React.FC = () => {
     }
   };
 
+  // Hàm chuyên biệt để tải lại danh sách cuốn sách
+  const fetchCopies = async () => {
+    try {
+      const data = await GetPagedCuonSachs(copyPage, copyPageSize, copySearchTerm);
+      if (data && data.items) {
+        setCuonSachs(data.items);
+        setCopyTotalPages(data.totalPages || 1);
+      }
+    } catch (error) {
+      console.error("Lỗi khi tải danh sách cuốn sách:", error);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -147,13 +172,19 @@ const LibrarianPage: React.FC = () => {
     }
   }, [bookPage]);
 
+  useEffect(() => {
+    if (activeTab === 'copies') {
+        fetchCopies();
+    }
+  }, [copyPage]);
+
   // Debounce tìm kiếm sách
   useEffect(() => {
     if (activeTab !== 'books') return;
     
     const handler = setTimeout(() => {
         if (bookPage !== 1) {
-            setBookPage(1); // Reset về trang 1 khi tìm kiếm
+            setBookPage(1); 
         } else {
             fetchBooks();
         }
@@ -161,6 +192,21 @@ const LibrarianPage: React.FC = () => {
 
     return () => clearTimeout(handler);
   }, [bookSearchTerm]);
+
+  // Debounce tìm kiếm cuốn sách
+  useEffect(() => {
+    if (activeTab !== 'copies') return;
+    
+    const handler = setTimeout(() => {
+        if (copyPage !== 1) {
+            setCopyPage(1);
+        } else {
+            fetchCopies();
+        }
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [copySearchTerm]);
 
   const handleOpenCheckStock = (yeuCau: any) => {
     setSelectedYeuCau(yeuCau);
@@ -765,16 +811,10 @@ const LibrarianPage: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {cuonSachs.filter(cs => 
-                                cs.maVach.toLowerCase().includes(copySearchTerm.toLowerCase()) || 
-                                cs.tenSach.toLowerCase().includes(copySearchTerm.toLowerCase())
-                            ).length === 0 ? (
+                            {cuonSachs.length === 0 ? (
                                 <tr><td colSpan={5} style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Không tìm thấy cuốn sách nào</td></tr>
                             ) : (
-                                cuonSachs.filter(cs => 
-                                    cs.maVach.toLowerCase().includes(copySearchTerm.toLowerCase()) || 
-                                    cs.tenSach.toLowerCase().includes(copySearchTerm.toLowerCase())
-                                ).map(item => (
+                                cuonSachs.map(item => (
                                     <tr key={item.id}>
                                         <td><strong style={{ color: '#3b82f6' }}>{item.maVach}</strong></td>
                                         <td style={{ fontWeight: '600' }}>{item.tenSach}</td>
@@ -824,6 +864,48 @@ const LibrarianPage: React.FC = () => {
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination UI for Copies */}
+                {copyTotalPages > 1 && (
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '24px', gap: '10px' }}>
+                        <button 
+                            disabled={copyPage === 1}
+                            onClick={() => setCopyPage(prev => prev - 1)}
+                            style={{ 
+                                padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', 
+                                background: 'white', cursor: copyPage === 1 ? 'not-allowed' : 'pointer',
+                                opacity: copyPage === 1 ? 0.5 : 1, fontWeight: '600', color: '#64748b'
+                            }}
+                        >Trước</button>
+                        
+                        <div style={{ display: 'flex', gap: '5px' }}>
+                            {[...Array(copyTotalPages)].map((_, i) => (
+                                <button
+                                    key={i + 1}
+                                    onClick={() => setCopyPage(i + 1)}
+                                    style={{
+                                        width: '36px', height: '36px', borderRadius: '8px', border: 'none',
+                                        background: copyPage === i + 1 ? 'linear-gradient(135deg, #6366f1, #4f46e5)' : '#f1f5f9',
+                                        color: copyPage === i + 1 ? 'white' : '#64748b',
+                                        fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s'
+                                    }}
+                                >
+                                    {i + 1}
+                                </button>
+                            ))}
+                        </div>
+
+                        <button 
+                            disabled={copyPage === copyTotalPages}
+                            onClick={() => setCopyPage(prev => prev + 1)}
+                            style={{ 
+                                padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', 
+                                background: 'white', cursor: copyPage === copyTotalPages ? 'not-allowed' : 'pointer',
+                                opacity: copyPage === copyTotalPages ? 0.5 : 1, fontWeight: '600', color: '#64748b'
+                            }}
+                        >Sau</button>
+                    </div>
+                )}
             </div>
           )}
 
