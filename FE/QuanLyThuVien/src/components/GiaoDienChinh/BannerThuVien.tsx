@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './BannerThuVien.module.css';
 import { getUserName, getToken, getUserId } from '../../dichVu/modules/dichVuXacThuc';
+import { CheckBorrowingLimit } from '../../dichVu/modules/dichVuMuonSach';
 import { useNavigate } from 'react-router-dom';
 
 const LibraryHero: React.FC = () => {
@@ -8,6 +9,7 @@ const LibraryHero: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userStats, setUserStats] = useState({ total: 0, current: 0 });
 
   useEffect(() => {
     const token = getToken();
@@ -18,6 +20,15 @@ const LibraryHero: React.FC = () => {
       setIsLoggedIn(true);
       setUserName(name || 'Người dùng');
       setUserId(id);
+      
+      if (id) {
+        CheckBorrowingLimit(id).then(data => {
+            setUserStats({
+                total: data.totalBorrowed,
+                current: data.currentCount
+            });
+        }).catch(err => console.error("Error fetching user stats:", err));
+      }
     }
   }, []);
 
@@ -84,11 +95,11 @@ const LibraryHero: React.FC = () => {
 
               <div className={styles['user-stats-row']}>
                 <div className={styles['stat-box']}>
-                  <span className={styles['stat-number']}>{isLoggedIn ? '0' : '-'}</span>
+                  <span className={styles['stat-number']}>{isLoggedIn ? userStats.total : '-'}</span>
                   <span className={styles['stat-label']}>Tổng mượn</span>
                 </div>
                 <div className={styles['stat-box']}>
-                  <span className={`${styles['stat-number']} ${styles['highlight-yellow']}`}>{isLoggedIn ? '0' : '-'}</span>
+                  <span className={`${styles['stat-number']} ${styles['highlight-yellow']}`}>{isLoggedIn ? userStats.current : '-'}</span>
                   <span className={styles['stat-label']}>Đang mượn</span>
                 </div>
               </div>

@@ -359,12 +359,22 @@ namespace QuanLyThuVien.Repositories
                     }
                 }
  
+                // Tính tổng số sách đã mượn từ trước đến nay
+                var totalQuery = "SELECT COUNT(*) FROM ChiTietPhieuMuon ct JOIN PhieuMuon pm ON ct.PhieuMuonId = pm.Id WHERE pm.DocGiaId = @DocGiaId";
+                int totalBorrowed = 0;
+                using (var totalCommand = new SqlCommand(totalQuery, connection))
+                {
+                    totalCommand.Parameters.AddWithValue("@DocGiaId", docGiaId);
+                    totalBorrowed = (int)await totalCommand.ExecuteScalarAsync();
+                }
+ 
                 return new { 
                     CurrentCount = dangMuon, 
                     MaxLimit = soSachToiDa, 
                     CanBorrowMore = soSachToiDa - dangMuon,
                     HasOverdue = hasOverdue,
-                    CurrentBookIds = currentBookIds
+                    CurrentBookIds = currentBookIds,
+                    TotalBorrowed = totalBorrowed
                 };
             }
         }

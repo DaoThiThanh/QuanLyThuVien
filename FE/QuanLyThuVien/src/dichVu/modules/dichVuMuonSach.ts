@@ -67,7 +67,14 @@ export const TuChoiYeuCauMuon = async (id: string) => {
     return response.data;
 };
 export const CheckBorrowingLimit = async (userId: string) => {
-    const response = await CauHinhApi.get<{ currentCount: number, maxLimit: number, canBorrowMore: number, hasOverdue: boolean, currentBookIds: string[] }>(`/yeu-cau-muon/check-limit/${userId}`);
+    const response = await CauHinhApi.get<{ 
+        currentCount: number, 
+        maxLimit: number, 
+        canBorrowMore: number, 
+        hasOverdue: boolean, 
+        currentBookIds: string[],
+        totalBorrowed: number
+    }>(`/yeu-cau-muon/check-limit/${userId}`);
     return response.data;
 };
 
