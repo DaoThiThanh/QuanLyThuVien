@@ -23,12 +23,28 @@ export const getThongKeThuThu = async (): Promise<ThongKeThuThuDto> => {
   }
 };
 
+export interface RecentActivityDto {
+  user: string;
+  action: string;
+  time: string;
+  type: 'approve' | 'user' | 'warning' | 'system';
+}
+
 export interface ThongKeAdminDto {
   totalReaders: number;
   totalLibrarians: number;
   totalRevenue: number;
   activeLoans: number;
   systemStatus: string;
+  recentActivities: RecentActivityDto[];
+  borrowTrends: ChartDataDto[];
+  categoryDistribution: ChartDataDto[];
+  memberGrowth: ChartDataDto[];
+}
+
+export interface ChartDataDto {
+  name: string;
+  value: number;
 }
 
 export const getThongKeAdmin = async (): Promise<ThongKeAdminDto> => {
@@ -42,7 +58,11 @@ export const getThongKeAdmin = async (): Promise<ThongKeAdminDto> => {
       totalLibrarians: 0,
       totalRevenue: 0,
       activeLoans: 0,
-      systemStatus: "Lỗi kết nối"
+      systemStatus: "Lỗi kết nối",
+      recentActivities: [],
+      borrowTrends: [],
+      categoryDistribution: [],
+      memberGrowth: []
     };
   }
 };

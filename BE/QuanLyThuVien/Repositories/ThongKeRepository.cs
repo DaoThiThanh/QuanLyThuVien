@@ -130,6 +130,89 @@ namespace QuanLyThuVien.Repositories
                         }
                     }
                 }
+
+                // 6. Dữ liệu biểu đồ mượn sách (6 tháng gần nhất)
+                var queryBorrowTrends = @"
+                    SELECT TOP 6 FORMAT(NgayMuon, 'MM/yyyy') as MonthYear, COUNT(*) as Count, MAX(NgayMuon) as LastDate
+                    FROM PhieuMuon 
+                    GROUP BY FORMAT(NgayMuon, 'MM/yyyy')
+                    ORDER BY LastDate ASC";
+                using (var cmd = new SqlCommand(queryBorrowTrends, connection))
+                {
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            result.BorrowTrends.Add(new ChartDataDto { Name = reader.GetString(0), Value = reader.GetInt32(1) });
+                        }
+                    }
+                }
+
+                // 7. Dữ liệu phân bổ theo danh mục
+                var queryCategoryDist = @"
+                    SELECT dm.TenDanhMuc, COUNT(ds.Id) as Count
+                    FROM DanhMucSach dm
+                    LEFT JOIN DauSach ds ON dm.Id = ds.DanhMucId
+                    GROUP BY dm.TenDanhMuc";
+                using (var cmd = new SqlCommand(queryCategoryDist, connection))
+                {
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            result.CategoryDistribution.Add(new ChartDataDto { Name = reader.GetString(0), Value = reader.GetInt32(1) });
+                        }
+                    }
+                }
+
+                // 8. Tăng trưởng độc giả
+                var queryGrowth = @"
+                    SELECT TOP 6 FORMAT(NgayTao, 'MM/yyyy') as MonthYear, COUNT(*) as Count, MAX(NgayTao) as LastDate
+                    FROM NguoiDung
+                    WHERE VaiTro = 3
+                    GROUP BY FORMAT(NgayTao, 'MM/yyyy')
+                    ORDER BY LastDate ASC";
+                using (var cmd = new SqlCommand(queryGrowth, connection))
+                {
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            result.MemberGrowth.Add(new ChartDataDto { Name = reader.GetString(0), Value = reader.GetInt32(1) });
+                        }
+                    }
+                }
+
+                // Dữ liệu giả lập nếu DB trống
+                if (result.BorrowTrends.Count == 0)
+                {
+                    result.BorrowTrends.AddRange(new[] {
+                        new ChartDataDto { Name = "01/2026", Value = 45 },
+                        new ChartDataDto { Name = "02/2026", Value = 52 },
+                        new ChartDataDto { Name = "03/2026", Value = 38 },
+                        new ChartDataDto { Name = "04/2026", Value = 65 },
+                        new ChartDataDto { Name = "05/2026", Value = 48 }
+                    });
+                }
+                if (result.CategoryDistribution.Count == 0)
+                {
+                    result.CategoryDistribution.AddRange(new[] {
+                        new ChartDataDto { Name = "Văn học", Value = 120 },
+                        new ChartDataDto { Name = "Kỹ thuật", Value = 85 },
+                        new ChartDataDto { Name = "Kinh tế", Value = 45 },
+                        new ChartDataDto { Name = "Ngoại ngữ", Value = 30 }
+                    });
+                }
+                if (result.MemberGrowth.Count == 0)
+                {
+                    result.MemberGrowth.AddRange(new[] {
+                        new ChartDataDto { Name = "01/2026", Value = 10 },
+                        new ChartDataDto { Name = "02/2026", Value = 15 },
+                        new ChartDataDto { Name = "03/2026", Value = 8 },
+                        new ChartDataDto { Name = "04/2026", Value = 22 },
+                        new ChartDataDto { Name = "05/2026", Value = 12 }
+                    });
+                }
             }
 
             return result;

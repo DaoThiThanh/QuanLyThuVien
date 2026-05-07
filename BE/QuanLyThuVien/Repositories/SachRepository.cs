@@ -364,7 +364,7 @@ namespace QuanLyThuVien.Repositories
             using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
-                var query = "SELECT Id, TenTacGia FROM TacGia ORDER BY TenTacGia";
+                var query = "SELECT Id, TenTacGia, (SELECT COUNT(*) FROM DauSach WHERE TacGiaId = TacGia.Id) as SoLuongSach FROM TacGia ORDER BY TenTacGia";
 
                 using (var command = new SqlCommand(query, connection))
                 {
@@ -375,7 +375,8 @@ namespace QuanLyThuVien.Repositories
                             result.Add(new TacGiaDto
                             {
                                 Id = reader.GetGuid(0),
-                                TenTacGia = reader.GetString(1)
+                                TenTacGia = reader.GetString(1),
+                                SoLuongSach = reader.GetInt32(2)
                             });
                         }
                     }
@@ -412,7 +413,7 @@ namespace QuanLyThuVien.Repositories
                 result.TotalPages = (int)Math.Ceiling(result.TotalItems / (double)pageSize);
 
                 var query = $@"
-                    SELECT Id, TenTacGia 
+                    SELECT Id, TenTacGia, (SELECT COUNT(*) FROM DauSach WHERE TacGiaId = TacGia.Id) as SoLuongSach
                     FROM TacGia
                     {whereClause}
                     ORDER BY TenTacGia
@@ -432,7 +433,8 @@ namespace QuanLyThuVien.Repositories
                             result.Items.Add(new TacGiaDto
                             {
                                 Id = reader.GetGuid(0),
-                                TenTacGia = reader.GetString(1)
+                                TenTacGia = reader.GetString(1),
+                                SoLuongSach = reader.GetInt32(2)
                             });
                         }
                     }

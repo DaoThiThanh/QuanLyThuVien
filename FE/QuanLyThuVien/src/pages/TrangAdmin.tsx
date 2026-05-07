@@ -1,24 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './TrangAdmin.module.css';
-import { getAllUsers, type UserItem } from '../dichVu/modules/dichVuNguoiDung';
+import { getAllUsers, updateUserStatus, type UserItem } from '../dichVu/modules/dichVuNguoiDung';
 import { getUserName } from '../dichVu/modules/dichVuXacThuc';
 import { getThongKeAdmin, type ThongKeAdminDto } from '../dichVu/modules/dichVuThongKe';
-import { GetTacGias, GetNhaXuatBans, GetCategories, DeleteCategory, DeleteTacGia, CreateCategory, CreateTacGia, UpdateCategory, UpdateTacGia } from '../dichVu/modules/dichVuSach';
-import type { TacGiaItem, NhaXuatBanItem, CategoryItem } from '../kieuDuLieu/sach';
-import MetadataModal from '../components/common/MetadataModal';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 
 const AdminPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [stats, setStats] = useState<ThongKeAdminDto | null>(null);
   const [loading, setLoading] = useState(true);
-  const [users, setUsers] = useState<UserItem[]>([]);
-  const [tacGias, setTacGias] = useState<TacGiaItem[]>([]);
-  const [nhaXuatBans, setNhaXuatBans] = useState<NhaXuatBanItem[]>([]);
-  const [danhMucs, setDanhMucs] = useState<CategoryItem[]>([]);
+  
+  // States cho Người dùng (Độc giả)
+  const [accounts, setAccounts] = useState<UserItem[]>([]);
+  const [readerPage, setReaderPage] = useState(1);
+  const [readerTotalPages, setReaderTotalPages] = useState(1);
+  const [readerSearchTerm, setReaderSearchTerm] = useState("");
+  const [selectedRole, setSelectedRole] = useState<number | undefined>(undefined);
 
   // State cho Modal mới
   const [isMetadataModalOpen, setIsMetadataModalOpen] = useState(false);
+  const [showCharts, setShowCharts] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [metadataModalConfig, setMetadataModalConfig] = useState({
     title: '',
@@ -28,152 +30,75 @@ const AdminPage: React.FC = () => {
     type: 'category' as 'category' | 'author'
   });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const [statsData, usersData, tacGiasData, nxbsData, dmData] = await Promise.all([
-          getThongKeAdmin(),
-          getAllUsers(),
-          GetTacGias(),
-          GetNhaXuatBans(),
-          GetCategories()
-        ]);
-        setStats(statsData);
-        setUsers(usersData);
-        
-        // Xử lý dữ liệu có thể bọc trong ApiResponse
-        setTacGias(Array.isArray(tacGiasData) ? tacGiasData : (tacGiasData as any)?.data || []);
-        setNhaXuatBans(Array.isArray(nxbsData) ? nxbsData : (nxbsData as any)?.data || []);
-        setDanhMucs(Array.isArray(dmData) ? dmData : (dmData as any)?.data || []);
-      } catch (error) {
-        console.error("Lỗi khi tải dữ liệu admin:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchInitialData = async () => {
+    setLoading(true);
+    try {
+      const statsData = await getThongKeAdmin();
+      setStats(statsData);
+      
+      // Load accounts
+      await fetchAccounts();
+    } catch (error) {
+      console.error("Lỗi khi tải dữ liệu khởi tạo admin:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchData();
+  const fetchAccounts = async () => {
+      const data = await getAllUsers(selectedRole, readerPage, 10, readerSearchTerm);
+      if (data) {
+          setAccounts(data.items || []);
+          setReaderTotalPages(data.totalPages || 1);
+      }
+  };
+
+  const fetchData = async () => {
+    await fetchInitialData();
+  };
+
+  useEffect(() => {
+    fetchInitialData();
   }, []);
 
-  const handleDeleteCategory = async (id: string) => {
-    if (!window.confirm('Bạn có chắc chắn muốn xóa danh mục này?')) return;
-    try {
-      await DeleteCategory(id);
-      const dmData = await GetCategories();
-      setDanhMucs(Array.isArray(dmData) ? dmData : (dmData as any)?.data || []);
-      alert('Xóa thành công!');
-    } catch (error) {
-      alert('Lỗi khi xóa danh mục');
+  // Effect to handle chart rendering delay
+  useEffect(() => {
+    if (activeTab === 'analytics') {
+      const timer = setTimeout(() => setShowCharts(true), 200);
+      return () => { clearTimeout(timer); setShowCharts(false); };
     }
-  };
+  }, [activeTab]);
 
-  const handleDeleteAuthor = async (id: string) => {
-    if (!window.confirm('Bạn có chắc chắn muốn xóa tác giả này?')) return;
-    try {
-      await DeleteTacGia(id);
-      const tacGiasData = await GetTacGias();
-      setTacGias(Array.isArray(tacGiasData) ? tacGiasData : (tacGiasData as any)?.data || []);
-      alert('Xóa thành công!');
-    } catch (error) {
-      alert('Lỗi khi xóa tác giả');
-    }
-  };
+  // Effects for pagination and search
+  useEffect(() => { fetchAccounts(); }, [readerPage, readerSearchTerm, selectedRole]);
 
-  const handleCreateCategory = async (name: string, icon?: string) => {
+  const handleToggleUserStatus = async (userId: string, currentStatus: number) => {
+    const newStatus = currentStatus === 1 ? 2 : 1;
+    const confirmMsg = newStatus === 2 ? 'Bạn có chắc chắn muốn KHÓA tài khoản này?' : 'Bạn có chắc chắn muốn MỞ KHÓA tài khoản này?';
+    
+    if (!window.confirm(confirmMsg)) return;
+
     try {
-      if (editingId) {
-        await UpdateCategory(editingId, name, icon);
+      const success = await updateUserStatus(userId, newStatus);
+      if (success) {
+        alert('Cập nhật trạng thái thành công!');
+        fetchAccounts();
       } else {
-        await CreateCategory(name, icon);
+        alert('Cập nhật thất bại.');
       }
-      const dmData = await GetCategories();
-      setDanhMucs(Array.isArray(dmData) ? dmData : (dmData as any)?.data || []);
-      setEditingId(null);
     } catch (error) {
-      alert('Lỗi khi lưu danh mục');
+      alert('Lỗi khi cập nhật trạng thái');
     }
   };
 
-  const handleCreateAuthor = async (name: string) => {
-    try {
-      if (editingId) {
-        await UpdateTacGia(editingId, name);
-      } else {
-        await CreateTacGia(name);
-      }
-      const tacGiasData = await GetTacGias();
-      setTacGias(Array.isArray(tacGiasData) ? tacGiasData : (tacGiasData as any)?.data || []);
-      setEditingId(null);
-    } catch (error) {
-      alert('Lỗi khi lưu tác giả');
-    }
-  };
 
-  const openAddCategory = () => {
-    setEditingId(null);
-    setMetadataModalConfig({
-      title: 'Thêm Danh mục Mới',
-      placeholder: 'Nhập tên danh mục (vd: Công nghệ thông tin)',
-      initialValue: '',
-      initialIcon: '📁',
-      type: 'category'
-    });
-    setIsMetadataModalOpen(true);
-  };
-
-  const openEditCategory = (dm: CategoryItem) => {
-    setEditingId(dm.id);
-    setMetadataModalConfig({
-      title: 'Chỉnh sửa Danh mục',
-      placeholder: 'Nhập tên danh mục...',
-      initialValue: dm.tenDanhMuc,
-      initialIcon: dm.icon || '📁',
-      type: 'category'
-    });
-    setIsMetadataModalOpen(true);
-  };
-
-  const openAddAuthor = () => {
-    setEditingId(null);
-    setMetadataModalConfig({
-      title: 'Thêm Tác giả Mới',
-      placeholder: 'Nhập tên tác giả (vd: Nguyễn Nhật Ánh)',
-      initialValue: '',
-      initialIcon: '',
-      type: 'author'
-    });
-    setIsMetadataModalOpen(true);
-  };
-
-  const openEditAuthor = (tg: TacGiaItem) => {
-    setEditingId(tg.id);
-    setMetadataModalConfig({
-      title: 'Chỉnh sửa Tác giả',
-      placeholder: 'Nhập tên tác giả...',
-      initialValue: tg.tenTacGia,
-      initialIcon: '',
-      type: 'author'
-    });
-    setIsMetadataModalOpen(true);
-  };
-
-  const recentActivities = [
-    { id: 1, user: 'Trần Quản trị', action: 'Duyệt yêu cầu mượn sách', time: '10 phút trước', type: 'approve' },
-    { id: 2, user: 'Nguyễn Văn A', action: 'Đăng ký tài khoản mới', time: '25 phút trước', type: 'user' },
-    { id: 3, user: 'Lê Thị B', action: 'Báo mất sách "Clean Code"', time: '1 giờ trước', type: 'warning' },
-    { id: 4, user: 'Hệ thống', action: 'Tự động sao lưu dữ liệu', time: '3 giờ trước', type: 'system' },
-  ];
 
 
 
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg> },
-    { id: 'users', label: 'Quản lý Độc giả', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> },
-    { id: 'librarians', label: 'Quản lý Thủ thư', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> },
-    { id: 'categories', label: 'Quản lý Danh mục', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> },
-    { id: 'authors', label: 'Quản lý Tác giả', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> },
-    { id: 'settings', label: 'Quy định Hệ thống', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> },
+    { id: 'dashboard', label: 'Tổng quan & Hoạt động', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg> },
+    { id: 'analytics', label: 'Thống kê Chuyên sâu', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg> },
+    { id: 'accounts', label: 'Quản lý Tài khoản', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> },
   ];
 
   return (
@@ -211,8 +136,8 @@ const AdminPage: React.FC = () => {
           </h1>
           
           <div className={styles['admin-header-actions']}>
-            <button className={styles['icon-btn']}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+            <button className={styles['icon-btn']} onClick={fetchData} title="Làm mới dữ liệu">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
             </button>
             <div className={styles['admin-profile-btn']}>
               <div className={styles['admin-avatar']}>
@@ -294,8 +219,8 @@ const AdminPage: React.FC = () => {
                 {/* Employee Table */}
                 <div className={styles['admin-section']}>
                   <div className={styles['section-header']}>
-                    <h2 className={styles['section-title']}>Nhân viên trực tuyến</h2>
-                    <Link to="/admin/users" className={styles['view-all-link']}>Xem tất cả</Link>
+                    <h2 className={styles['section-title']}>Nhân viên hệ thống</h2>
+                    <button onClick={() => { setActiveTab('accounts'); setSelectedRole(2); }} className={styles['view-all-link']}>Xem tất cả</button>
                   </div>
                   <div className={styles['table-responsive']}>
                     <table className={styles['admin-table']}>
@@ -307,8 +232,8 @@ const AdminPage: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {users.filter(u => u.vaiTro === 1 || u.vaiTro === 2).length > 0 ? (
-                          users.filter(u => u.vaiTro === 1 || u.vaiTro === 2).map((user) => (
+                        {accounts.filter(u => u.vaiTro === 1 || u.vaiTro === 2).length > 0 ? (
+                          accounts.filter(u => u.vaiTro === 1 || u.vaiTro === 2).slice(0, 5).map((user) => (
                             <tr key={user.id}>
                               <td>
                                 <div className={styles['user-info']}>
@@ -327,14 +252,16 @@ const AdminPage: React.FC = () => {
                               </td>
                               <td>
                                 <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                                  <span className={`${styles['status-dot']} ${styles['active']}`}></span>
-                                  <span style={{fontSize: '13px', color: '#10b981', fontWeight: '500'}}>Online</span>
+                                  <span className={`${styles['status-dot']} ${user.trangThai === 1 ? styles['active'] : ''}`}></span>
+                                  <span style={{fontSize: '13px', color: user.trangThai === 1 ? '#10b981' : '#ef4444', fontWeight: '500'}}>
+                                    {user.trangThai === 1 ? 'Hoạt động' : 'Đã khóa'}
+                                  </span>
                                 </div>
                               </td>
                             </tr>
                           ))
                         ) : (
-                          <tr><td colSpan={3} style={{textAlign: 'center', padding: '20px', color: '#6b7280'}}>Chưa có nhân viên nào online</td></tr>
+                          <tr><td colSpan={3} style={{textAlign: 'center', padding: '20px', color: '#6b7280'}}>Chưa có dữ liệu nhân viên</td></tr>
                         )}
                       </tbody>
                     </table>
@@ -347,228 +274,237 @@ const AdminPage: React.FC = () => {
                     <h2 className={styles['section-title']}>Hoạt động gần đây</h2>
                   </div>
                   <div className={styles['activity-list']}>
-                    {recentActivities.map(activity => (
-                      <div key={activity.id} className={styles['activity-item']}>
-                        <div className={`${styles['activity-icon-box']} ${styles[activity.type]}`}>
-                          {activity.type === 'approve' && <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
-                          {activity.type === 'user' && <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>}
-                          {activity.type === 'warning' && <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>}
-                          {activity.type === 'system' && <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>}
+                    {stats?.recentActivities && stats.recentActivities.length > 0 ? (
+                      stats.recentActivities.map((activity, index) => (
+                        <div key={index} className={styles['activity-item']}>
+                          <div className={`${styles['activity-icon-box']} ${styles[activity.type]}`}>
+                            {activity.type === 'approve' && <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                            {activity.type === 'user' && <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>}
+                            {activity.type === 'warning' && <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>}
+                            {activity.type === 'system' && <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>}
+                          </div>
+                          <div className={styles['activity-info']}>
+                            <p className={styles['activity-text']}><strong>{activity.user}</strong> {activity.action}</p>
+                            <span className={styles['activity-time']}>{activity.time}</span>
+                          </div>
                         </div>
-                        <div className={styles['activity-info']}>
-                          <p className={styles['activity-text']}><strong>{activity.user}</strong> {activity.action}</p>
-                          <span className={styles['activity-time']}>{activity.time}</span>
-                        </div>
-                      </div>
-                    ))}
+                      ))
+                    ) : (
+                      <div style={{textAlign: 'center', padding: '20px', color: '#6b7280', fontSize: '14px'}}>Chưa có hoạt động nào</div>
+                    )}
                   </div>
                 </div>
               </div>
             </>
           )}
 
-          {activeTab === 'users' && (
-            <div className={styles['admin-section']}>
-              <div className={styles['section-header']}>
-                <h2 className={styles['section-title']}>Danh sách Độc giả</h2>
-                <button className={styles['section-action']}>+ Thêm Độc Giả</button>
-              </div>
-              <div className={styles['table-responsive']}>
-                <table className={styles['admin-table']}>
-                  <thead>
-                    <tr>
-                      <th>Độc Giả</th>
-                      <th>Email</th>
-                      <th>Số điện thoại</th>
-                      <th>Trạng Thái</th>
-                      <th>Thao Tác</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.filter(u => u.vaiTro === 3).length > 0 ? (
-                      users.filter(u => u.vaiTro === 3).map((user) => (
-                        <tr key={user.id}>
-                          <td>{user.hoTen}</td>
-                          <td>{user.email}</td>
-                          <td>{user.soDienThoai || 'N/A'}</td>
-                          <td>
-                            <span className={`${styles['status-badge']} ${user.trangThai === 1 ? styles['status-active'] : styles['status-inactive']}`}>
-                              {user.trangThai === 1 ? 'Hoạt động' : 'Đã khóa'}
-                            </span>
-                          </td>
-                          <td>
-                             <button className={`${styles['btn-icon']} ${styles['view']}`}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr><td colSpan={5} style={{textAlign: 'center', padding: '20px'}}>Chưa có độc giả nào</td></tr>
+          {activeTab === 'analytics' && (
+            <div key={activeTab} className={styles['admin-section']} style={{ background: 'transparent', boxShadow: 'none', padding: 0 }}>
+              <div className={styles['analytics-grid']} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
+                
+                {/* Borrow Trends Line Chart */}
+                <div className={styles['chart-card']} style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', minHeight: '400px', display: 'flex', flexDirection: 'column' }}>
+                  <h3 style={{ marginBottom: '20px', fontSize: '18px', fontWeight: '700' }}>Xu hướng Mượn sách</h3>
+                  <div style={{ flex: 1, minHeight: '300px', width: '100%' }}>
+                    {showCharts && (
+                      <ResponsiveContainer width="99%" height={300} debounce={100}>
+                        <LineChart data={stats?.borrowTrends || []} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
+                          <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
+                          <Tooltip contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}} />
+                          <Line type="monotone" dataKey="value" name="Số lượt mượn" stroke="#6366f1" strokeWidth={3} dot={{r: 4, fill: '#6366f1'}} activeDot={{r: 6}} />
+                        </LineChart>
+                      </ResponsiveContainer>
                     )}
-                  </tbody>
-                </table>
+                  </div>
+                </div>
+
+                {/* Member Growth Bar Chart */}
+                <div className={styles['chart-card']} style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', minHeight: '400px', display: 'flex', flexDirection: 'column' }}>
+                  <h3 style={{ marginBottom: '20px', fontSize: '18px', fontWeight: '700' }}>Tăng trưởng Độc giả</h3>
+                  <div style={{ flex: 1, minHeight: '300px', width: '100%' }}>
+                    {showCharts && (
+                      <ResponsiveContainer width="99%" height={300} debounce={100}>
+                        <BarChart data={stats?.memberGrowth || []} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
+                          <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
+                          <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}} />
+                          <Bar dataKey="value" name="Độc giả mới" fill="#10b981" radius={[6, 6, 0, 0]} barSize={40} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+                </div>
+
+                {/* Category Distribution Pie Chart */}
+                <div className={styles['chart-card']} style={{ background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', gridColumn: 'span 2', minHeight: '450px' }}>
+                  <h3 style={{ marginBottom: '20px', fontSize: '18px', fontWeight: '700' }}>Phân bổ Sách theo Danh mục</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', height: '350px' }}>
+                    <div style={{ height: '350px', width: '50%' }}>
+                      {showCharts && (
+                        <ResponsiveContainer width="99%" height="100%" debounce={100}>
+                          <PieChart>
+                            <Pie
+                              data={stats?.categoryDistribution || []}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={80}
+                              outerRadius={120}
+                              paddingAngle={5}
+                              dataKey="value"
+                              nameKey="name"
+                            >
+                              {(stats?.categoryDistribution || []).map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'][index % 6]} />
+                              ))}
+                            </Pie>
+                            <Tooltip contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      )}
+                    </div>
+                    <div style={{ width: '40%', maxHeight: '350px', overflowY: 'auto' }}>
+                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: '12px' }}>
+                          {(stats?.categoryDistribution || []).map((item, index) => (
+                            <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', background: '#f8fafc', borderRadius: '8px' }}>
+                               <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'][index % 6] }}></div>
+                               <span style={{ fontSize: '14px', color: '#64748b', flex: 1 }}>{item.name}</span>
+                               <span style={{ fontWeight: '700', color: '#1e293b' }}>{item.value}</span>
+                            </div>
+                          ))}
+                          {(!stats?.categoryDistribution || stats.categoryDistribution.length === 0) && (
+                            <p style={{ textAlign: 'center', color: '#94a3b8' }}>Chưa có dữ liệu danh mục</p>
+                          )}
+                       </div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
           )}
 
-          {activeTab === 'librarians' && (
+          {activeTab === 'accounts' && (
             <div className={styles['admin-section']}>
               <div className={styles['section-header']}>
-                <h2 className={styles['section-title']}>Danh sách Thủ thư</h2>
-                <button className={styles['section-action']}>+ Thêm Thủ Thư</button>
+                <h2 className={styles['section-title']}>Danh sách Tài khoản Hệ thống</h2>
+                <div className={styles['header-tools']}>
+                  <select 
+                    value={selectedRole || ''} 
+                    onChange={(e) => { setSelectedRole(e.target.value ? Number(e.target.value) : undefined); setReaderPage(1); }}
+                    className={styles['role-select']}
+                    style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', marginRight: '12px', background: 'white' }}
+                  >
+                    <option value="">Tất cả vai trò</option>
+                    <option value="1">Quản trị viên (Admin)</option>
+                    <option value="2">Thủ thư (Librarian)</option>
+                    <option value="3">Độc giả (Reader)</option>
+                  </select>
+                  <div className={styles['search-box']}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    <input 
+                      type="text" 
+                      placeholder="Tìm kiếm họ tên, email..." 
+                      value={readerSearchTerm}
+                      onChange={(e) => { setReaderSearchTerm(e.target.value); setReaderPage(1); }}
+                    />
+                  </div>
+                </div>
               </div>
               <div className={styles['table-responsive']}>
                 <table className={styles['admin-table']}>
                   <thead>
                     <tr>
                       <th>Họ Tên</th>
+                      <th>Vai trò</th>
                       <th>Email</th>
-                      <th>Số điện thoại</th>
+                      <th>Ngày tham gia</th>
                       <th>Trạng Thái</th>
                       <th>Thao Tác</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {users.filter(u => u.vaiTro === 2).length > 0 ? (
-                      users.filter(u => u.vaiTro === 2).map((user) => (
+                    {accounts.length > 0 ? (
+                      accounts.map((user) => (
                         <tr key={user.id}>
                           <td style={{fontWeight: '600'}}>{user.hoTen}</td>
+                          <td>
+                            <span className={styles['role-label']} style={{ 
+                                padding: '4px 8px', 
+                                borderRadius: '6px', 
+                                fontSize: '12px',
+                                background: user.vaiTro === 1 ? '#fee2e2' : user.vaiTro === 2 ? '#e0e7ff' : '#f3f4f6',
+                                color: user.vaiTro === 1 ? '#b91c1c' : user.vaiTro === 2 ? '#4338ca' : '#374151'
+                            }}>
+                                {user.vaiTro === 1 ? 'Admin' : user.vaiTro === 2 ? 'Thủ thư' : 'Độc giả'}
+                            </span>
+                          </td>
                           <td>{user.email}</td>
-                          <td>{user.soDienThoai || 'N/A'}</td>
+                          <td>{new Date(user.ngayTao).toLocaleDateString('vi-VN')}</td>
                           <td>
                             <span className={`${styles['status-badge']} ${user.trangThai === 1 ? styles['status-active'] : styles['status-inactive']}`}>
-                              {user.trangThai === 1 ? 'Đang làm việc' : 'Đã nghỉ'}
+                              {user.trangThai === 1 ? 'Đang hoạt động' : 'Bị khóa'}
                             </span>
                           </td>
                           <td>
                              <div className={styles['action-buttons']}>
-                               <button className={`${styles['btn-icon']} ${styles['view']}`} title="Chi tiết"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
-                               <button className={`${styles['btn-icon']} ${styles['reject']}`} title="Khóa tài khoản"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></button>
+                               <button 
+                                 onClick={() => handleToggleUserStatus(user.id, user.trangThai)}
+                                 className={`${styles['btn-icon']} ${user.trangThai === 1 ? styles['reject'] : styles['approve']}`} 
+                                 title={user.trangThai === 1 ? 'Khóa tài khoản' : 'Mở khóa'}
+                               >
+                                 {user.trangThai === 1 ? (
+                                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                 ) : (
+                                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V5a5 5 0 0 1 9.9-1"/></svg>
+                                 )}
+                               </button>
                              </div>
                           </td>
                         </tr>
                       ))
                     ) : (
-                      <tr><td colSpan={5} style={{textAlign: 'center', padding: '20px'}}>Chưa có thủ thư nào</td></tr>
+                      <tr><td colSpan={6} style={{textAlign: 'center', padding: '20px'}}>Không tìm thấy tài khoản nào</td></tr>
                     )}
                   </tbody>
                 </table>
               </div>
-            </div>
-          )}
-
-          {activeTab === 'categories' && (
-            <div className={styles['admin-section']}>
-                <div className={styles['section-header']}>
-                  <h2 className={styles['section-title']}>Danh mục Sách</h2>
-                  <button onClick={openAddCategory} className={styles['section-action']} style={{ background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)' }}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                    Thêm Danh Mục
+              
+              {/* Pagination */}
+              {readerTotalPages > 1 && (
+                <div className={styles['pagination']}>
+                  <button 
+                    disabled={readerPage === 1}
+                    onClick={() => setReaderPage(p => p - 1)}
+                    className={styles['page-btn']}
+                  >
+                    Trước
+                  </button>
+                  {[...Array(readerTotalPages)].map((_, i) => (
+                    <button
+                      key={i + 1}
+                      onClick={() => setReaderPage(i + 1)}
+                      className={`${styles['page-number']} ${readerPage === i + 1 ? styles['active'] : ''}`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                  <button 
+                    disabled={readerPage === readerTotalPages}
+                    onClick={() => setReaderPage(p => p + 1)}
+                    className={styles['page-btn']}
+                  >
+                    Sau
                   </button>
                 </div>
-                <div className={styles['metadata-grid']}>
-                  {danhMucs.map(dm => (
-                    <div key={dm.id} className={styles['category-card']}>
-                      <div className={styles['category-main']}>
-                        <div className={styles['category-icon-wrapper']}>
-                          {dm.icon || '📁'}
-                        </div>
-                        <div className={styles['category-info']}>
-                          <h3>{dm.tenDanhMuc}</h3>
-                          <p>Phân loại sách hệ thống</p>
-                        </div>
-                      </div>
-                      <div className={styles['category-actions']}>
-                        <button onClick={() => openEditCategory(dm)} className={`${styles['btn-icon']} ${styles['edit']}`} title="Chỉnh sửa">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                        </button>
-                        <button onClick={() => handleDeleteCategory(dm.id)} className={`${styles['btn-icon']} ${styles['delete']}`} title="Xóa danh mục">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-            </div>
-          )}
-
-          {activeTab === 'authors' && (
-            <div className={styles['admin-section']}>
-                <div className={styles['section-header']}>
-                  <h2 className={styles['section-title']}>Tác giả</h2>
-                  <button onClick={openAddAuthor} className={styles['section-action']} style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}>
-                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                     Thêm Tác Giả
-                  </button>
-                </div>
-                <div className={styles['author-list']}>
-                  {tacGias.map(tg => (
-                    <div key={tg.id} className={styles['author-item']}>
-                      <div className={styles['author-main']}>
-                        <div className={styles['author-avatar']}>
-                          {tg.tenTacGia.charAt(0)}
-                        </div>
-                        <div className={styles['author-info']}>
-                          <h3>{tg.tenTacGia}</h3>
-                          <p>Tác giả cộng tác</p>
-                        </div>
-                      </div>
-                      <div className={styles['action-buttons']}>
-                        <button onClick={() => openEditAuthor(tg)} className={`${styles['btn-icon']} ${styles['edit']}`} title="Chỉnh sửa">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                        </button>
-                        <button onClick={() => handleDeleteAuthor(tg.id)} className={`${styles['btn-icon']} ${styles['delete']}`} title="Xóa tác giả">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-            </div>
-          )}
-
-          {activeTab === 'settings' && (
-            <div className={styles['admin-section']} style={{ maxWidth: '800px' }}>
-              <div className={styles['section-header']}>
-                <h2 className={styles['section-title']}>Cấu hình Quy định Hệ thống</h2>
-                <button className={styles['section-action']}>Lưu thay đổi</button>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px', padding: '20px' }}>
-                <div className={styles['form-group']}>
-                   <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Số sách mượn tối đa / Độc giả</label>
-                   <input type="number" defaultValue={5} className={styles['form-control']} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
-                </div>
-                <div className={styles['form-group']}>
-                   <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Số ngày mượn tối đa</label>
-                   <input type="number" defaultValue={14} className={styles['form-control']} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
-                </div>
-                <div className={styles['form-group']}>
-                   <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Phí phạt trễ hạn (₫/ngày)</label>
-                   <input type="number" defaultValue={5000} className={styles['form-control']} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
-                </div>
-                <div className={styles['form-group']}>
-                   <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Thời gian chờ nhận sách (giờ)</label>
-                   <input type="number" defaultValue={48} className={styles['form-control']} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
-                </div>
-              </div>
-              <div style={{ padding: '20px', background: '#fffbeb', borderRadius: '8px', margin: '20px', borderLeft: '4px solid #f59e0b' }}>
-                <p style={{ margin: 0, fontSize: '14px', color: '#92400e' }}>
-                   <strong>Lưu ý quan trọng:</strong> Các thay đổi về tham số hệ thống sẽ ảnh hưởng đến toàn bộ các nghiệp vụ tính toán tiền phạt và giới hạn mượn của độc giả.
-                </p>
-              </div>
+              )}
             </div>
           )}
         </div>
       </main>
 
-      <MetadataModal
-        isOpen={isMetadataModalOpen}
-        onClose={() => setIsMetadataModalOpen(false)}
-        onSave={metadataModalConfig.type === 'category' ? handleCreateCategory : handleCreateAuthor}
-        title={metadataModalConfig.title}
-        placeholder={metadataModalConfig.placeholder}
-        initialValue={metadataModalConfig.initialValue}
-        showIconField={metadataModalConfig.type === 'category'}
-      />
     </div>
   );
 };

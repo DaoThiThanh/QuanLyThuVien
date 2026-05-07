@@ -7,5 +7,6 @@ namespace QuanLyThuVien.Models.DTOs
         public Guid Id { get; set; }
         public string TenDanhMuc { get; set; } = string.Empty;
         public string icon { get; set; } = string.Empty;
+        public int SoLuongSach { get; set; }
     }
 }

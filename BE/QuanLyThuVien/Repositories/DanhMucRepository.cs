@@ -30,7 +30,7 @@ namespace QuanLyThuVien.Repositories
             {
                 await connection.OpenAsync();
 
-                var query = "SELECT Id, TenDanhMuc, ICON FROM DanhMucSach ORDER BY TenDanhMuc";
+                var query = "SELECT Id, TenDanhMuc, ICON, (SELECT COUNT(*) FROM DauSach WHERE DanhMucId = DanhMucSach.Id) as SoLuongSach FROM DanhMucSach ORDER BY TenDanhMuc";
 
                 using (var command = new SqlCommand(query, connection))
                 {
@@ -42,7 +42,8 @@ namespace QuanLyThuVien.Repositories
                             {
                                 Id = reader.GetGuid(reader.GetOrdinal("Id")),
                                 TenDanhMuc = reader.GetString(reader.GetOrdinal("TenDanhMuc")),
-                                icon = reader.IsDBNull(reader.GetOrdinal("ICON")) ? string.Empty : reader.GetString(reader.GetOrdinal("ICON"))
+                                icon = reader.IsDBNull(reader.GetOrdinal("ICON")) ? string.Empty : reader.GetString(reader.GetOrdinal("ICON")),
+                                SoLuongSach = reader.GetInt32(reader.GetOrdinal("SoLuongSach"))
                             });
                         }
                     }
@@ -80,7 +81,7 @@ namespace QuanLyThuVien.Repositories
                 result.TotalPages = (int)Math.Ceiling(result.TotalItems / (double)pageSize);
 
                 var query = $@"
-                    SELECT Id, TenDanhMuc, ICON 
+                    SELECT Id, TenDanhMuc, ICON, (SELECT COUNT(*) FROM DauSach WHERE DanhMucId = DanhMucSach.Id) as SoLuongSach
                     FROM DanhMucSach
                     {whereClause}
                     ORDER BY TenDanhMuc
@@ -101,7 +102,8 @@ namespace QuanLyThuVien.Repositories
                             {
                                 Id = reader.GetGuid(reader.GetOrdinal("Id")),
                                 TenDanhMuc = reader.GetString(reader.GetOrdinal("TenDanhMuc")),
-                                icon = reader.IsDBNull(reader.GetOrdinal("ICON")) ? string.Empty : reader.GetString(reader.GetOrdinal("ICON"))
+                                icon = reader.IsDBNull(reader.GetOrdinal("ICON")) ? string.Empty : reader.GetString(reader.GetOrdinal("ICON")),
+                                SoLuongSach = reader.GetInt32(reader.GetOrdinal("SoLuongSach"))
                             });
                         }
                     }

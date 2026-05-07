@@ -21,6 +21,7 @@ namespace QuanLyThuVien.Models.DTOs
     {
         public Guid Id { get; set; }
         public string TenTacGia { get; set; } = string.Empty;
+        public int SoLuongSach { get; set; }
     }
 
     public class NhaXuatBanDto

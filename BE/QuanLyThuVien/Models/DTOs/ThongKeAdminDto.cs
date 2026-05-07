@@ -10,6 +10,17 @@ namespace QuanLyThuVien.Models.DTOs
         public int ActiveLoans { get; set; }
         public string SystemStatus { get; set; } = "Hoạt động";
         public List<RecentActivityDto> RecentActivities { get; set; } = new List<RecentActivityDto>();
+        
+        // Chart Data
+        public List<ChartDataDto> BorrowTrends { get; set; } = new List<ChartDataDto>();
+        public List<ChartDataDto> CategoryDistribution { get; set; } = new List<ChartDataDto>();
+        public List<ChartDataDto> MemberGrowth { get; set; } = new List<ChartDataDto>();
+    }
+
+    public class ChartDataDto
+    {
+        public string Name { get; set; }
+        public double Value { get; set; }
     }
 
     public class RecentActivityDto

@@ -6,9 +6,10 @@ export interface BookItem {
     soLuongMuon: number;
 }
 export interface CategoryItem {
-    id: string
-    tenDanhMuc: string
-    icon: string
+    id: string;
+    tenDanhMuc: string;
+    icon?: string;
+    soLuongSach: number;
 }
 export interface NewBookItem {
     id: string;
@@ -43,6 +44,7 @@ export interface PaginatedResponse<T> {
 export interface TacGiaItem {
     id: string;
     tenTacGia: string;
+    soLuongSach: number;
 }
 
 export interface NhaXuatBanItem {

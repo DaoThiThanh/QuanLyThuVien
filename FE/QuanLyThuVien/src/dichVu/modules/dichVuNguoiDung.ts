@@ -43,3 +43,13 @@ export const updateUserRole = async (userId: string, newRole: number): Promise<b
     return false;
   }
 };
+// Cập nhật trạng thái người dùng (Khóa/Mở khóa)
+export const updateUserStatus = async (userId: string, newStatus: number): Promise<boolean> => {
+  try {
+    const response = await CauHinhApi.put<ApiResponse<any>>(`/user/${userId}/status`, { newStatus });
+    return response.data.success;
+  } catch (error) {
+    console.error("Lỗi cập nhật trạng thái người dùng:", error);
+    return false;
+  }
+};
