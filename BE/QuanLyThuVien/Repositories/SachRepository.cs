@@ -16,6 +16,7 @@ namespace QuanLyThuVien.Repositories
         Task<bool> UpdateSachAsync(Guid id, UpsertSachDto dto);
         Task<bool> DeleteSachAsync(Guid id);
         Task<IEnumerable<TacGiaDto>> GetTacGiasAsync();
+        Task<PagedResult<TacGiaDto>> GetPagedTacGiasAsync(int page, int pageSize, string searchTerm = "");
         Task<IEnumerable<NhaXuatBanDto>> GetNhaXuatBansAsync();
         Task<object> GetCuonSachByBarcodeAsync(string barcode);
         Task<IEnumerable<object>> GetAvailableCuonSachsByDauSachAsync(Guid dauSachId);
@@ -380,6 +381,64 @@ namespace QuanLyThuVien.Repositories
                     }
                 }
             }
+            return result;
+        }
+
+        public async Task<PagedResult<TacGiaDto>> GetPagedTacGiasAsync(int page, int pageSize, string searchTerm = "")
+        {
+            var result = new PagedResult<TacGiaDto>
+            {
+                CurrentPage = page,
+                PageSize = pageSize,
+                Items = new List<TacGiaDto>()
+            };
+
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+
+                var whereClause = "WHERE @SearchTerm = '' OR TenTacGia LIKE @SearchPattern ";
+
+                var countQuery = $"SELECT COUNT(*) FROM TacGia {whereClause}";
+                using (var countCommand = new SqlCommand(countQuery, connection))
+                {
+                    countCommand.Parameters.AddWithValue("@SearchTerm", searchTerm ?? "");
+                    countCommand.Parameters.AddWithValue("@SearchPattern", $"%{(searchTerm ?? "")}%");
+                    result.TotalItems = Convert.ToInt32(await countCommand.ExecuteScalarAsync());
+                }
+
+                result.TotalPages = (int)Math.Ceiling(result.TotalItems / (double)pageSize);
+
+                var query = $@"
+                    SELECT Id, TenTacGia 
+                    FROM TacGia
+                    {whereClause}
+                    ORDER BY TenTacGia
+                    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Offset", (page - 1) * pageSize);
+                    command.Parameters.AddWithValue("@PageSize", pageSize);
+                    command.Parameters.AddWithValue("@SearchTerm", searchTerm ?? "");
+                    command.Parameters.AddWithValue("@SearchPattern", $"%{(searchTerm ?? "")}%");
+
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            result.Items.Add(new TacGiaDto
+                            {
+                                Id = reader.GetGuid(0),
+                                TenTacGia = reader.GetString(1)
+                            });
+                        }
+                    }
+                }
+            }
+
             return result;
         }
 

@@ -28,6 +28,20 @@ namespace QuanLyThuVien.Controllers
                 return StatusCode(500, $"Lỗi server: {ex.Message}");
             }
         }
+
+        [HttpGet("paged")]
+        public async Task<IActionResult> GetPaged([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string searchTerm = "")
+        {
+            try
+            {
+                var result = await _danhMucRepository.GetPagedDanhMucAsync(page, pageSize, searchTerm);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi server: {ex.Message}");
+            }
+        }
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateDanhMucDto dto)
         {

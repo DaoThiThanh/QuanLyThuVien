@@ -19,6 +19,10 @@ export async function GetCategories(): Promise<CategoryItem[] | ApiResponse<Cate
     const response = await CauHinhApi.get<CategoryItem[] | ApiResponse<CategoryItem[]>>('/danh-muc');
     return response.data;
 }
+export async function GetPagedCategories(page: number = 1, pageSize: number = 10, searchTerm: string = ""): Promise<any> {
+    const response = await CauHinhApi.get(`/danh-muc/paged?page=${page}&pageSize=${pageSize}&searchTerm=${searchTerm}`);
+    return response.data;
+}
 export async function DeleteCategory(id: string): Promise<any> {
     const response = await CauHinhApi.delete(`/danh-muc/${id}`);
     return response.data;
@@ -61,6 +65,10 @@ export async function DeleteBook(id: string): Promise<any> {
 
 export async function GetTacGias(): Promise<TacGiaItem[]> {
     const response = await CauHinhApi.get<TacGiaItem[]>('/sach/tac-gia');
+    return response.data;
+}
+export async function GetPagedTacGias(page: number = 1, pageSize: number = 10, searchTerm: string = ""): Promise<any> {
+    const response = await CauHinhApi.get(`/sach/tac-gia/paged?page=${page}&pageSize=${pageSize}&searchTerm=${searchTerm}`);
     return response.data;
 }
 export async function DeleteTacGia(id: string): Promise<any> {

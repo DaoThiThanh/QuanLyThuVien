@@ -7,6 +7,7 @@ namespace QuanLyThuVien.Repositories
     public interface IDanhMucRepository
     {
         Task<IEnumerable<DanhMucSach>> GetAllDanhMucAsync();
+        Task<PagedResult<DanhMucSach>> GetPagedDanhMucAsync(int page, int pageSize, string searchTerm = "");
         Task<Guid> CreateDanhMucAsync(string tenDanhMuc, string? icon);
         Task<bool> UpdateDanhMucAsync(Guid id, string tenDanhMuc, string? icon);
         Task<bool> DeleteDanhMucAsync(Guid id);
@@ -29,7 +30,7 @@ namespace QuanLyThuVien.Repositories
             {
                 await connection.OpenAsync();
 
-                var query = "SELECT Id, TenDanhMuc, ICON FROM DanhMucSach";
+                var query = "SELECT Id, TenDanhMuc, ICON FROM DanhMucSach ORDER BY TenDanhMuc";
 
                 using (var command = new SqlCommand(query, connection))
                 {
@@ -38,6 +39,65 @@ namespace QuanLyThuVien.Repositories
                         while (await reader.ReadAsync())
                         {
                             result.Add(new DanhMucSach
+                            {
+                                Id = reader.GetGuid(reader.GetOrdinal("Id")),
+                                TenDanhMuc = reader.GetString(reader.GetOrdinal("TenDanhMuc")),
+                                icon = reader.IsDBNull(reader.GetOrdinal("ICON")) ? string.Empty : reader.GetString(reader.GetOrdinal("ICON"))
+                            });
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        public async Task<PagedResult<DanhMucSach>> GetPagedDanhMucAsync(int page, int pageSize, string searchTerm = "")
+        {
+            var result = new PagedResult<DanhMucSach>
+            {
+                CurrentPage = page,
+                PageSize = pageSize,
+                Items = new List<DanhMucSach>()
+            };
+
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+
+                var whereClause = "WHERE @SearchTerm = '' OR TenDanhMuc LIKE @SearchPattern ";
+
+                var countQuery = $"SELECT COUNT(*) FROM DanhMucSach {whereClause}";
+                using (var countCommand = new SqlCommand(countQuery, connection))
+                {
+                    countCommand.Parameters.AddWithValue("@SearchTerm", searchTerm ?? "");
+                    countCommand.Parameters.AddWithValue("@SearchPattern", $"%{(searchTerm ?? "")}%");
+                    result.TotalItems = Convert.ToInt32(await countCommand.ExecuteScalarAsync());
+                }
+
+                result.TotalPages = (int)Math.Ceiling(result.TotalItems / (double)pageSize);
+
+                var query = $@"
+                    SELECT Id, TenDanhMuc, ICON 
+                    FROM DanhMucSach
+                    {whereClause}
+                    ORDER BY TenDanhMuc
+                    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Offset", (page - 1) * pageSize);
+                    command.Parameters.AddWithValue("@PageSize", pageSize);
+                    command.Parameters.AddWithValue("@SearchTerm", searchTerm ?? "");
+                    command.Parameters.AddWithValue("@SearchPattern", $"%{(searchTerm ?? "")}%");
+
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            result.Items.Add(new DanhMucSach
                             {
                                 Id = reader.GetGuid(reader.GetOrdinal("Id")),
                                 TenDanhMuc = reader.GetString(reader.GetOrdinal("TenDanhMuc")),

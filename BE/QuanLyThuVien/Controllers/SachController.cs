@@ -144,6 +144,20 @@ namespace QuanLyThuVien.Controllers
             }
         }
 
+        [HttpGet("tac-gia/paged")]
+        public async Task<IActionResult> GetPagedTacGias([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string searchTerm = "")
+        {
+            try
+            {
+                var result = await _sachRepository.GetPagedTacGiasAsync(page, pageSize, searchTerm);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi server: {ex.Message}");
+            }
+        }
+
         [HttpGet("nha-xuat-ban")]
         public async Task<IActionResult> GetNhaXuatBans()
         {

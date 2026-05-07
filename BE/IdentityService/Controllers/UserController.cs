@@ -16,14 +16,14 @@ namespace IdentityService.Controllers
             _userRepo = userRepository;
         }
 
-        // GET: api/User?role=1
+        // GET: api/User?role=3&page=1&pageSize=6&searchTerm=...
         [HttpGet]
-        public IActionResult GetAllUsers([FromQuery] int? role)
+        public async Task<IActionResult> GetAllUsers([FromQuery] int? role, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string searchTerm = "")
         {
             try
             {
-                var users = _userRepo.GetAllUsers(role);
-                return Ok(ResultRepository<object>.Ok(users, "Lấy danh sách người dùng thành công"));
+                var result = await _userRepo.GetPagedUsersAsync(page, pageSize, role, searchTerm);
+                return Ok(ResultRepository<object>.Ok(result, "Lấy danh sách người dùng thành công"));
             }
             catch (Exception ex)
             {

@@ -16,18 +16,20 @@ export interface ApiResponse<T> {
   data: T;
 }
 
-// Lấy danh sách người dùng (tuỳ chọn lọc theo vai trò: 1=Admin, 2=Thủ thư, 3=Độc giả)
-export const getAllUsers = async (role?: number): Promise<UserItem[]> => {
+// Lấy danh sách người dùng (hỗ trợ phân trang, tìm kiếm và lọc theo vai trò)
+export const getAllUsers = async (role?: number, page: number = 1, pageSize: number = 10, searchTerm: string = ""): Promise<any> => {
   try {
-    const url = role ? `/user?role=${role}` : `/user`;
-    const response = await CauHinhApi.get<ApiResponse<UserItem[]>>(url);
+    let url = `/user?page=${page}&pageSize=${pageSize}&searchTerm=${searchTerm}`;
+    if (role) url += `&role=${role}`;
+    
+    const response = await CauHinhApi.get<ApiResponse<any>>(url);
     if (response.data && response.data.success) {
         return response.data.data;
     }
-    return [];
+    return null;
   } catch (error) {
     console.error("Lỗi lấy danh sách người dùng:", error);
-    return [];
+    return null;
   }
 };
 

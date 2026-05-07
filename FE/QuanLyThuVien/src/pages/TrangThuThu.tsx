@@ -4,7 +4,7 @@ import styles from './TrangAdmin.module.css'; // Reusing the same rich CSS as Ad
 import { getThongKeThuThu, type ThongKeThuThuDto } from '../dichVu/modules/dichVuThongKe';
 import { getUserName } from '../dichVu/modules/dichVuXacThuc';
 import { GetAllYeuCauMuon, GetDanhSachPhieuMuon, GetPhieuMuonQuaHan, GetPhieuMuonById, type YeuCauMuonDto } from '../dichVu/modules/dichVuMuonSach';
-import { GetDanhSachSach, CreateBook, UpdateBook, DeleteBook, GetTacGias, GetNhaXuatBans, GetCategories, DeleteCategory, DeleteTacGia, CreateCategory, CreateTacGia, UpdateCategory, UpdateTacGia, GetPagedCuonSachs, UpdateCuonSach, DeleteCuonSach, CreateCuonSach } from '../dichVu/modules/dichVuSach';
+import { GetDanhSachSach, CreateBook, UpdateBook, DeleteBook, GetTacGias, GetNhaXuatBans, GetCategories, DeleteCategory, DeleteTacGia, CreateCategory, CreateTacGia, UpdateCategory, UpdateTacGia, GetPagedCuonSachs, UpdateCuonSach, DeleteCuonSach, CreateCuonSach, GetPagedCategories, GetPagedTacGias } from '../dichVu/modules/dichVuSach';
 import type { TacGiaItem, NhaXuatBanItem, CategoryItem, UpsertSachDto } from '../kieuDuLieu/sach';
 import MetadataModal from '../components/common/MetadataModal';
 import DuyetYeuCauModal from '../components/CuaSoXacNhan/DuyetYeuCauModal';
@@ -45,7 +45,6 @@ const LibrarianPage: React.FC = () => {
   const [loanStatusFilter, setLoanStatusFilter] = useState<'all' | 'active' | 'returned'>('active');
   const [selectedPhieuMuon, setSelectedPhieuMuon] = useState<any>(null);
   const [showCreateLoanModal, setShowCreateLoanModal] = useState(false);
-  const [readerSearchTerm, setReaderSearchTerm] = useState('');
   
   // Phân trang & Tìm kiếm cho Kho sách
   const [bookPage, setBookPage] = useState(1);
@@ -67,6 +66,24 @@ const LibrarianPage: React.FC = () => {
   const [requestPage, setRequestPage] = useState(1);
   const [requestTotalPages, setRequestTotalPages] = useState(1);
   const [requestPageSize] = useState(6);
+
+  // Phân trang & Tìm kiếm cho Độc giả
+  const [readerPage, setReaderPage] = useState(1);
+  const [readerTotalPages, setReaderTotalPages] = useState(1);
+  const [readerSearchTerm, setReaderSearchTerm] = useState("");
+  const [readerPageSize] = useState(6);
+
+  // Phân trang & Tìm kiếm cho Danh mục
+  const [categoryPage, setCategoryPage] = useState(1);
+  const [categoryTotalPages, setCategoryTotalPages] = useState(1);
+  const [categorySearchTerm, setCategorySearchTerm] = useState("");
+  const [categoryPageSize] = useState(6);
+
+  // Phân trang & Tìm kiếm cho Tác giả
+  const [authorPage, setAuthorPage] = useState(1);
+  const [authorTotalPages, setAuthorTotalPages] = useState(1);
+  const [authorSearchTerm, setAuthorSearchTerm] = useState("");
+  const [authorPageSize] = useState(6);
 
   // State cho Modal Metadata
   const [isMetadataModalOpen, setIsMetadataModalOpen] = useState(false);
@@ -91,20 +108,15 @@ const LibrarianPage: React.FC = () => {
   const [editingCopy, setEditingCopy] = useState<any>(null);
   const [copyFormData, setCopyFormData] = useState({ dauSachId: '', maVach: '', tinhTrang: 'Bình thường', trangThaiMuon: 1 });
 
-  const fetchData = async () => {
+  const fetchInitialData = async () => {
     setLoading(true);
     try {
-      const [statsData, requestsData, borrowedData, overdueData, inventoryData, tacGiasData, nxbsData, dmData, readersData, copiesData] = await Promise.all([
+      const [statsData, overdueData, tacGiasData, nxbsData, dmData] = await Promise.all([
         getThongKeThuThu(),
-        GetAllYeuCauMuon(requestPage, requestPageSize),
-        GetDanhSachPhieuMuon(loanPage, loanPageSize, loanSearchTerm, loanStatusFilter),
         GetPhieuMuonQuaHan(),
-        GetDanhSachSach(bookPage, bookPageSize), // Use state for books
         GetTacGias(),
         GetNhaXuatBans(),
-        GetCategories(),
-        getAllUsers(3),
-        GetPagedCuonSachs(copyPage, copyPageSize, copySearchTerm)
+        GetCategories()
       ]);
 
       const normalizeData = (data: any) => {
@@ -115,47 +127,13 @@ const LibrarianPage: React.FC = () => {
       };
 
       setStats(statsData);
-      
-      // Handle paginated requests
-      if (requestsData && requestsData.items) {
-          setRequests(requestsData.items);
-          setRequestTotalPages(requestsData.totalPages || 1);
-      } else {
-          setRequests(normalizeData(requestsData));
-      }
-      
-      // Handle paginated loans
-      if (borrowedData && borrowedData.items) {
-          setBorrowedBooks(borrowedData.items);
-          setLoanTotalPages(borrowedData.totalPages || 1);
-      } else {
-          setBorrowedBooks(normalizeData(borrowedData));
-      }
-
       setOverdueBooks(normalizeData(overdueData));
-      
-      // Handle paginated books
-      if (inventoryData && inventoryData.items) {
-          setInventoryBooks(inventoryData.items);
-          setBookTotalPages(inventoryData.totalPages || 1);
-      } else {
-          setInventoryBooks(normalizeData(inventoryData));
-      }
-
       setTacGias(normalizeData(tacGiasData));
       setNhaXuatBans(normalizeData(nxbsData));
       setDanhMucs(normalizeData(dmData));
-      setReaders(normalizeData(readersData));
       
-      // Handle paginated copies
-      if (copiesData && copiesData.items) {
-          setCuonSachs(copiesData.items);
-          setCopyTotalPages(copiesData.totalPages || 1);
-      } else {
-          setCuonSachs(normalizeData(copiesData));
-      }
     } catch (error) {
-      console.error("Lỗi khi tải dữ liệu thủ thư:", error);
+      console.error("Lỗi khi tải dữ liệu khởi tạo thủ thư:", error);
     } finally {
       setLoading(false);
     }
@@ -187,6 +165,42 @@ const LibrarianPage: React.FC = () => {
     }
   };
 
+  const fetchReaders = async () => {
+      try {
+          const data = await getAllUsers(3, readerPage, readerPageSize, readerSearchTerm);
+          if (data && data.items) {
+              setReaders(data.items);
+              setReaderTotalPages(data.totalPages || 1);
+          }
+      } catch (error) {
+          console.error("Lỗi khi tải danh sách độc giả:", error);
+      }
+  };
+
+  const fetchCategoriesForTab = async () => {
+      try {
+          const data = await GetPagedCategories(categoryPage, categoryPageSize, categorySearchTerm);
+          if (data && data.items) {
+              setDanhMucs(data.items);
+              setCategoryTotalPages(data.totalPages || 1);
+          }
+      } catch (error) {
+          console.error("Lỗi khi tải danh sách danh mục:", error);
+      }
+  };
+
+  const fetchAuthorsForTab = async () => {
+      try {
+          const data = await GetPagedTacGias(authorPage, authorPageSize, authorSearchTerm);
+          if (data && data.items) {
+              setTacGias(data.items);
+              setAuthorTotalPages(data.totalPages || 1);
+          }
+      } catch (error) {
+          console.error("Lỗi khi tải danh sách tác giả:", error);
+      }
+  };
+
   // Hàm chuyên biệt để tải lại danh sách sách khi đổi trang hoặc tìm kiếm
   const fetchBooks = async () => {
     try {
@@ -213,21 +227,37 @@ const LibrarianPage: React.FC = () => {
     }
   };
 
+  // Hàm tổng hợp để làm mới toàn bộ dữ liệu (được gọi từ nút Refresh hoặc sau khi CRUD)
+  const fetchData = async () => {
+    await fetchInitialData();
+    // Tải thêm dữ liệu cho tab hiện tại
+    switch (activeTab) {
+      case 'dashboard': fetchRequests(); break;
+      case 'books': fetchBooks(); break;
+      case 'copies': fetchCopies(); break;
+      case 'borrow': fetchLoans(); break;
+      case 'readers': fetchReaders(); break;
+      case 'categories': fetchCategoriesForTab(); break;
+      case 'authors': fetchAuthorsForTab(); break;
+      default: break;
+    }
+  };
+
   useEffect(() => {
-    fetchData();
+    fetchInitialData();
   }, []);
 
   useEffect(() => {
     if (activeTab === 'books') {
         fetchBooks();
     }
-  }, [bookPage]);
+  }, [activeTab, bookPage]);
 
   useEffect(() => {
     if (activeTab === 'copies') {
         fetchCopies();
     }
-  }, [copyPage]);
+  }, [activeTab, copyPage]);
 
   // Debounce tìm kiếm sách
   useEffect(() => {
@@ -263,13 +293,91 @@ const LibrarianPage: React.FC = () => {
     if (activeTab === 'borrow') {
         fetchLoans();
     }
-  }, [loanPage, loanStatusFilter]);
+  }, [activeTab, loanPage, loanStatusFilter]);
+
+  // Debounce tìm kiếm mượn trả
+  useEffect(() => {
+    if (activeTab !== 'borrow') return;
+    
+    const handler = setTimeout(() => {
+        if (loanPage !== 1) {
+            setLoanPage(1);
+        } else {
+            fetchLoans();
+        }
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [loanSearchTerm]);
 
   useEffect(() => {
     if (activeTab === 'dashboard') {
         fetchRequests();
     }
-  }, [requestPage]);
+  }, [activeTab, requestPage]);
+
+  useEffect(() => {
+    if (activeTab === 'readers') {
+        fetchReaders();
+    }
+  }, [activeTab, readerPage]);
+
+  // Debounce tìm kiếm độc giả
+  useEffect(() => {
+    if (activeTab !== 'readers') return;
+    
+    const handler = setTimeout(() => {
+        if (readerPage !== 1) {
+            setReaderPage(1);
+        } else {
+            fetchReaders();
+        }
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [readerSearchTerm]);
+
+  useEffect(() => {
+    if (activeTab === 'categories') {
+        fetchCategoriesForTab();
+    }
+  }, [activeTab, categoryPage]);
+
+  // Debounce tìm kiếm danh mục
+  useEffect(() => {
+    if (activeTab !== 'categories') return;
+    
+    const handler = setTimeout(() => {
+        if (categoryPage !== 1) {
+            setCategoryPage(1);
+        } else {
+            fetchCategoriesForTab();
+        }
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [categorySearchTerm]);
+
+  useEffect(() => {
+    if (activeTab === 'authors') {
+        fetchAuthorsForTab();
+    }
+  }, [activeTab, authorPage]);
+
+  // Debounce tìm kiếm tác giả
+  useEffect(() => {
+    if (activeTab !== 'authors') return;
+    
+    const handler = setTimeout(() => {
+        if (authorPage !== 1) {
+            setAuthorPage(1);
+        } else {
+            fetchAuthorsForTab();
+        }
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [authorSearchTerm]);
 
   // Debounce tìm kiếm mượn trả
   useEffect(() => {
@@ -285,6 +393,51 @@ const LibrarianPage: React.FC = () => {
 
     return () => clearTimeout(handler);
   }, [loanSearchTerm]);
+
+  // Debounce tìm kiếm độc giả
+  useEffect(() => {
+    if (activeTab !== 'readers') return;
+    
+    const handler = setTimeout(() => {
+        if (readerPage !== 1) {
+            setReaderPage(1);
+        } else {
+            fetchReaders();
+        }
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [readerSearchTerm]);
+
+  // Debounce tìm kiếm danh mục
+  useEffect(() => {
+    if (activeTab !== 'categories') return;
+    
+    const handler = setTimeout(() => {
+        if (categoryPage !== 1) {
+            setCategoryPage(1);
+        } else {
+            fetchCategoriesForTab();
+        }
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [categorySearchTerm]);
+
+  // Debounce tìm kiếm tác giả
+  useEffect(() => {
+    if (activeTab !== 'authors') return;
+    
+    const handler = setTimeout(() => {
+        if (authorPage !== 1) {
+            setAuthorPage(1);
+        } else {
+            fetchAuthorsForTab();
+        }
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [authorSearchTerm]);
 
   const handleOpenCheckStock = (yeuCau: any) => {
     setSelectedYeuCau(yeuCau);
@@ -1374,18 +1527,10 @@ const LibrarianPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {readers.filter(r => 
-                      r.hoTen.toLowerCase().includes(readerSearchTerm.toLowerCase()) || 
-                      r.email.toLowerCase().includes(readerSearchTerm.toLowerCase()) ||
-                      (r.soDienThoai && r.soDienThoai.includes(readerSearchTerm))
-                    ).length === 0 ? (
+                    {readers.length === 0 ? (
                       <tr><td colSpan={6} style={{ textAlign: 'center', padding: '20px' }}>Không tìm thấy độc giả phù hợp</td></tr>
                     ) : (
-                      readers.filter(r => 
-                        r.hoTen.toLowerCase().includes(readerSearchTerm.toLowerCase()) || 
-                        r.email.toLowerCase().includes(readerSearchTerm.toLowerCase()) ||
-                        (r.soDienThoai && r.soDienThoai.includes(readerSearchTerm))
-                      ).map(reader => (
+                      readers.map(reader => (
                         <tr key={reader.id}>
                           <td>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -1426,6 +1571,48 @@ const LibrarianPage: React.FC = () => {
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination UI for Readers */}
+              {readerTotalPages > 1 && (
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '24px', gap: '10px' }}>
+                      <button 
+                          disabled={readerPage === 1}
+                          onClick={() => setReaderPage(prev => prev - 1)}
+                          style={{ 
+                              padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', 
+                              background: 'white', cursor: readerPage === 1 ? 'not-allowed' : 'pointer',
+                              opacity: readerPage === 1 ? 0.5 : 1, fontWeight: '600', color: '#64748b'
+                          }}
+                      >Trước</button>
+                      
+                      <div style={{ display: 'flex', gap: '5px' }}>
+                          {[...Array(readerTotalPages)].map((_, i) => (
+                              <button
+                                  key={i + 1}
+                                  onClick={() => setReaderPage(i + 1)}
+                                  style={{
+                                      width: '36px', height: '36px', borderRadius: '8px', border: 'none',
+                                      background: readerPage === i + 1 ? 'linear-gradient(135deg, #6366f1, #4f46e5)' : '#f1f5f9',
+                                      color: readerPage === i + 1 ? 'white' : '#64748b',
+                                      fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s'
+                                  }}
+                              >
+                                  {i + 1}
+                              </button>
+                          ))}
+                      </div>
+
+                      <button 
+                          disabled={readerPage === readerTotalPages}
+                          onClick={() => setReaderPage(prev => prev + 1)}
+                          style={{ 
+                              padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', 
+                              background: 'white', cursor: readerPage === readerTotalPages ? 'not-allowed' : 'pointer',
+                              opacity: readerPage === readerTotalPages ? 0.5 : 1, fontWeight: '600', color: '#64748b'
+                          }}
+                      >Sau</button>
+                  </div>
+              )}
             </div>
           )}
 
@@ -1433,34 +1620,92 @@ const LibrarianPage: React.FC = () => {
             <div className={styles['admin-section']}>
                 <div className={styles['section-header']}>
                   <h2 className={styles['section-title']}>Danh mục Sách</h2>
-                  <button onClick={openAddCategory} className={styles['section-action']} style={{ background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', padding: '8px 16px', borderRadius: '8px', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', fontWeight: '600' }}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                    Thêm mới
-                  </button>
+                  <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                    <div className={styles['header-search']}>
+                        <input 
+                          type="text" 
+                          placeholder="Tìm danh mục..." 
+                          className={styles['form-control']} 
+                          style={{ width: '200px' }} 
+                          value={categorySearchTerm}
+                          onChange={(e) => setCategorySearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <button onClick={openAddCategory} className={styles['section-action']} style={{ background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', padding: '8px 16px', borderRadius: '8px', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', fontWeight: '600' }}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        Thêm mới
+                    </button>
+                  </div>
                 </div>
                 <div className={styles['metadata-grid']}>
-                  {danhMucs.map(dm => (
-                    <div key={dm.id} className={styles['category-card']}>
-                      <div className={styles['category-main']}>
-                        <div className={styles['category-icon-wrapper']}>
-                          {dm.icon || '📁'}
+                  {danhMucs.length === 0 ? (
+                      <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '40px', color: '#64748b' }}>Không tìm thấy danh mục nào</div>
+                  ) : (
+                    danhMucs.map(dm => (
+                        <div key={dm.id} className={styles['category-card']}>
+                          <div className={styles['category-main']}>
+                            <div className={styles['category-icon-wrapper']}>
+                              {dm.icon || '📁'}
+                            </div>
+                            <div className={styles['category-info']}>
+                              <h3>{dm.tenDanhMuc}</h3>
+                              <p>Phân loại sách hệ thống</p>
+                            </div>
+                          </div>
+                          <div className={styles['category-actions']}>
+                            <button onClick={() => openEditCategory(dm)} className={`${styles['btn-icon']} ${styles['edit']}`} title="Chỉnh sửa">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                            </button>
+                            <button onClick={() => handleDeleteCategory(dm.id)} className={`${styles['btn-icon']} ${styles['delete']}`} title="Xóa danh mục">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                            </button>
+                          </div>
                         </div>
-                        <div className={styles['category-info']}>
-                          <h3>{dm.tenDanhMuc}</h3>
-                          <p>Phân loại sách hệ thống</p>
-                        </div>
-                      </div>
-                      <div className={styles['category-actions']}>
-                        <button onClick={() => openEditCategory(dm)} className={`${styles['btn-icon']} ${styles['edit']}`} title="Chỉnh sửa">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                        </button>
-                        <button onClick={() => handleDeleteCategory(dm.id)} className={`${styles['btn-icon']} ${styles['delete']}`} title="Xóa danh mục">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                      ))
+                  )}
                 </div>
+
+                {/* Pagination UI for Categories */}
+                {categoryTotalPages > 1 && (
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '24px', gap: '10px' }}>
+                        <button 
+                            disabled={categoryPage === 1}
+                            onClick={() => setCategoryPage(prev => prev - 1)}
+                            style={{ 
+                                padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', 
+                                background: 'white', cursor: categoryPage === 1 ? 'not-allowed' : 'pointer',
+                                opacity: categoryPage === 1 ? 0.5 : 1, fontWeight: '600', color: '#64748b'
+                            }}
+                        >Trước</button>
+                        
+                        <div style={{ display: 'flex', gap: '5px' }}>
+                            {[...Array(categoryTotalPages)].map((_, i) => (
+                                <button
+                                    key={i + 1}
+                                    onClick={() => setCategoryPage(i + 1)}
+                                    style={{
+                                        width: '36px', height: '36px', borderRadius: '8px', border: 'none',
+                                        background: categoryPage === i + 1 ? 'linear-gradient(135deg, #6366f1, #4f46e5)' : '#f1f5f9',
+                                        color: categoryPage === i + 1 ? 'white' : '#64748b',
+                                        fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s'
+                                    }}
+                                >
+                                    {i + 1}
+                                </button>
+                            ))}
+                        </div>
+
+                        <button 
+                            disabled={categoryPage === categoryTotalPages}
+                            onClick={() => setCategoryPage(prev => prev + 1)}
+                            style={{ 
+                                padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', 
+                                background: 'white', cursor: categoryPage === categoryTotalPages ? 'not-allowed' : 'pointer',
+                                opacity: categoryPage === categoryTotalPages ? 0.5 : 1, fontWeight: '600', color: '#64748b'
+                            }}
+                        >Sau</button>
+                    </div>
+                )}
              </div>
           )}
 
@@ -1468,34 +1713,92 @@ const LibrarianPage: React.FC = () => {
             <div className={styles['admin-section']}>
                 <div className={styles['section-header']}>
                   <h2 className={styles['section-title']}>Tác giả</h2>
-                  <button onClick={openAddAuthor} className={styles['section-action']} style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', padding: '8px 16px', borderRadius: '8px', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', fontWeight: '600' }}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                    Thêm mới
-                  </button>
+                  <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                    <div className={styles['header-search']}>
+                        <input 
+                          type="text" 
+                          placeholder="Tìm tác giả..." 
+                          className={styles['form-control']} 
+                          style={{ width: '200px' }} 
+                          value={authorSearchTerm}
+                          onChange={(e) => setAuthorSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <button onClick={openAddAuthor} className={styles['section-action']} style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', padding: '8px 16px', borderRadius: '8px', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', fontWeight: '600' }}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        Thêm mới
+                    </button>
+                  </div>
                 </div>
                 <div className={styles['author-list']}>
-                  {tacGias.map(tg => (
-                    <div key={tg.id} className={styles['author-item']}>
-                      <div className={styles['author-main']}>
-                        <div className={styles['author-avatar']}>
-                          {tg.tenTacGia.charAt(0)}
+                  {tacGias.length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '40px', color: '#64748b', width: '100%' }}>Không tìm thấy tác giả nào</div>
+                  ) : (
+                    tacGias.map(tg => (
+                        <div key={tg.id} className={styles['author-item']}>
+                          <div className={styles['author-main']}>
+                            <div className={styles['author-avatar']}>
+                              {tg.tenTacGia.charAt(0)}
+                            </div>
+                            <div className={styles['author-info']}>
+                              <h3>{tg.tenTacGia}</h3>
+                              <p>Tác giả cộng tác</p>
+                            </div>
+                          </div>
+                          <div className={styles['action-buttons']}>
+                            <button onClick={() => openEditAuthor(tg)} className={`${styles['btn-icon']} ${styles['edit']}`} title="Chỉnh sửa">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                            </button>
+                            <button onClick={() => handleDeleteAuthor(tg.id)} className={`${styles['btn-icon']} ${styles['delete']}`} title="Xóa tác giả">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                            </button>
+                          </div>
                         </div>
-                        <div className={styles['author-info']}>
-                          <h3>{tg.tenTacGia}</h3>
-                          <p>Tác giả cộng tác</p>
-                        </div>
-                      </div>
-                      <div className={styles['action-buttons']}>
-                        <button onClick={() => openEditAuthor(tg)} className={`${styles['btn-icon']} ${styles['edit']}`} title="Chỉnh sửa">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                        </button>
-                        <button onClick={() => handleDeleteAuthor(tg.id)} className={`${styles['btn-icon']} ${styles['delete']}`} title="Xóa tác giả">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                      ))
+                  )}
                 </div>
+
+                {/* Pagination UI for Authors */}
+                {authorTotalPages > 1 && (
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '24px', gap: '10px' }}>
+                        <button 
+                            disabled={authorPage === 1}
+                            onClick={() => setAuthorPage(prev => prev - 1)}
+                            style={{ 
+                                padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', 
+                                background: 'white', cursor: authorPage === 1 ? 'not-allowed' : 'pointer',
+                                opacity: authorPage === 1 ? 0.5 : 1, fontWeight: '600', color: '#64748b'
+                            }}
+                        >Trước</button>
+                        
+                        <div style={{ display: 'flex', gap: '5px' }}>
+                            {[...Array(authorTotalPages)].map((_, i) => (
+                                <button
+                                    key={i + 1}
+                                    onClick={() => setAuthorPage(i + 1)}
+                                    style={{
+                                        width: '36px', height: '36px', borderRadius: '8px', border: 'none',
+                                        background: authorPage === i + 1 ? 'linear-gradient(135deg, #6366f1, #4f46e5)' : '#f1f5f9',
+                                        color: authorPage === i + 1 ? 'white' : '#64748b',
+                                        fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s'
+                                    }}
+                                >
+                                    {i + 1}
+                                </button>
+                            ))}
+                        </div>
+
+                        <button 
+                            disabled={authorPage === authorTotalPages}
+                            onClick={() => setAuthorPage(prev => prev + 1)}
+                            style={{ 
+                                padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', 
+                                background: 'white', cursor: authorPage === authorTotalPages ? 'not-allowed' : 'pointer',
+                                opacity: authorPage === authorTotalPages ? 0.5 : 1, fontWeight: '600', color: '#64748b'
+                            }}
+                        >Sau</button>
+                    </div>
+                )}
              </div>
           )}
         </div>

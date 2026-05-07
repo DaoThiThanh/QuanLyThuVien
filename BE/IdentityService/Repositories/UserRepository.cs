@@ -1,5 +1,6 @@
 using Microsoft.Data.SqlClient;
 using System.Data.SqlTypes;
+using IdentityService.Models;
 namespace IdentityService.Repositories
 {
     public class UserRepository
@@ -118,7 +119,78 @@ namespace IdentityService.Repositories
 
             return isSuccess;
         }
-        // Lấy danh sách người dùng (hỗ trợ lọc theo VaiTro)
+
+        // Lấy danh sách người dùng (hỗ trợ lọc theo VaiTro, phân trang và tìm kiếm)
+        public async Task<PagedResult<object>> GetPagedUsersAsync(int page, int pageSize, int? role = null, string searchTerm = "")
+        {
+            var result = new PagedResult<object>
+            {
+                CurrentPage = page,
+                PageSize = pageSize,
+                Items = new List<object>()
+            };
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                await conn.OpenAsync();
+
+                var whereClause = "WHERE (@SearchTerm = '' OR HoTen LIKE @SearchPattern OR Email LIKE @SearchPattern) ";
+                if (role.HasValue)
+                {
+                    whereClause += "AND VaiTro = @Role ";
+                }
+
+                // 1. Count total
+                var countQuery = $"SELECT COUNT(*) FROM NguoiDung {whereClause}";
+                using (var countCmd = new SqlCommand(countQuery, conn))
+                {
+                    countCmd.Parameters.AddWithValue("@SearchTerm", searchTerm ?? "");
+                    countCmd.Parameters.AddWithValue("@SearchPattern", $"%{(searchTerm ?? "")}%");
+                    if (role.HasValue) countCmd.Parameters.AddWithValue("@Role", role.Value);
+                    
+                    result.TotalItems = Convert.ToInt32(await countCmd.ExecuteScalarAsync());
+                }
+                result.TotalPages = (int)Math.Ceiling(result.TotalItems / (double)pageSize);
+
+                // 2. Get items
+                var query = $@"
+                    SELECT Id, HoTen, Email, SoDienThoai, VaiTro, TrangThai, NgayTao 
+                    FROM NguoiDung
+                    {whereClause}
+                    ORDER BY NgayTao DESC
+                    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+
+                using (var cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Offset", (page - 1) * pageSize);
+                    cmd.Parameters.AddWithValue("@PageSize", pageSize);
+                    cmd.Parameters.AddWithValue("@SearchTerm", searchTerm ?? "");
+                    cmd.Parameters.AddWithValue("@SearchPattern", $"%{(searchTerm ?? "")}%");
+                    if (role.HasValue) cmd.Parameters.AddWithValue("@Role", role.Value);
+
+                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            result.Items.Add(new
+                            {
+                                Id = reader.GetGuid(0),
+                                HoTen = reader.GetString(1),
+                                Email = reader.GetString(2),
+                                SoDienThoai = reader.IsDBNull(3) ? null : reader.GetString(3),
+                                VaiTro = reader.GetInt32(4),
+                                TrangThai = reader.GetInt32(5),
+                                NgayTao = reader.GetDateTime(6)
+                            });
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        // Giữ lại GetAllUsers cho khả năng tương thích cũ (nếu cần)
         public object GetAllUsers(int? role = null)
         {
             var users = new List<object>();
