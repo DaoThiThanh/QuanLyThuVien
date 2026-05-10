@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import styles from './DuyetSach.module.css';
 import { FiBookOpen, FiGrid, FiList, FiEye } from 'react-icons/fi';
-import { GetDanhSachSach } from '../../dichVu/modules/dichVuSach';
-import type { PaginatedBookItem } from '../../kieuDuLieu/sach';
+import { GetDanhSachSach, GetCategories } from '../../dichVu/modules/dichVuSach';
+import type { PaginatedBookItem, CategoryItem } from '../../kieuDuLieu/sach';
 import { useNavigate } from 'react-router-dom';
 import { getToken } from '../../dichVu/modules/dichVuXacThuc';
 
@@ -11,44 +11,74 @@ const BrowseBooks: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('all');
 
-  const [books, setBooks] = useState<PaginatedBookItem[]>([]);
+  const [allBooks, setAllBooks] = useState<PaginatedBookItem[]>([]);
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [page, setPage] = useState(1);
-  const [pageSize] = useState(12);
-  const [totalItems, setTotalItems] = useState(0);
+  const [displayCount, setDisplayCount] = useState(12);
+
+  // Filters
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedYear, setSelectedYear] = useState('all');
+  const [selectedStatus, setSelectedStatus] = useState('available'); // default to 'Chỉ sách có sẵn'
 
   useEffect(() => {
-    const fetchBooks = async () => {
+    const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await GetDanhSachSach(page, pageSize);
-        if (response && response.items) {
-          if (page === 1) {
-            setBooks(response.items);
-          } else {
-            setBooks(prev => [...prev, ...response.items]);
-          }
-          setTotalItems(response.totalItems);
+        const [booksResponse, categoriesResponse] = await Promise.all([
+          GetDanhSachSach(1, 1000),
+          GetCategories()
+        ]);
+        
+        if (booksResponse && booksResponse.items) {
+          setAllBooks(booksResponse.items);
+        }
+        
+        if (Array.isArray(categoriesResponse)) {
+          setCategories(categoriesResponse);
+        } else if (categoriesResponse && (categoriesResponse as any).data) {
+          setCategories((categoriesResponse as any).data);
         }
       } catch (err: any) {
-        console.error('Failed to fetch books:', err);
-        setError(err.message || 'Lỗi khi tải danh sách sách.');
+        console.error('Failed to fetch data:', err);
+        setError(err.message || 'Lỗi khi tải dữ liệu.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchBooks();
-  }, [page, pageSize]);
+    fetchData();
+  }, []);
+
+  // Extract distinct years from books
+  const availableYears = Array.from(new Set(allBooks.map(b => b.namXuatBan).filter(y => y))).sort((a, b) => (b as number) - (a as number));
+  
+  // Use fetched categories from database
+  const availableCategories = categories.map(c => c.tenDanhMuc);
+
+  // Filter books
+  const filteredBooks = allBooks.filter(book => {
+    // Tab filter
+    if (activeTab !== 'all' && book.tenDanhMuc !== activeTab) return false;
+    
+    // Dropdown filters
+    if (selectedCategory !== 'all' && book.tenDanhMuc !== selectedCategory) return false;
+    if (selectedYear !== 'all' && book.namXuatBan?.toString() !== selectedYear) return false;
+    if (selectedStatus === 'available' && book.soLuongTon <= 0) return false;
+    
+    return true;
+  });
+
+  const displayedBooks = filteredBooks.slice(0, displayCount);
 
   const handleLoadMore = () => {
-    setPage(prev => prev + 1);
+    setDisplayCount(prev => prev + 12);
   };
 
   const handleCollapse = () => {
-    setPage(1);
+    setDisplayCount(12);
     const section = document.querySelector(`.${styles['browse-books-section']}`);
     if (section) {
       section.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -72,42 +102,43 @@ const BrowseBooks: React.FC = () => {
       <div className={styles['browse-filters']}>
         <div className={styles['category-tabs']}>
           <button className={`${styles['tab-btn']} ${activeTab === 'all' ? styles['active'] : ''}`} onClick={() => setActiveTab('all')}>
-            Tất cả sách <span className={styles['count']}>{totalItems}</span>
+            Tất cả sách <span className={styles['count']}>{allBooks.length}</span>
           </button>
-          <button className={`${styles['tab-btn']} ${activeTab === 'science' ? styles['active'] : ''}`} onClick={() => setActiveTab('science')}>
-            Khoa học <span className={styles['count']}>0</span>
-          </button>
-          <button className={`${styles['tab-btn']} ${activeTab === 'economic' ? styles['active'] : ''}`} onClick={() => setActiveTab('economic')}>
-            Kinh tế <span className={styles['count']}>0</span>
-          </button>
-          <button className={`${styles['tab-btn']} ${activeTab === 'literature' ? styles['active'] : ''}`} onClick={() => setActiveTab('literature')}>
-            Văn học <span className={styles['count']}>0</span>
-          </button>
+          {availableCategories.slice(0, 3).map(cat => {
+            const count = allBooks.filter(b => b.tenDanhMuc === cat).length;
+            return (
+              <button key={cat} className={`${styles['tab-btn']} ${activeTab === cat ? styles['active'] : ''}`} onClick={() => setActiveTab(cat)}>
+                {cat} <span className={styles['count']}>{count}</span>
+              </button>
+            );
+          })}
         </div>
 
         <div className={styles['filter-controls']}>
           <div className={styles['filter-selects']}>
             <div className={styles['select-group']}>
               <label>Thể loại</label>
-              <select>
-                <option>Tất cả</option>
-                <option>Giáo trình</option>
-                <option>Tham khảo</option>
+              <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+                <option value="all">Tất cả</option>
+                {availableCategories.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
               </select>
             </div>
             <div className={styles['select-group']}>
               <label>Năm xuất bản</label>
-              <select>
-                <option>Tất cả năm</option>
-                <option>2024</option>
-                <option>2023</option>
+              <select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)}>
+                <option value="all">Tất cả năm</option>
+                {availableYears.map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
               </select>
             </div>
             <div className={styles['select-group']}>
               <label>Tình trạng</label>
-              <select>
-                <option>Chỉ sách có sẵn</option>
-                <option>Tất cả</option>
+              <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)}>
+                <option value="available">Chỉ sách có sẵn</option>
+                <option value="all">Tất cả</option>
               </select>
             </div>
           </div>
@@ -120,7 +151,7 @@ const BrowseBooks: React.FC = () => {
         </div>
       </div>
 
-      <p className={styles['results-count']}>Hiển thị {books.length} trong tổng số {totalItems} sách</p>
+      <p className={styles['results-count']}>Hiển thị {displayedBooks.length} trong tổng số {filteredBooks.length} sách</p>
 
       {error ? (
         <div className="error-message" style={{ color: 'red', textAlign: 'center', padding: '2rem' }}>
@@ -128,7 +159,7 @@ const BrowseBooks: React.FC = () => {
         </div>
       ) : (
         <div className={styles['browse-books-grid']}>
-          {books.map((book) => (
+          {displayedBooks.map((book) => (
             <div className={styles['browse-book-card']} key={book.id}>
               <div className={styles['book-image-wrapper']}>
                 <img src={book.hinhAnh || 'https://via.placeholder.com/150'} alt={book.tenSach} className={styles['book-cover']} />
@@ -182,12 +213,12 @@ const BrowseBooks: React.FC = () => {
       )}
 
       <div className={styles['load-more-container']}>
-        {!loading && books.length < totalItems && (
+        {!loading && displayedBooks.length < filteredBooks.length && (
           <button className={styles['load-more-btn']} onClick={handleLoadMore}>
             Tải thêm sách
           </button>
         )}
-        {!loading && books.length > pageSize && (
+        {!loading && displayedBooks.length > 12 && (
           <button className={styles['collapse-btn']} onClick={handleCollapse}>
             Thu gọn lại
           </button>

@@ -167,7 +167,8 @@ namespace QuanLyThuVien.Repositories
                         ds.HinhAnh, 
                         (SELECT COUNT(*) FROM CuonSach WHERE DauSachId = ds.Id AND TrangThaiMuon = 1) as SoLuongTon, 
                         dm.TenDanhMuc,
-                        tg.TenTacGia
+                        tg.TenTacGia,
+                        ds.NamXuatBan
                     FROM DauSach ds
                     LEFT JOIN DanhMucSach dm ON ds.DanhMucId = dm.Id
                     LEFT JOIN TacGia tg ON ds.TacGiaId = tg.Id
@@ -194,7 +195,8 @@ namespace QuanLyThuVien.Repositories
                                 HinhAnh = reader.IsDBNull(reader.GetOrdinal("HinhAnh")) ? null : reader.GetString(reader.GetOrdinal("HinhAnh")),
                                 SoLuongTon = reader.IsDBNull(reader.GetOrdinal("SoLuongTon")) ? 0 : reader.GetInt32(reader.GetOrdinal("SoLuongTon")),
                                 TenDanhMuc = reader.IsDBNull(reader.GetOrdinal("TenDanhMuc")) ? string.Empty : reader.GetString(reader.GetOrdinal("TenDanhMuc")),
-                                TenTacGia = reader.IsDBNull(reader.GetOrdinal("TenTacGia")) ? string.Empty : reader.GetString(reader.GetOrdinal("TenTacGia"))
+                                TenTacGia = reader.IsDBNull(reader.GetOrdinal("TenTacGia")) ? string.Empty : reader.GetString(reader.GetOrdinal("TenTacGia")),
+                                NamXuatBan = reader.IsDBNull(reader.GetOrdinal("NamXuatBan")) ? 0 : reader.GetInt32(reader.GetOrdinal("NamXuatBan"))
                             });
                         }
                         result.Items = items;

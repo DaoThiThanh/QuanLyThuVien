@@ -31,6 +31,7 @@ export interface PaginatedBookItem {
     soLuongTon: number;
     tenDanhMuc: string;
     tenTacGia: string;
+    namXuatBan?: number;
 }
 
 export interface PaginatedResponse<T> {

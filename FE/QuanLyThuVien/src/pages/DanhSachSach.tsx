@@ -3,18 +3,46 @@ import Footer from "../components/GiaoDienChinh/CuoiTrang";
 import PageTitle from "../components/Sach/PageTitle";
 import SearchBar from "../components/Sach/SearchBar";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import CategoryTab from "../components/Sach/CategoryTab";
 import ResultInfor from "../components/Sach/ResultInfor";
 import type { BookItem } from "../components/Sach/BookGrid";
 import BookGrid from "../components/Sach/BookGrid";
-import { GetDanhSachSach } from "../dichVu/modules/dichVuSach";
+import { GetDanhSachSach, GetCategories } from "../dichVu/modules/dichVuSach";
+import type { CategoryItem } from "../kieuDuLieu/sach";
 
 function BooksPage() {
     const navigate = useNavigate();
-    const [search, setSearch] = useState("");
-    const categories = ["Tất cả", "Công nghệ thông tin", "Toán học", "Kinh tế", "Văn học", "Trí tuệ nhân tạo", "Lịch sử", "Khoa học"];
-    const [activeCategory, setActiveCategory] = useState("Tất cả");
+    const [searchParams, setSearchParams] = useSearchParams();
+    
+    const [search, setSearch] = useState(searchParams.get("search") || "");
+    const [activeCategory, setActiveCategory] = useState(searchParams.get("category") || "Tất cả");
+    
+    const [categoriesList, setCategoriesList] = useState<string[]>(["Tất cả"]);
+
+    useEffect(() => {
+        setSearch(searchParams.get("search") || "");
+        setActiveCategory(searchParams.get("category") || "Tất cả");
+    }, [searchParams]);
+
+    useEffect(() => {
+        const fetchCats = async () => {
+            try {
+                const res = await GetCategories();
+                let fetchedCats: string[] = [];
+                if (Array.isArray(res)) {
+                    fetchedCats = res.map(c => c.tenDanhMuc);
+                } else if (res && (res as any).data) {
+                    fetchedCats = (res as any).data.map((c: any) => c.tenDanhMuc);
+                }
+                setCategoriesList(["Tất cả", ...fetchedCats]);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        fetchCats();
+    }, []);
+
     const [booksData, setBooksData] = useState<BookItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [totalItems, setTotalItems] = useState(0);
@@ -81,7 +109,7 @@ function BooksPage() {
                     onFilterClick={() => { }}
                 />
                 <CategoryTab
-                    categories={categories}
+                    categories={categoriesList}
                     activeCategory={activeCategory}
                     onChange={setActiveCategory}
                 />
