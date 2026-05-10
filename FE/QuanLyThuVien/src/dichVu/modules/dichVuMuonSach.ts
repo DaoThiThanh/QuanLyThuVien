@@ -14,6 +14,7 @@ export interface YeuCauMuonDto {
     ngayHenNhan?: string;
     trangThai: number;
     tenCacSach?: string[];
+    dauSachIds?: string[];
     email?: string;
 }
 

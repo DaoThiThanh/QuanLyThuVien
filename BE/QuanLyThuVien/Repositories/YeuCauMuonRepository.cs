@@ -242,11 +242,11 @@ namespace QuanLyThuVien.Repositories
                     }
                 }
 
-                // 3. Get book titles for each request
+                // 3. Get book titles and ids for each request
                 foreach (var yc in result.Items)
                 {
                     var bookQuery = @"
-                        SELECT ds.TenSach 
+                        SELECT ds.Id, ds.TenSach 
                         FROM ChiTietYeuCau ct
                         JOIN DauSach ds ON ct.DauSachId = ds.Id
                         WHERE ct.YeuCauId = @YeuCauId";
@@ -259,7 +259,8 @@ namespace QuanLyThuVien.Repositories
                         {
                             while (await bookReader.ReadAsync())
                             {
-                                books.Add(bookReader.GetString(0));
+                                yc.DauSachIds.Add(bookReader.GetGuid(0));
+                                books.Add(bookReader.GetString(1));
                             }
                         }
                         yc.TenCacSach = books;

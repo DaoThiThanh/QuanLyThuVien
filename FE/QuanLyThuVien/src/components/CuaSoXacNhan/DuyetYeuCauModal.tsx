@@ -19,6 +19,7 @@ interface PhysicalAssignment {
     cuonSachId: string | null;
     maVach: string | null;
     availableCount: number;
+    availableCopies: any[];
 }
 
 const DuyetYeuCauModal: React.FC<DuyetYeuCauModalProps> = ({ isOpen, onClose, onSuccess, yeuCau }) => {
@@ -41,7 +42,8 @@ const DuyetYeuCauModal: React.FC<DuyetYeuCauModalProps> = ({ isOpen, onClose, on
                         tenSach: yeuCau.tenCacSach[index],
                         cuonSachId: null, // Bắt buộc quét thủ công
                         maVach: null,
-                        availableCount: copies.length
+                        availableCount: copies.length,
+                        availableCopies: copies
                     };
                 }));
                 setAssignments(initialAssignments);
@@ -174,12 +176,48 @@ const DuyetYeuCauModal: React.FC<DuyetYeuCauModalProps> = ({ isOpen, onClose, on
                                     </div>
 
                                     {assignment.cuonSachId ? (
-                                        <div style={{display: 'flex', alignItems: 'center', gap: '8px', color: '#10b981', fontSize: '14px', fontWeight: '700', background: '#f0fdf4', padding: '8px', borderRadius: '6px'}}>
+                                        <div style={{display: 'flex', alignItems: 'center', gap: '8px', color: '#10b981', fontSize: '14px', fontWeight: '700', background: '#f0fdf4', padding: '8px', borderRadius: '6px', marginTop: '8px'}}>
                                             <FiCheck /> Đã chọn cuốn: {assignment.maVach}
                                         </div>
                                     ) : (
-                                        <div style={{color: '#64748b', fontSize: '13px', fontStyle: 'italic'}}>
-                                            (Hiện có {assignment.availableCount} bản sẵn sàng trong kho)
+                                        <div style={{marginTop: '12px'}}>
+                                            <div style={{color: '#64748b', fontSize: '13px', fontStyle: 'italic', marginBottom: '8px'}}>
+                                                (Hiện có {assignment.availableCount} bản sẵn sàng trong kho)
+                                            </div>
+                                            {assignment.availableCopies && assignment.availableCopies.length > 0 && (
+                                                <div style={{display: 'flex', flexWrap: 'wrap', gap: '8px'}}>
+                                                    {assignment.availableCopies.map((copy, idx) => (
+                                                        <span 
+                                                            key={idx} 
+                                                            onClick={() => {
+                                                                setBarcodeInputs({...barcodeInputs, [index]: copy.maVach});
+                                                            }}
+                                                            style={{
+                                                                background: '#f8fafc', 
+                                                                padding: '6px 10px', 
+                                                                borderRadius: '6px', 
+                                                                fontSize: '13px', 
+                                                                fontWeight: '600', 
+                                                                color: '#3b82f6',
+                                                                cursor: 'pointer',
+                                                                border: '1px dashed #cbd5e1',
+                                                                transition: 'all 0.2s'
+                                                            }}
+                                                            title="Nhấn để điền mã vạch này"
+                                                            onMouseEnter={(e) => {
+                                                                e.currentTarget.style.background = '#eff6ff';
+                                                                e.currentTarget.style.borderColor = '#93c5fd';
+                                                            }}
+                                                            onMouseLeave={(e) => {
+                                                                e.currentTarget.style.background = '#f8fafc';
+                                                                e.currentTarget.style.borderColor = '#cbd5e1';
+                                                            }}
+                                                        >
+                                                            {copy.maVach}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
