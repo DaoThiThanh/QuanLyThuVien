@@ -74,7 +74,8 @@ export const CheckBorrowingLimit = async (userId: string) => {
         canBorrowMore: number, 
         hasOverdue: boolean, 
         currentBookIds: string[],
-        totalBorrowed: number
+        totalBorrowed: number,
+        returnedCount: number
     }>(`/yeu-cau-muon/check-limit/${userId}`);
     return response.data;
 };

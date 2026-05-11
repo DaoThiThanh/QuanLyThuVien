@@ -71,5 +71,23 @@ namespace IdentityService.Controllers
             }
             return Ok(ResultRepository<object>.Ok(user, "Lấy thông tin thành công"));
         }
+
+        [HttpPost("change-password")]
+        public IActionResult ChangePassword([FromBody] ChangePasswordRequest request)
+        {
+            if (string.IsNullOrEmpty(request.OldPassword) || string.IsNullOrEmpty(request.NewPassword))
+            {
+                return BadRequest(ResultRepository<object>.Fail("Mật khẩu không được để trống!"));
+            }
+
+            bool isSuccess = _userRepo.ChangePassword(request.UserId, request.OldPassword, request.NewPassword, out string message);
+
+            if (!isSuccess)
+            {
+                return BadRequest(ResultRepository<object>.Fail(message));
+            }
+
+            return Ok(ResultRepository<object>.Ok(null, message));
+        }
     }
 }

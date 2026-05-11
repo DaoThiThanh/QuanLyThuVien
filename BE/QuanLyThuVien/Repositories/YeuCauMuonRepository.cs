@@ -403,6 +403,15 @@ namespace QuanLyThuVien.Repositories
                     totalCommand.Parameters.AddWithValue("@DocGiaId", docGiaId);
                     totalBorrowed = (int)await totalCommand.ExecuteScalarAsync();
                 }
+
+                // Tính số sách đã trả
+                var returnedQuery = "SELECT COUNT(*) FROM ChiTietPhieuMuon ct JOIN PhieuMuon pm ON ct.PhieuMuonId = pm.Id WHERE pm.DocGiaId = @DocGiaId AND ct.NgayTraThucTe IS NOT NULL";
+                int returnedCount = 0;
+                using (var returnedCommand = new SqlCommand(returnedQuery, connection))
+                {
+                    returnedCommand.Parameters.AddWithValue("@DocGiaId", docGiaId);
+                    returnedCount = (int)await returnedCommand.ExecuteScalarAsync();
+                }
  
                 return new { 
                     CurrentCount = dangMuon, 
@@ -410,7 +419,8 @@ namespace QuanLyThuVien.Repositories
                     CanBorrowMore = soSachToiDa - dangMuon,
                     HasOverdue = hasOverdue,
                     CurrentBookIds = currentBookIds,
-                    TotalBorrowed = totalBorrowed
+                    TotalBorrowed = totalBorrowed,
+                    ReturnedCount = returnedCount
                 };
             }
         }

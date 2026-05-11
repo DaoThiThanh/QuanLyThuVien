@@ -9,15 +9,14 @@ import ResultInfor from "../components/Sach/ResultInfor";
 import type { BookItem } from "../components/Sach/BookGrid";
 import BookGrid from "../components/Sach/BookGrid";
 import { GetDanhSachSach, GetCategories } from "../dichVu/modules/dichVuSach";
-import type { CategoryItem } from "../kieuDuLieu/sach";
 
 function BooksPage() {
     const navigate = useNavigate();
-    const [searchParams, setSearchParams] = useSearchParams();
-    
+    const [searchParams] = useSearchParams();
+
     const [search, setSearch] = useState(searchParams.get("search") || "");
     const [activeCategory, setActiveCategory] = useState(searchParams.get("category") || "Tất cả");
-    
+
     const [categoriesList, setCategoriesList] = useState<string[]>(["Tất cả"]);
 
     useEffect(() => {

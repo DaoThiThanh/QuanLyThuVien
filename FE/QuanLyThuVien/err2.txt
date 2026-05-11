@@ -1,0 +1,2 @@
+200
+[{"id":"87cd3ba8-5614-4113-9c5a-fee3e8da9cf9","tenDanhMuc":"ABCD","icon":"\uD83C\uDF49","soLuongSach":0},{"id":"5d962040-aba4-4bfe-94f9-38617d3752be","tenDanhMuc":"Công nghệ thông tin","icon":"\uD83D\uDCBB","soLuongSach":6},{"id":"3e555359-3dba-4257-be35-da35d939e3b0","tenDanhMuc":"Tiểu thuyết","icon":"\uD83D\uDCD1","soLuongSach":2},{"id":"dcfc9f02-24ab-403b-8d8f-c37834e514b9","tenDanhMuc":"Toán học","icon":"\uD83D\uDCD0","soLuongSach":0},{"id":"ed1dcda2-457a-4f93-8079-d3f031332b55","tenDanhMuc":"Truyện ngắn","icon":"","soLuongSach":1}]

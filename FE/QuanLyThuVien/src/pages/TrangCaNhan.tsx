@@ -6,9 +6,11 @@ import PersonalInfo from '../components/ThongTinCaNhan/ThongTinCaNhan';
 import SecuritySettings from '../components/ThongTinCaNhan/CaiDatBaoMat';
 import styles from './TrangCaNhan.module.css';
 import { getProfileApi, getUserId, type ProfileData } from '../dichVu/modules/dichVuXacThuc';
+import { CheckBorrowingLimit } from '../dichVu/modules/dichVuMuonSach';
 
 const ProfilePage: React.FC = () => {
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,8 +21,12 @@ const ProfilePage: React.FC = () => {
         return;
       }
       try {
-        const data = await getProfileApi(userId);
-        setProfile(data);
+        const [profileData, statsData] = await Promise.all([
+          getProfileApi(userId),
+          CheckBorrowingLimit(userId)
+        ]);
+        setProfile(profileData);
+        setStats(statsData);
       } catch (error) {
         console.error("Lỗi khi tải hồ sơ:", error);
       } finally {
@@ -53,7 +59,7 @@ const ProfilePage: React.FC = () => {
         
         <div className={styles['profile-content-wrapper']}>
           <ProfileHeader profile={profile} />
-          <ProfileStats />
+          <ProfileStats stats={stats} />
           <PersonalInfo profile={profile} />
           <SecuritySettings />
         </div>

@@ -116,3 +116,8 @@ export async function getProfileApi(userId: string): Promise<ProfileData> {
     }
     throw new Error(response.data.message || 'Không thể lấy thông tin hồ sơ');
 }
+
+export async function changePasswordApi(payload: any): Promise<any> {
+    const response = await CauHinhApi.post<ApiResponse<any>>('/auth/change-password', payload);
+    return response.data;
+}

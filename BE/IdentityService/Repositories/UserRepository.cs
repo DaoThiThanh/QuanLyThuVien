@@ -286,5 +286,50 @@ namespace IdentityService.Repositories
                 }
             }
         }
+
+        // Đổi mật khẩu
+        public bool ChangePassword(Guid userId, string oldPassword, string newPassword, out string message)
+        {
+            message = "";
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+
+                // Kiểm tra mật khẩu cũ
+                string checkQuery = "SELECT COUNT(1) FROM NguoiDung WHERE Id = @Id AND MatKhau = @OldPassword";
+                using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn))
+                {
+                    checkCmd.Parameters.AddWithValue("@Id", userId);
+                    checkCmd.Parameters.AddWithValue("@OldPassword", oldPassword);
+                    int count = (int)checkCmd.ExecuteScalar();
+
+                    if (count == 0)
+                    {
+                        message = "Mật khẩu hiện tại không chính xác.";
+                        return false;
+                    }
+                }
+
+                // Cập nhật mật khẩu mới
+                string updateQuery = "UPDATE NguoiDung SET MatKhau = @NewPassword WHERE Id = @Id";
+                using (SqlCommand updateCmd = new SqlCommand(updateQuery, conn))
+                {
+                    updateCmd.Parameters.AddWithValue("@NewPassword", newPassword);
+                    updateCmd.Parameters.AddWithValue("@Id", userId);
+
+                    int rowsAffected = updateCmd.ExecuteNonQuery();
+                    if (rowsAffected > 0)
+                    {
+                        message = "Đổi mật khẩu thành công!";
+                        return true;
+                    }
+                    else
+                    {
+                        message = "Có lỗi xảy ra khi cập nhật mật khẩu.";
+                        return false;
+                    }
+                }
+            }
+        }
     }
 }
