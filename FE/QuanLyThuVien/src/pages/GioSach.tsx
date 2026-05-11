@@ -9,12 +9,22 @@ import { getGioSach, xoaKhoiGioSach, xoaHetGioSach } from '../dichVu/modules/dic
 import type { ItemGioSach } from '../kieuDuLieu/sach';
 import { getUserId, getToken } from '../dichVu/modules/dichVuXacThuc';
 import { CreateYeuCauMuon } from '../dichVu/modules/dichVuMuonSach';
+import { getQuyDinh, type ThamSoQuyDinhDto } from '../dichVu/modules/dichVuQuyDinh';
 
 const CartPage: React.FC = () => {
     const navigate = useNavigate();
     const [cartItems, setCartItems] = useState<ItemGioSach[]>([]);
     const [henNhan, setHenNhan] = useState<string>('');
     const [submitting, setSubmitting] = useState(false);
+    const [quyDinh, setQuyDinh] = useState<ThamSoQuyDinhDto | null>(null);
+
+    useEffect(() => {
+        const fetchQuyDinh = async () => {
+            const data = await getQuyDinh();
+            setQuyDinh(data);
+        };
+        fetchQuyDinh();
+    }, []);
 
     useEffect(() => {
         if (!getToken()) {
@@ -40,6 +50,12 @@ const CartPage: React.FC = () => {
 
         if (cartItems.length === 0) {
             alert('Vui lòng chọn ít nhất một cuốn sách.');
+            return;
+        }
+        
+        const maxBooks = quyDinh?.soSachMuonToiDa || 3;
+        if (cartItems.length > maxBooks) {
+            alert(`Bạn chỉ được đăng ký mượn tối đa ${maxBooks} quyển sách cùng lúc theo quy định.`);
             return;
         }
 
@@ -104,7 +120,7 @@ const CartPage: React.FC = () => {
                             </div>
                             <div className={styles.summaryRow}>
                                 <span className={styles.summaryLabel}>Thời hạn mượn:</span>
-                                <span className={styles.summaryValue}>14 ngày (theo quy định)</span>
+                              <span className={styles.summaryValue}>{quyDinh?.soNgayMuonToiDa || 10} ngày (theo quy định)</span>
                             </div>
 
                             <div className={styles.dateInputGroup}>

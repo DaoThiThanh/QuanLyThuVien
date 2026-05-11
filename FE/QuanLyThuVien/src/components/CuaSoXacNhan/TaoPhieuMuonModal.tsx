@@ -6,6 +6,7 @@ import { getAllUsers, type UserItem } from '../../dichVu/modules/dichVuNguoiDung
 import { GetDanhSachSach, GetCuonSachByBarcode } from '../../dichVu/modules/dichVuSach';
 import { CreatePhieuMuon, CheckBorrowingLimit } from '../../dichVu/modules/dichVuMuonSach';
 import { getUserId } from '../../dichVu/modules/dichVuXacThuc';
+import { getQuyDinh, type ThamSoQuyDinhDto } from '../../dichVu/modules/dichVuQuyDinh';
 
 interface TaoPhieuMuonModalProps {
     isOpen: boolean;
@@ -40,6 +41,15 @@ const TaoPhieuMuonModal: React.FC<TaoPhieuMuonModalProps> = ({ isOpen, onClose, 
     const [borrowLimit, setBorrowLimit] = useState<BorrowLimitStatus | null>(null);
     const [searchingUser, setSearchingUser] = useState(false);
     const [searchingBook, setSearchingBook] = useState(false);
+    const [quyDinh, setQuyDinh] = useState<ThamSoQuyDinhDto | null>(null);
+
+    useEffect(() => {
+        const fetchQuyDinh = async () => {
+            const data = await getQuyDinh();
+            setQuyDinh(data);
+        };
+        fetchQuyDinh();
+    }, []);
 
     // Search Users
     useEffect(() => {
@@ -95,8 +105,10 @@ const TaoPhieuMuonModal: React.FC<TaoPhieuMuonModalProps> = ({ isOpen, onClose, 
             alert(`Độc giả này chỉ có thể mượn thêm tối đa ${borrowLimit.canBorrowMore} cuốn theo quy định.`);
             return;
         }
-        if (selectedBooks.length >= 5) {
-            alert('Mỗi phiếu mượn tối đa 5 cuốn sách.');
+        
+        const maxBooks = quyDinh?.soSachMuonToiDa || 3;
+        if (selectedBooks.length >= maxBooks) {
+            alert(`Mỗi phiếu mượn tối đa ${maxBooks} cuốn sách.`);
             return;
         }
         if (book.soLuongTon <= 0) {
@@ -163,12 +175,13 @@ const TaoPhieuMuonModal: React.FC<TaoPhieuMuonModalProps> = ({ isOpen, onClose, 
         }
 
         setLoading(true);
+        const durationDays = quyDinh?.soNgayMuonToiDa || 10;
         try {
             await CreatePhieuMuon({
                 docGiaId: selectedUser.id,
                 thuThuId: thuThuId,
                 kenhMuon: 1, // Offline
-                hanTra: new Date(new Date().getTime() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+                hanTra: new Date(new Date().getTime() + durationDays * 24 * 60 * 60 * 1000).toISOString(),
                 cuonSachIds: selectedBooks.map(b => b.cuonSachId)
             });
             alert('Tạo phiếu mượn thành công!');
@@ -401,7 +414,7 @@ const TaoPhieuMuonModal: React.FC<TaoPhieuMuonModalProps> = ({ isOpen, onClose, 
                     <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748b' }}>
                             <FiCalendar />
-                            <span style={{ fontSize: '14px' }}>Hạn trả dự kiến: <strong>{new Date(new Date().getTime() + 14 * 24 * 60 * 60 * 1000).toLocaleDateString('vi-VN')}</strong> (14 ngày)</span>
+                            <span style={{ fontSize: '14px' }}>Hạn trả dự kiến: <strong>{new Date(new Date().getTime() + (quyDinh?.soNgayMuonToiDa || 10) * 24 * 60 * 60 * 1000).toLocaleDateString('vi-VN')}</strong> ({quyDinh?.soNgayMuonToiDa || 10} ngày)</span>
                         </div>
                     </div>
                 </div>

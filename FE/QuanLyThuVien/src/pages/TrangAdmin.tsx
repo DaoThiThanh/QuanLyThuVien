@@ -4,12 +4,16 @@ import styles from './TrangAdmin.module.css';
 import { getAllUsers, updateUserStatus, type UserItem } from '../dichVu/modules/dichVuNguoiDung';
 import { getUserName } from '../dichVu/modules/dichVuXacThuc';
 import { getThongKeAdmin, type ThongKeAdminDto } from '../dichVu/modules/dichVuThongKe';
+import { getQuyDinh, updateQuyDinh, type ThamSoQuyDinhDto } from '../dichVu/modules/dichVuQuyDinh';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 
 const AdminPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [stats, setStats] = useState<ThongKeAdminDto | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  const [quyDinh, setQuyDinh] = useState<ThamSoQuyDinhDto | null>(null);
+  const [savingQuyDinh, setSavingQuyDinh] = useState(false);
   
   // States cho Người dùng (Độc giả)
   const [accounts, setAccounts] = useState<UserItem[]>([]);
@@ -35,6 +39,9 @@ const AdminPage: React.FC = () => {
     try {
       const statsData = await getThongKeAdmin();
       setStats(statsData);
+      
+      const qdData = await getQuyDinh();
+      setQuyDinh(qdData);
       
       // Load accounts
       await fetchAccounts();
@@ -91,6 +98,20 @@ const AdminPage: React.FC = () => {
     }
   };
 
+  const handleSaveQuyDinh = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quyDinh) return;
+    setSavingQuyDinh(true);
+    try {
+      await updateQuyDinh(quyDinh);
+      alert('Cập nhật quy định thành công!');
+    } catch (error) {
+      alert('Lỗi khi cập nhật quy định');
+    } finally {
+      setSavingQuyDinh(false);
+    }
+  };
+
 
 
 
@@ -99,6 +120,7 @@ const AdminPage: React.FC = () => {
     { id: 'dashboard', label: 'Tổng quan & Hoạt động', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg> },
     { id: 'analytics', label: 'Thống kê Chuyên sâu', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg> },
     { id: 'accounts', label: 'Quản lý Tài khoản', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> },
+    { id: 'settings', label: 'Cấu hình Quy định', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> },
   ];
 
   return (
@@ -500,6 +522,65 @@ const AdminPage: React.FC = () => {
                   </button>
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === 'settings' && quyDinh && (
+            <div className={styles['admin-section']} style={{ maxWidth: '800px', margin: '0 auto' }}>
+              <div className={styles['section-header']}>
+                <h2 className={styles['section-title']}>Cấu hình Quy định Thư viện</h2>
+              </div>
+              <form onSubmit={handleSaveQuyDinh} style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '20px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontWeight: '600', color: '#1e293b' }}>Số sách mượn tối đa (quyển)</label>
+                  <input 
+                    type="number" 
+                    value={quyDinh.soSachMuonToiDa} 
+                    onChange={e => setQuyDinh({...quyDinh, soSachMuonToiDa: parseInt(e.target.value)})}
+                    style={{ padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '15px' }}
+                    min="1"
+                    required
+                  />
+                  <span style={{ fontSize: '13px', color: '#64748b' }}>Giới hạn số lượng sách một độc giả có thể mượn cùng lúc.</span>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontWeight: '600', color: '#1e293b' }}>Thời hạn mượn tối đa (ngày)</label>
+                  <input 
+                    type="number" 
+                    value={quyDinh.soNgayMuonToiDa} 
+                    onChange={e => setQuyDinh({...quyDinh, soNgayMuonToiDa: parseInt(e.target.value)})}
+                    style={{ padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '15px' }}
+                    min="1"
+                    required
+                  />
+                  <span style={{ fontSize: '13px', color: '#64748b' }}>Số ngày tối đa độc giả được phép giữ sách trước khi bị tính là quá hạn.</span>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={{ fontWeight: '600', color: '#1e293b' }}>Phí phạt trễ hạn mỗi ngày (VNĐ)</label>
+                  <input 
+                    type="number" 
+                    value={quyDinh.phiPhatTreHanMoiNgay} 
+                    onChange={e => setQuyDinh({...quyDinh, phiPhatTreHanMoiNgay: parseFloat(e.target.value)})}
+                    style={{ padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '15px' }}
+                    min="0"
+                    step="1000"
+                    required
+                  />
+                  <span style={{ fontSize: '13px', color: '#64748b' }}>Số tiền phạt cho mỗi cuốn sách trễ hạn tính theo ngày.</span>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+                  <button 
+                    type="submit" 
+                    disabled={savingQuyDinh}
+                    style={{ background: '#3b82f6', color: 'white', padding: '12px 24px', borderRadius: '8px', fontWeight: '600', border: 'none', cursor: 'pointer' }}
+                  >
+                    {savingQuyDinh ? 'Đang lưu...' : 'Lưu Thay Đổi'}
+                  </button>
+                </div>
+              </form>
             </div>
           )}
         </div>

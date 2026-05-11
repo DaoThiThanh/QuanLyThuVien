@@ -5,6 +5,7 @@ import styles from './DuyetYeuCauModal.module.css';
 import { GetAvailableCopies, GetCuonSachByBarcode } from '../../dichVu/modules/dichVuSach';
 import { CreatePhieuMuon, CheckBorrowingLimit } from '../../dichVu/modules/dichVuMuonSach';
 import { getUserId } from '../../dichVu/modules/dichVuXacThuc';
+import { getQuyDinh, type ThamSoQuyDinhDto } from '../../dichVu/modules/dichVuQuyDinh';
 
 interface DuyetYeuCauModalProps {
     isOpen: boolean;
@@ -27,6 +28,15 @@ const DuyetYeuCauModal: React.FC<DuyetYeuCauModalProps> = ({ isOpen, onClose, on
     const [loading, setLoading] = useState(false);
     const [borrowLimit, setBorrowLimit] = useState<any>(null);
     const [barcodeInputs, setBarcodeInputs] = useState<{[key: string]: string}>({});
+    const [quyDinh, setQuyDinh] = useState<ThamSoQuyDinhDto | null>(null);
+
+    useEffect(() => {
+        const fetchQuyDinh = async () => {
+            const data = await getQuyDinh();
+            setQuyDinh(data);
+        };
+        fetchQuyDinh();
+    }, []);
 
     useEffect(() => {
         if (isOpen && yeuCau && yeuCau.dauSachIds) {
@@ -96,12 +106,13 @@ const DuyetYeuCauModal: React.FC<DuyetYeuCauModalProps> = ({ isOpen, onClose, on
         }
 
         setLoading(true);
+        const durationDays = quyDinh?.soNgayMuonToiDa || 10;
         try {
             await CreatePhieuMuon({
                 docGiaId: yeuCau.docGiaId,
                 thuThuId: thuThuId,
                 kenhMuon: 2, // Online
-                hanTra: new Date(new Date().getTime() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+                hanTra: new Date(new Date().getTime() + durationDays * 24 * 60 * 60 * 1000).toISOString(),
                 cuonSachIds: assignments.map(a => a.cuonSachId),
                 yeuCauId: yeuCau.id
             });

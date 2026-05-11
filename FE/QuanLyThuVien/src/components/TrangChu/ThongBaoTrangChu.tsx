@@ -1,8 +1,25 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './ThongBaoTrangChu.module.css';
-
+import { GetDanhSachSach } from '../../dichVu/modules/dichVuSach';
+import { useNavigate } from 'react-router-dom';
 
 const HomeAnnouncements: React.FC = () => {
+  const [totalBooks, setTotalBooks] = useState<number>(0);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await GetDanhSachSach(1, 1);
+        if (res && res.totalItems) {
+          setTotalBooks(res.totalItems);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchStats();
+  }, []);
   return (
     <div className={styles['announcements-container']}>
       <div className={`${styles['announcement-item']} ${styles['info']}`}>
@@ -14,24 +31,17 @@ const HomeAnnouncements: React.FC = () => {
         </p>
       </div>
 
-      <div className={`${styles['announcement-item']} ${styles['success']}`}>
-        <div className={styles['announcement-icon-wrapper']}>
-          <span role="img" aria-label="party">🎉</span>
+      {totalBooks > 0 && (
+        <div className={`${styles['announcement-item']} ${styles['success']}`}>
+          <div className={styles['announcement-icon-wrapper']}>
+            <span role="img" aria-label="party">🎉</span>
+          </div>
+          <p className={styles['announcement-text']}>
+            Thư viện hiện có hơn <strong>{totalBooks}</strong> đầu sách đa dạng các thể loại – khám phá ngay!
+          </p>
+          <a href="#" onClick={(e) => { e.preventDefault(); navigate('/books'); }} className={styles['announcement-link']}>Xem ngay &rarr;</a>
         </div>
-        <p className={styles['announcement-text']}>
-          Bổ sung 50 đầu sách mới trong tháng 3/2026 – xem ngay!
-        </p>
-        <a href="#" className={styles['announcement-link']}>Xem ngay &rarr;</a>
-      </div>
-
-      <div className={`${styles['announcement-item']} ${styles['warning']}`}>
-        <div className={styles['announcement-icon-wrapper']}>
-          <span role="img" aria-label="warning">⚠️</span>
-        </div>
-        <p className={styles['announcement-text']}>
-          Nhắc nhở: Hạn trả sách tháng 3 là ngày 25/03/2026.
-        </p>
-      </div>
+      )}
     </div>
   );
 };
