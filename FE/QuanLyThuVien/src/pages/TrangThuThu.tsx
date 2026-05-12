@@ -13,6 +13,7 @@ import XacNhanTraSachModal from '../components/CuaSoXacNhan/XacNhanTraSachModal'
 import TaoPhieuMuonModal from '../components/CuaSoXacNhan/TaoPhieuMuonModal';
 import { FiX, FiSearch, FiBook, FiTrash2 } from 'react-icons/fi';
 import { getAllUsers, type UserItem } from '../dichVu/modules/dichVuNguoiDung';
+import AdminHeader from '../components/GiaoDienChinh/AdminHeader';
 
 const formatDate = (dateString: string) => {
   if (!dateString) return '---';
@@ -751,27 +752,12 @@ const LibrarianPage: React.FC = () => {
       {/* Main Content */}
       <main className={styles['admin-main']}>
         {/* Header */}
-        <header className={styles['admin-header']}>
-          <h1 className={styles['admin-header-title']}>
-            {menuItems.find(m => m.id === activeTab)?.label}
-          </h1>
-
-          <div className={styles['admin-header-actions']}>
-            <button className={styles['icon-btn']} onClick={fetchData} title="Làm mới dữ liệu">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" /><path d="M16 21h5v-5" /></svg>
-            </button>
-            <div className={styles['admin-profile-btn']} style={{ borderColor: '#10b981' }}>
-              <div className={styles['admin-avatar']} style={{ backgroundColor: '#10b981', boxShadow: '0 0 0 2px var(--bg), 0 0 0 4px #10b981' }}>
-                {getUserName() ? getUserName()!.charAt(0).toUpperCase() : 'T'}
-              </div>
-              <span className={styles['admin-username']}>{getUserName() || 'Thủ Thư (NV)'}</span>
-              <svg className={styles['chevron-icon']} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
-            </div>
-            <Link to="/" className={styles['exit-btn']} title="Trở về trang chủ">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" x2="9" y1="12" y2="12" /></svg>
-            </Link>
-          </div>
-        </header>
+        <AdminHeader 
+          title={menuItems.find(m => m.id === activeTab)?.label || 'Quản lý'} 
+          onRefresh={fetchData}
+          accentColor="#10b981"
+          avatarLetter={getUserName() ? getUserName()!.charAt(0).toUpperCase() : 'T'}
+        />
 
         {/* Dynamic Content Area */}
         <div className={styles['admin-content']}>
