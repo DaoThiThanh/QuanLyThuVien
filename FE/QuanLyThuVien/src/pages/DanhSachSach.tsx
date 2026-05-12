@@ -4,11 +4,14 @@ import PageTitle from "../components/Sach/PageTitle";
 import SearchBar from "../components/Sach/SearchBar";
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import CategoryTab from "../components/Sach/CategoryTab";
-import ResultInfor from "../components/Sach/ResultInfor";
-import type { BookItem } from "../components/Sach/BookGrid";
 import BookGrid from "../components/Sach/BookGrid";
 import { GetDanhSachSach, GetCategories } from "../dichVu/modules/dichVuSach";
+import styles from "./DanhSachSach.module.css";
+import { 
+    FiGrid, FiLayers, FiSearch, FiChevronLeft, FiChevronRight, FiFilter 
+} from "react-icons/fi";
+import type { CategoryItem } from "../kieuDuLieu/sach";
+import type { BookItem } from "../components/Sach/BookGrid";
 
 function BooksPage() {
     const navigate = useNavigate();
@@ -17,7 +20,7 @@ function BooksPage() {
     const [search, setSearch] = useState(searchParams.get("search") || "");
     const [activeCategory, setActiveCategory] = useState(searchParams.get("category") || "Tất cả");
 
-    const [categoriesList, setCategoriesList] = useState<string[]>(["Tất cả"]);
+    const [categories, setCategories] = useState<CategoryItem[]>([]);
 
     useEffect(() => {
         setSearch(searchParams.get("search") || "");
@@ -28,13 +31,21 @@ function BooksPage() {
         const fetchCats = async () => {
             try {
                 const res = await GetCategories();
-                let fetchedCats: string[] = [];
+                let fetchedCats: CategoryItem[] = [];
                 if (Array.isArray(res)) {
-                    fetchedCats = res.map(c => c.tenDanhMuc);
+                    fetchedCats = res;
                 } else if (res && (res as any).data) {
-                    fetchedCats = (res as any).data.map((c: any) => c.tenDanhMuc);
+                    fetchedCats = (res as any).data;
                 }
-                setCategoriesList(["Tất cả", ...fetchedCats]);
+                
+                const allCategory: CategoryItem = {
+                    id: "all",
+                    tenDanhMuc: "Tất cả",
+                    icon: "📚",
+                    soLuongSach: 0
+                };
+                
+                setCategories([allCategory, ...fetchedCats]);
             } catch (err) {
                 console.error(err);
             }
@@ -52,7 +63,7 @@ function BooksPage() {
         const fetchBooks = async () => {
             setLoading(true);
             try {
-                const response = await GetDanhSachSach(1, 100); // Lấy 100 sách
+                const response = await GetDanhSachSach(1, 100); 
                 if (response && response.items) {
                     const mappedBooks: BookItem[] = response.items.map(item => ({
                         id: item.id,
@@ -85,110 +96,164 @@ function BooksPage() {
 
     useEffect(() => {
         setCurrentPage(1);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }, [search, activeCategory]);
+
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, [currentPage]);
 
     const totalPages = Math.ceil(filteredBooks.length / pageSize);
     const startIndex = (currentPage - 1) * pageSize;
     const paginatedBooks = filteredBooks.slice(startIndex, startIndex + pageSize);
+    
     const handleViewDetail = (book: BookItem) => {
         navigate(`/book-detail/${book.id}`);
     }
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+        <div className={styles['books-container']}>
             <Header />
-            <main style={{ flex: 1, padding: '40px 24px', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
-                <PageTitle
-                    title="Danh sách sách"
-                    subtitle={`Tìm kiếm trong ${totalItems} đầu sách của thư viện`}
-                />
-                <SearchBar
-                    value={search}
-                    onChange={setSearch}
-                    onFilterClick={() => { }}
-                />
-                <CategoryTab
-                    categories={categoriesList}
-                    activeCategory={activeCategory}
-                    onChange={setActiveCategory}
-                />
-                <ResultInfor
-                    count={filteredBooks.length}
-                />
-                <div>
-                    <h1 style={{ marginBottom: '20px' }}>Danh sách sách</h1>
-                    {loading ? (
-                        <div style={{ padding: '40px 0', textAlign: 'center' }}>Đang tải sách...</div>
-                    ) : filteredBooks.length === 0 ? (
-                        <div style={{ padding: '40px 0', textAlign: 'center' }}>Không tìm thấy cuốn sách nào phù hợp.</div>
-                    ) : (
-                        <>
-                            <BookGrid
-                                books={paginatedBooks}
-                                onViewDetail={handleViewDetail}
+            <main className={styles['main-content']}>
+                <div className={styles['layout-wrapper']}>
+                    {/* Sidebar Filter */}
+                    <aside className={styles['sidebar']}>
+                        {/* Search in Sidebar */}
+                        <div className={styles['sidebar-section']}>
+                            <h3 className={styles['section-title']}>
+                                <FiSearch /> Tìm kiếm sách
+                            </h3>
+                            <div className={styles['sidebar-search-box']}>
+                                <SearchBar
+                                    value={search}
+                                    onChange={setSearch}
+                                    hideFilter={true}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Categories in Sidebar */}
+                        <div className={styles['sidebar-section']}>
+                            <h3 className={styles['section-title']}>
+                                <FiFilter /> Danh mục sách
+                            </h3>
+                            <div className={styles['category-list']}>
+                                {categories.map(cat => (
+                                    <button
+                                        key={cat.id}
+                                        className={`${styles['category-item']} ${activeCategory === cat.tenDanhMuc ? styles['active'] : ''}`}
+                                        onClick={() => setActiveCategory(cat.tenDanhMuc)}
+                                    >
+                                        <span className={styles['category-icon-api']}>
+                                            {cat.icon ? (
+                                                <span className={styles['icon-text']}>{cat.icon}</span>
+                                            ) : (
+                                                <FiLayers />
+                                            )}
+                                        </span>
+                                        <span className={styles['category-name']}>{cat.tenDanhMuc}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className={styles['sidebar-section']} style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', color: 'white' }}>
+                            <h3 className={styles['section-title']} style={{ color: 'white' }}>
+                                📚 Ưu đãi đọc sách
+                            </h3>
+                            <p style={{ fontSize: '14px', opacity: 0.9, marginBottom: '16px' }}>
+                                Mượn sách miễn phí hoàn toàn khi là thành viên của thư viện.
+                            </p>
+                            <button style={{ 
+                                background: 'white', 
+                                color: '#3b82f6', 
+                                border: 'none', 
+                                padding: '10px 20px', 
+                                borderRadius: '10px', 
+                                fontWeight: '700',
+                                width: '100%',
+                                cursor: 'pointer'
+                            }}>
+                                Đăng ký ngay
+                            </button>
+                        </div>
+                    </aside>
+
+                    {/* Main Results */}
+                    <div className={styles['content-area']}>
+                        <div className={styles['results-header']}>
+                            <PageTitle
+                                title="Kho sách trí thức"
+                                subtitle={`Tìm thấy ${filteredBooks.length} cuốn sách dành cho bạn`}
                             />
+                        </div>
 
-                            {/* Phân trang */}
-                            {totalPages > 1 && (
-                                <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '40px' }}>
-                                    <button
-                                        disabled={currentPage === 1}
-                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                        style={{
-                                            padding: '8px 16px',
-                                            borderRadius: '8px',
-                                            border: '1px solid #e2e8f0',
-                                            background: currentPage === 1 ? '#f8fafc' : 'white',
-                                            color: currentPage === 1 ? '#94a3b8' : '#1e293b',
-                                            cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                                            fontWeight: 500
-                                        }}
-                                    >
-                                        Trước
-                                    </button>
+                        <div className={styles['results-summary']}>
+                            <div className={styles['results-count']}>
+                                Hiển thị <b>{paginatedBooks.length}</b> trong <b>{filteredBooks.length}</b> sách phù hợp
+                            </div>
+                            <div className={styles['pagination-info']}>
+                                Trang {currentPage} / {totalPages || 1}
+                            </div>
+                        </div>
 
-                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                                        <button
-                                            key={page}
-                                            onClick={() => setCurrentPage(page)}
-                                            style={{
-                                                padding: '8px 16px',
-                                                borderRadius: '8px',
-                                                border: '1px solid',
-                                                borderColor: currentPage === page ? '#3b82f6' : '#e2e8f0',
-                                                background: currentPage === page ? '#3b82f6' : 'white',
-                                                color: currentPage === page ? 'white' : '#1e293b',
-                                                cursor: 'pointer',
-                                                fontWeight: 500
-                                            }}
-                                        >
-                                            {page}
-                                        </button>
-                                    ))}
-
-                                    <button
-                                        disabled={currentPage === totalPages}
-                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                        style={{
-                                            padding: '8px 16px',
-                                            borderRadius: '8px',
-                                            border: '1px solid #e2e8f0',
-                                            background: currentPage === totalPages ? '#f8fafc' : 'white',
-                                            color: currentPage === totalPages ? '#94a3b8' : '#1e293b',
-                                            cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-                                            fontWeight: 500
-                                        }}
-                                    >
-                                        Sau
-                                    </button>
+                        <div className={styles['books-grid-container']}>
+                            {loading ? (
+                                <div className={styles['loading-state']}>
+                                    <div className={styles['spinner']}></div>
+                                    <p>Đang tải kho sách...</p>
                                 </div>
+                            ) : filteredBooks.length === 0 ? (
+                                <div className={styles['empty-results']}>
+                                    <FiSearch size={48} />
+                                    <p>Không tìm thấy cuốn sách nào phù hợp.</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <BookGrid
+                                        books={paginatedBooks}
+                                        onViewDetail={handleViewDetail}
+                                    />
+
+                                    {/* Pagination */}
+                                    {totalPages > 1 && (
+                                        <div className={styles['pagination']}>
+                                            <button
+                                                className={styles['page-btn']}
+                                                disabled={currentPage === 1}
+                                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                            >
+                                                <FiChevronLeft /> Trước
+                                            </button>
+
+                                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                                <button
+                                                    key={page}
+                                                    className={`${styles['page-btn']} ${currentPage === page ? styles['active'] : ''}`}
+                                                    onClick={() => setCurrentPage(page)}
+                                                >
+                                                    {page}
+                                                </button>
+                                            ))}
+
+                                            <button
+                                                className={styles['page-btn']}
+                                                disabled={currentPage === totalPages}
+                                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                            >
+                                                Sau <FiChevronRight />
+                                            </button>
+                                        </div>
+                                    )}
+                                </>
                             )}
-                        </>
-                    )}
+                        </div>
+                    </div>
                 </div>
             </main>
             <Footer />
         </div>
-    )
+    );
 }
-export default BooksPage
+
+export default BooksPage;

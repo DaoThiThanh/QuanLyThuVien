@@ -10,12 +10,14 @@ import ProfilePage from './pages/TrangCaNhan';
 import AdminPage from './pages/TrangAdmin';
 import LibrarianPage from './pages/TrangThuThu';
 import CartPage from './pages/GioSach';
+import ScrollToTop from './tienIch/ScrollToTop';
 
 function App() {
 
   return (
     <>
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/register" element={<RegisterPage />} />
