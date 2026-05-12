@@ -14,7 +14,19 @@ export interface ThamSoQuyDinhDto {
 export const getQuyDinh = async (): Promise<ThamSoQuyDinhDto> => {
     try {
         const response = await CauHinhApi.get('/quy-dinh');
-        return response.data;
+        // Handle both direct data and wrapped data
+        const data = response.data.data ? response.data.data : response.data;
+        
+        return {
+            id: data.id || '',
+            soSachMuonToiDa: data.soSachMuonToiDa || 3,
+            soNgayMuonToiDa: data.soNgayMuonToiDa || 10,
+            phiPhatTreHanMoiNgay: data.phiPhatTreHanMoiNgay || 5000,
+            phiPhatHongNhe: data.phiPhatHongNhe || 20000,
+            phiPhatHongNang: data.phiPhatHongNang || 50000,
+            phiPhatMatSach: data.phiPhatMatSach || 100000,
+            ngayCapNhat: data.ngayCapNhat || new Date().toISOString()
+        };
     } catch (error) {
         console.error("Lỗi khi lấy quy định:", error);
         return {
