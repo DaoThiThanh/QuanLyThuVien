@@ -7,7 +7,7 @@
 
 .main-content {
   flex: 1;
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
   width: 100%;
   padding: 40px 24px;
@@ -160,7 +160,8 @@
 }
 
 /* Loading & Empty States */
-.loading-state, .empty-results {
+.loading-state,
+.empty-results {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -191,8 +192,13 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Pagination Styling */
@@ -240,14 +246,17 @@
   .layout-wrapper {
     flex-direction: column;
   }
+
   .sidebar {
     width: 100%;
   }
+
   .category-list {
     flex-direction: row;
     overflow-x: auto;
     padding-bottom: 8px;
   }
+
   .category-item {
     white-space: nowrap;
     width: auto;
