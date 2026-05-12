@@ -621,6 +621,16 @@ const LibrarianPage: React.FC = () => {
     }
   };
 
+  const handleViewDetail = async (phieuId: string) => {
+    try {
+      const data = await GetPhieuMuonById(phieuId);
+      setSelectedPhieuMuon(data);
+      setShowLoanDetailModal(true);
+    } catch (error) {
+      alert('Không thể tải chi tiết phiếu mượn');
+    }
+  };
+
   const handleSaveBook = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -1278,10 +1288,7 @@ const LibrarianPage: React.FC = () => {
                                   <button
                                     className={styles['action-btn-mini']}
                                     title="Xem chi tiết"
-                                    onClick={() => {
-                                      setSelectedPhieuMuon(item);
-                                      setShowLoanDetailModal(true);
-                                    }}
+                                    onClick={() => handleViewDetail(item.id)}
                                   >
                                     <FiSearch size={14} />
                                   </button>
@@ -1895,72 +1902,242 @@ const LibrarianPage: React.FC = () => {
           onSuccess={fetchData}
         />
 
-        {showLoanDetailModal && selectedPhieuMuon && (
-          <div className={styles['modal-overlay']}>
-            <div className={styles['modal-content']} style={{ maxWidth: '700px' }}>
-              <div className={styles['modal-header']}>
-                <h2>Chi tiết Phiếu Mượn #{String(selectedPhieuMuon.id).substring(0, 8)}</h2>
-                <button className={styles['modal-close-btn']} onClick={() => setShowLoanDetailModal(false)}>
-                  <FiX size={24} />
-                </button>
-              </div>
-              <div className={styles['modal-body']}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '25px', padding: '15px', background: '#f8fafc', borderRadius: '12px' }}>
+        {showLoanDetailModal && selectedPhieuMuon && (() => {
+          const pm = selectedPhieuMuon;
+          const chiTiet: any[] = pm.chiTiet || [];
+          const isOverdue = pm.trangThai === 1 && new Date(pm.hanTra) < new Date();
+          const isReturned = pm.trangThai === 2;
+          const totalFine = chiTiet.reduce((s: number, ct: any) => s + (ct.tienPhat ?? 0), 0);
+          const returnedCount = chiTiet.filter((ct: any) => ct.ngayTraThucTe).length;
+
+          const statusInfo = isReturned
+            ? { label: 'Đã hoàn trả', bg: '#f0fdf4', color: '#16a34a', border: '#d1fae5', dot: '#22c55e' }
+            : isOverdue
+            ? { label: 'Quá hạn', bg: '#fff1f2', color: '#e11d48', border: '#ffe4e6', dot: '#ef4444' }
+            : { label: 'Đang mượn', bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe', dot: '#3b82f6' };
+
+          return (
+            <div style={{
+              position: 'fixed', inset: 0, zIndex: 1000,
+              background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(5px)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: '16px',
+            }} onClick={() => setShowLoanDetailModal(false)}>
+              <div style={{
+                background: 'white', borderRadius: '20px',
+                width: '100%', maxWidth: '720px', maxHeight: '92vh',
+                display: 'flex', flexDirection: 'column',
+                boxShadow: '0 30px 60px rgba(0,0,0,0.25)',
+                overflow: 'hidden',
+                animation: 'modalIn 0.22s ease-out',
+              }} onClick={e => e.stopPropagation()}>
+
+                {/* ── HEADER ── */}
+                <div style={{
+                  padding: '22px 28px 18px',
+                  background: isReturned
+                    ? 'linear-gradient(135deg,#f0fdf4,#f8fffb)'
+                    : isOverdue
+                    ? 'linear-gradient(135deg,#fff1f2,#fff7f7)'
+                    : 'linear-gradient(135deg,#eff6ff,#f8faff)',
+                  borderBottom: '1px solid #f1f5f9',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+                  flexShrink: 0,
+                }}>
                   <div>
-                    <p style={{ margin: '0 0 5px 0', fontSize: '12px', color: '#64748b', textTransform: 'uppercase', fontWeight: '700' }}>Độc giả</p>
-                    <p style={{ margin: 0, fontWeight: '600' }}>{selectedPhieuMuon.tenDocGia}</p>
-                  </div>
-                  <div>
-                    <p style={{ margin: '0 0 5px 0', fontSize: '12px', color: '#64748b', textTransform: 'uppercase', fontWeight: '700' }}>Kênh mượn</p>
-                    <p style={{ margin: 0 }}>{selectedPhieuMuon.kenhMuon === 2 ? '⚡ Online' : '🏢 Tại quầy'}</p>
-                  </div>
-                  <div>
-                    <p style={{ margin: '0 0 5px 0', fontSize: '12px', color: '#64748b', textTransform: 'uppercase', fontWeight: '700' }}>Ngày mượn</p>
-                    <p style={{ margin: 0 }}>{formatDate(selectedPhieuMuon.ngayMuon)}</p>
-                  </div>
-                  <div>
-                    <p style={{ margin: '0 0 5px 0', fontSize: '12px', color: '#64748b', textTransform: 'uppercase', fontWeight: '700' }}>Hạn trả</p>
-                    <p style={{ margin: 0, color: (selectedPhieuMuon.trangThai === 1 && new Date(selectedPhieuMuon.hanTra) < new Date()) ? '#ef4444' : 'inherit', fontWeight: '700' }}>
-                      {formatDate(selectedPhieuMuon.hanTra)}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                      <span style={{
+                        fontSize: '11px', fontWeight: 800, letterSpacing: '0.08em',
+                        padding: '3px 10px', borderRadius: '20px', textTransform: 'uppercase',
+                        background: pm.kenhMuon === 2 ? '#dbeafe' : '#d1fae5',
+                        color: pm.kenhMuon === 2 ? '#1d4ed8' : '#065f46',
+                      }}>
+                        {pm.kenhMuon === 2 ? '⚡ Online' : '🏢 Tại quầy'}
+                      </span>
+                      <span style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '5px',
+                        fontSize: '12px', fontWeight: 700, padding: '3px 10px',
+                        borderRadius: '20px', background: statusInfo.bg,
+                        color: statusInfo.color, border: `1px solid ${statusInfo.border}`,
+                      }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: statusInfo.dot, display: 'inline-block' }} />
+                        {statusInfo.label}
+                      </span>
+                    </div>
+                    <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#0f172a' }}>
+                      Chi tiết Phiếu Mượn
+                    </h2>
+                    <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b', fontFamily: 'monospace' }}>
+                      #{String(pm.id).toUpperCase().substring(0, 16)}
                     </p>
                   </div>
+                  <button
+                    onClick={() => setShowLoanDetailModal(false)}
+                    style={{
+                      width: '36px', height: '36px', borderRadius: '10px',
+                      border: '1px solid #e2e8f0', background: 'white',
+                      fontSize: '18px', cursor: 'pointer', color: '#64748b',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >✕</button>
                 </div>
 
-                <h3 style={{ fontSize: '16px', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <FiBook /> Danh sách sách mượn
-                </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {selectedPhieuMuon.chiTiet && selectedPhieuMuon.chiTiet.map((ct: any) => (
-                    <div key={ct.id} style={{ display: 'flex', gap: '15px', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', alignItems: 'center' }}>
-                      <img src={ct.hinhAnh || 'https://placehold.co/400x600?text=Book'} alt={ct.tenSach} style={{ width: '50px', height: '70px', objectFit: 'cover', borderRadius: '4px' }} />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: '600', fontSize: '14px' }}>{ct.tenSach}</div>
-                        <div style={{ fontSize: '12px', color: '#64748b' }}>Mã vạch: <span style={{ fontFamily: 'monospace', fontWeight: '700', color: '#3b82f6' }}>{ct.maVach}</span></div>
+                {/* ── BODY ── */}
+                <div style={{ overflowY: 'auto', flex: 1, padding: '22px 28px' }}>
+
+                  {/* Info grid */}
+                  <div style={{
+                    display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px',
+                    padding: '16px', borderRadius: '14px',
+                    background: '#f8fafc', border: '1px solid #e2e8f0', marginBottom: '22px',
+                  }}>
+                    {[
+                      { label: 'Độc giả', value: pm.tenDocGia, bold: true },
+                      { label: 'Ngày mượn', value: formatDate(pm.ngayMuon) },
+                      { label: 'Hạn trả', value: formatDate(pm.hanTra), color: isOverdue && !isReturned ? '#e11d48' : undefined },
+                      { label: 'Thủ thư xử lý', value: pm.tenThuThu || '—' },
+                      { label: 'Số cuốn', value: `${chiTiet.length} cuốn (${returnedCount} đã trả)` },
+                      {
+                        label: 'Tổng phí phạt',
+                        value: totalFine > 0 ? `${totalFine.toLocaleString('vi-VN')} đ` : 'Không có',
+                        color: totalFine > 0 ? '#e11d48' : '#16a34a',
+                        bold: totalFine > 0,
+                      },
+                    ].map((cell, i) => (
+                      <div key={i}>
+                        <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '3px' }}>{cell.label}</div>
+                        <div style={{ fontSize: '14px', fontWeight: cell.bold ? 700 : 500, color: cell.color ?? '#1e293b' }}>{cell.value}</div>
                       </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <span className={`${styles['status-badge']} ${ct.ngayTraThucTe ? styles['status-approved'] : (new Date(selectedPhieuMuon.hanTra) < new Date() ? styles['status-rejected'] : styles['status-pending'])}`}>
-                          {ct.ngayTraThucTe ? 'Đã trả' : (new Date(selectedPhieuMuon.hanTra) < new Date() ? 'Quá hạn' : 'Đang mượn')}
-                        </span>
-                        {ct.ngayTraThucTe && (
-                          <div style={{ fontSize: '10px', color: '#10b981', marginTop: '4px' }}>Ngày trả: {formatDate(ct.ngayTraThucTe)}</div>
-                        )}
-                        {ct.tienPhat > 0 && (
-                          <div style={{ fontSize: '12px', color: '#ef4444', fontWeight: '700', marginTop: '4px' }}>Phạt: {ct.tienPhat.toLocaleString()} ₫</div>
-                        )}
+                    ))}
+                  </div>
+
+                  {/* Overdue banner */}
+                  {isOverdue && !isReturned && (
+                    <div style={{
+                      padding: '12px 16px', borderRadius: '10px', marginBottom: '18px',
+                      background: '#fff1f2', border: '1px solid #fecaca',
+                      display: 'flex', alignItems: 'center', gap: '10px',
+                    }}>
+                      <span style={{ fontSize: '20px' }}>⚠️</span>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: '13px', color: '#b91c1c' }}>Phiếu đã quá hạn trả!</div>
+                        <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '2px' }}>
+                          Trễ {Math.ceil((new Date().getTime() - new Date(pm.hanTra).getTime()) / 86400000)} ngày — Cần xử lý ngay để tránh phát sinh thêm phí.
+                        </div>
                       </div>
                     </div>
-                  ))}
+                  )}
+
+                  {/* Book list */}
+                  <p style={{ fontSize: '13px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 12px' }}>
+                    Danh sách sách ({chiTiet.length})
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {chiTiet.map((ct: any) => {
+                      const returned = !!ct.ngayTraThucTe;
+                      const ctOverdue = !returned && new Date(pm.hanTra) < new Date();
+                      const ctStatus = returned
+                        ? { label: 'Đã trả', bg: '#f0fdf4', color: '#16a34a', border: '#d1fae5' }
+                        : ctOverdue
+                        ? { label: 'Quá hạn', bg: '#fff1f2', color: '#e11d48', border: '#ffe4e6' }
+                        : { label: 'Đang mượn', bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' };
+
+                      return (
+                        <div key={ct.id} style={{
+                          display: 'flex', gap: '14px', alignItems: 'flex-start',
+                          padding: '14px 16px', borderRadius: '14px',
+                          border: `1px solid ${returned ? '#e2e8f0' : ctOverdue ? '#ffe4e6' : '#e2e8f0'}`,
+                          background: returned ? '#fafbff' : ctOverdue ? '#fff7f7' : 'white',
+                        }}>
+                          {/* Cover */}
+                          <div style={{ width: '52px', height: '74px', flexShrink: 0, borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
+                            <img
+                              src={ct.hinhAnh || 'https://placehold.co/52x74/e2e8f0/1e293b?text=Book'}
+                              alt={ct.tenSach}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                              onError={e => { (e.target as HTMLImageElement).src = 'https://placehold.co/52x74/e2e8f0/1e293b?text=📖'; }}
+                            />
+                          </div>
+                          {/* Info */}
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontWeight: 700, fontSize: '14px', color: '#0f172a', marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ct.tenSach}</div>
+                            <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '8px' }}>
+                              <span style={{ fontFamily: 'monospace', background: '#f1f5f9', padding: '1px 6px', borderRadius: '4px', color: '#3b82f6', fontWeight: 700 }}>{ct.maVach}</span>
+                              {ct.tenTacGia && <span style={{ marginLeft: '8px' }}>{ct.tenTacGia}</span>}
+                            </div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+                              <span style={{
+                                fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '8px',
+                                background: ctStatus.bg, color: ctStatus.color, border: `1px solid ${ctStatus.border}`,
+                              }}>{ctStatus.label}</span>
+                              {returned && ct.ngayTraThucTe && (
+                                <span style={{ fontSize: '12px', color: '#64748b' }}>
+                                  📅 Trả: <strong>{formatDate(ct.ngayTraThucTe)}</strong>
+                                </span>
+                              )}
+                              {ct.tinhTrangKhiTra && (
+                                <span style={{ fontSize: '11px', color: '#475569', background: '#f1f5f9', padding: '2px 8px', borderRadius: '8px' }}>
+                                  Tình trạng: {ct.tinhTrangKhiTra}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {/* Fine */}
+                          <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                            <div style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '2px' }}>Phí phạt</div>
+                            <div style={{ fontSize: '18px', fontWeight: 800, color: (ct.tienPhat ?? 0) > 0 ? '#e11d48' : '#10b981' }}>
+                              {(ct.tienPhat ?? 0) > 0 ? `${ct.tienPhat.toLocaleString('vi-VN')} đ` : '—'}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Total fine */}
+                  {totalFine > 0 && (
+                    <div style={{
+                      marginTop: '16px', padding: '14px 18px', borderRadius: '12px',
+                      background: '#fff1f2', border: '1px solid #fecaca',
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    }}>
+                      <span style={{ fontWeight: 700, color: '#b91c1c', fontSize: '14px' }}>💰 Tổng phí phạt</span>
+                      <span style={{ fontWeight: 800, fontSize: '22px', color: '#e11d48' }}>{totalFine.toLocaleString('vi-VN')} đ</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* ── FOOTER ── */}
+                <div style={{
+                  padding: '16px 28px', borderTop: '1px solid #f1f5f9',
+                  display: 'flex', justifyContent: 'flex-end', gap: '10px',
+                  background: '#fafbff', flexShrink: 0,
+                }}>
+                  <button
+                    onClick={() => setShowLoanDetailModal(false)}
+                    style={{
+                      padding: '9px 22px', borderRadius: '10px', border: '1px solid #e2e8f0',
+                      background: 'white', color: '#475569', fontWeight: 700, fontSize: '13px', cursor: 'pointer',
+                    }}
+                  >Đóng</button>
+                  {pm.trangThai === 1 && (
+                    <button
+                      onClick={() => { setShowLoanDetailModal(false); setShowReturnModal(true); }}
+                      style={{
+                        padding: '9px 22px', borderRadius: '10px', border: 'none',
+                        background: 'linear-gradient(135deg,#10b981,#059669)',
+                        color: 'white', fontWeight: 700, fontSize: '13px', cursor: 'pointer',
+                        boxShadow: '0 4px 12px rgba(16,185,129,0.3)',
+                      }}
+                    >📋 Xử lý trả sách</button>
+                  )}
                 </div>
               </div>
-              <div className={styles['modal-footer']}>
-                <button className={styles['btn-secondary']} onClick={() => setShowLoanDetailModal(false)}>Đóng</button>
-                {selectedPhieuMuon.trangThai === 1 && (
-                  <button className={styles['btn-primary']} onClick={() => { setShowLoanDetailModal(false); setShowReturnModal(true); }}>Trả sách</button>
-                )}
-              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
+
         {showCopyModal && (
           <div className={styles['modal-overlay']} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div className={styles['modal-content']} style={{ maxWidth: '500px', width: '90%', background: 'white', borderRadius: '12px', overflow: 'hidden' }}>

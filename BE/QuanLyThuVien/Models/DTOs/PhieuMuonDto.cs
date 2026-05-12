@@ -6,6 +6,7 @@ namespace QuanLyThuVien.Models.DTOs
         public Guid DocGiaId { get; set; }
         public string TenDocGia { get; set; }
         public Guid? ThuThuId { get; set; }
+        public string? TenThuThu { get; set; }
         public int KenhMuon { get; set; }
         public DateTime NgayMuon { get; set; }
         public DateTime HanTra { get; set; }

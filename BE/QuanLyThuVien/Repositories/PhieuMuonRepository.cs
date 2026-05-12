@@ -63,6 +63,7 @@ namespace QuanLyThuVien.Repositories
                         pm.DocGiaId, 
                         nd.HoTen as TenDocGia, 
                         pm.ThuThuId, 
+                        tt.HoTen as TenThuThu,
                         pm.KenhMuon, 
                         pm.NgayMuon, 
                         pm.HanTra, 
@@ -73,6 +74,7 @@ namespace QuanLyThuVien.Repositories
                          WHERE ct.PhieuMuonId = pm.Id) as TenSach
                     FROM PhieuMuon pm
                     LEFT JOIN NguoiDung nd ON pm.DocGiaId = nd.Id
+                    LEFT JOIN NguoiDung tt ON pm.ThuThuId = tt.Id
                     {whereClause}
                     ORDER BY pm.NgayMuon DESC
                     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
@@ -95,6 +97,7 @@ namespace QuanLyThuVien.Repositories
                                 DocGiaId = reader.GetGuid(reader.GetOrdinal("DocGiaId")),
                                 TenDocGia = reader.IsDBNull(reader.GetOrdinal("TenDocGia")) ? string.Empty : reader.GetString(reader.GetOrdinal("TenDocGia")),
                                 ThuThuId = reader.IsDBNull(reader.GetOrdinal("ThuThuId")) ? null : reader.GetGuid(reader.GetOrdinal("ThuThuId")),
+                                TenThuThu = reader.IsDBNull(reader.GetOrdinal("TenThuThu")) ? null : reader.GetString(reader.GetOrdinal("TenThuThu")),
                                 KenhMuon = reader.IsDBNull(reader.GetOrdinal("KenhMuon")) ? 1 : reader.GetInt32(reader.GetOrdinal("KenhMuon")),
                                 NgayMuon = reader.IsDBNull(reader.GetOrdinal("NgayMuon")) ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("NgayMuon")),
                                 HanTra = reader.IsDBNull(reader.GetOrdinal("HanTra")) ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("HanTra")),
@@ -127,12 +130,14 @@ namespace QuanLyThuVien.Repositories
                         pm.DocGiaId, 
                         nd.HoTen as TenDocGia, 
                         pm.ThuThuId, 
+                        tt.HoTen as TenThuThu,
                         pm.KenhMuon, 
                         pm.NgayMuon, 
                         pm.HanTra, 
                         pm.TrangThai
                     FROM PhieuMuon pm
                     LEFT JOIN NguoiDung nd ON pm.DocGiaId = nd.Id
+                    LEFT JOIN NguoiDung tt ON pm.ThuThuId = tt.Id
                     WHERE pm.Id = @Id";
 
                 using (var command = new SqlCommand(query, connection))
@@ -149,6 +154,7 @@ namespace QuanLyThuVien.Repositories
                                 DocGiaId = reader.GetGuid(reader.GetOrdinal("DocGiaId")),
                                 TenDocGia = reader.IsDBNull(reader.GetOrdinal("TenDocGia")) ? string.Empty : reader.GetString(reader.GetOrdinal("TenDocGia")),
                                 ThuThuId = reader.IsDBNull(reader.GetOrdinal("ThuThuId")) ? null : reader.GetGuid(reader.GetOrdinal("ThuThuId")),
+                                TenThuThu = reader.IsDBNull(reader.GetOrdinal("TenThuThu")) ? null : reader.GetString(reader.GetOrdinal("TenThuThu")),
                                 KenhMuon = reader.IsDBNull(reader.GetOrdinal("KenhMuon")) ? 1 : reader.GetInt32(reader.GetOrdinal("KenhMuon")),
                                 NgayMuon = reader.IsDBNull(reader.GetOrdinal("NgayMuon")) ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("NgayMuon")),
                                 HanTra = reader.IsDBNull(reader.GetOrdinal("HanTra")) ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("HanTra")),
