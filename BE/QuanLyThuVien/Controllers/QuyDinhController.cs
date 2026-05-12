@@ -26,7 +26,11 @@ namespace QuanLyThuVien.Controllers
         [HttpPut]
         public async Task<IActionResult> Update([FromBody] ThamSoQuyDinh quyDinh)
         {
-            if (quyDinh.SoSachMuonToiDa <= 0 || quyDinh.SoNgayMuonToiDa <= 0 || quyDinh.PhiPhatTreHanMoiNgay < 0)
+            if (quyDinh.SoSachMuonToiDa <= 0 || quyDinh.SoNgayMuonToiDa <= 0 
+                || quyDinh.PhiPhatTreHanMoiNgay < 0 
+                || quyDinh.PhiPhatHongNhe < 0 
+                || quyDinh.PhiPhatHongNang < 0 
+                || quyDinh.PhiPhatMatSach < 0)
             {
                 return BadRequest(new { Message = "Các thông số không hợp lệ. Vui lòng nhập số dương." });
             }

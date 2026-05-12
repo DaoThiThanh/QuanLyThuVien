@@ -152,7 +152,8 @@ namespace QuanLyThuVien.Repositories
                                 KenhMuon = reader.IsDBNull(reader.GetOrdinal("KenhMuon")) ? 1 : reader.GetInt32(reader.GetOrdinal("KenhMuon")),
                                 NgayMuon = reader.IsDBNull(reader.GetOrdinal("NgayMuon")) ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("NgayMuon")),
                                 HanTra = reader.IsDBNull(reader.GetOrdinal("HanTra")) ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("HanTra")),
-                                TrangThai = reader.IsDBNull(reader.GetOrdinal("TrangThai")) ? 1 : reader.GetInt32(reader.GetOrdinal("TrangThai"))
+                                TrangThai = reader.IsDBNull(reader.GetOrdinal("TrangThai")) ? 1 : reader.GetInt32(reader.GetOrdinal("TrangThai")),
+                                ChiTiet = new List<ChiTietPhieuMuonDto>()
                             };
                         }
                     }
@@ -160,6 +161,13 @@ namespace QuanLyThuVien.Repositories
 
                 if (phieuMuon != null)
                 {
+                    decimal phiPhat = 5000;
+                    var tsQuery = "SELECT TOP 1 PhiPhatTreHanMoiNgay FROM ThamSoQuyDinh ORDER BY NgayCapNhat DESC";
+                    using (var tsCommand = new SqlCommand(tsQuery, connection))
+                    {
+                        var val = await tsCommand.ExecuteScalarAsync();
+                        if (val != null && val != DBNull.Value) phiPhat = Convert.ToDecimal(val);
+                    }
                     var ctQuery = @"
                         SELECT 
                             ct.Id, 
@@ -182,15 +190,24 @@ namespace QuanLyThuVien.Repositories
                         {
                             while (await reader.ReadAsync())
                             {
+                                var ngayTra = reader.IsDBNull(reader.GetOrdinal("NgayTraThucTe")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("NgayTraThucTe"));
+                                var tienPhatDb = reader.IsDBNull(reader.GetOrdinal("TienPhat")) ? 0 : reader.GetDecimal(reader.GetOrdinal("TienPhat"));
+                                
+                                if (ngayTra == null && DateTime.Now.Date > phieuMuon.HanTra.Date)
+                                {
+                                    int trễ = (int)(DateTime.Now.Date - phieuMuon.HanTra.Date).TotalDays;
+                                    tienPhatDb = trễ * phiPhat;
+                                }
+
                                 phieuMuon.ChiTiet.Add(new ChiTietPhieuMuonDto
                                 {
                                     Id = reader.GetGuid(reader.GetOrdinal("Id")),
                                     CuonSachId = reader.GetGuid(reader.GetOrdinal("CuonSachId")),
                                     TenSach = reader.IsDBNull(reader.GetOrdinal("TenSach")) ? string.Empty : reader.GetString(reader.GetOrdinal("TenSach")),
                                     MaVach = reader.IsDBNull(reader.GetOrdinal("MaVach")) ? string.Empty : reader.GetString(reader.GetOrdinal("MaVach")),
-                                    NgayTraThucTe = reader.IsDBNull(reader.GetOrdinal("NgayTraThucTe")) ? null : reader.GetDateTime(reader.GetOrdinal("NgayTraThucTe")),
+                                    NgayTraThucTe = ngayTra,
                                     TinhTrangKhiTra = reader.IsDBNull(reader.GetOrdinal("TinhTrangKhiTra")) ? null : reader.GetString(reader.GetOrdinal("TinhTrangKhiTra")),
-                                    TienPhat = reader.IsDBNull(reader.GetOrdinal("TienPhat")) ? 0 : reader.GetDecimal(reader.GetOrdinal("TienPhat"))
+                                    TienPhat = tienPhatDb
                                 });
                             }
                         }
@@ -351,10 +368,16 @@ namespace QuanLyThuVien.Repositories
                         // 1. Lấy thông tin hạn trả và phí phạt từ tham số
                         DateTime hanTra = DateTime.MinValue;
                         decimal phiMoiNgay = 5000;
+                        decimal phiHongNhe = 20000;
+                        decimal phiHongNang = 50000;
+                        decimal phiMatSach = 100000;
 
                         var infoQuery = @"
                             SELECT pm.HanTra, 
-                                   ISNULL((SELECT TOP 1 PhiPhatTreHanMoiNgay FROM ThamSoQuyDinh ORDER BY NgayCapNhat DESC), 5000) as PhiPhat
+                                   ISNULL((SELECT TOP 1 PhiPhatTreHanMoiNgay FROM ThamSoQuyDinh ORDER BY NgayCapNhat DESC), 5000) as PhiPhat,
+                                   ISNULL((SELECT TOP 1 PhiPhatHongNhe FROM ThamSoQuyDinh ORDER BY NgayCapNhat DESC), 20000) as PhiHongNhe,
+                                   ISNULL((SELECT TOP 1 PhiPhatHongNang FROM ThamSoQuyDinh ORDER BY NgayCapNhat DESC), 50000) as PhiHongNang,
+                                   ISNULL((SELECT TOP 1 PhiPhatMatSach FROM ThamSoQuyDinh ORDER BY NgayCapNhat DESC), 100000) as PhiMatSach
                             FROM PhieuMuon pm WHERE pm.Id = @PhieuMuonId";
                         
                         using (var command = new SqlCommand(infoQuery, connection, transaction))
@@ -366,17 +389,33 @@ namespace QuanLyThuVien.Repositories
                                 {
                                     hanTra = reader.GetDateTime(0);
                                     phiMoiNgay = reader.GetDecimal(1);
+                                    phiHongNhe = reader.GetDecimal(2);
+                                    phiHongNang = reader.GetDecimal(3);
+                                    phiMatSach = reader.GetDecimal(4);
                                 }
                             }
                         }
 
                         // 2. Tính tiền phạt
-                        decimal tienPhat = 0;
+                        decimal tienPhatTre = 0;
                         if (DateTime.Now.Date > hanTra.Date)
                         {
                             int trễ = (int)(DateTime.Now.Date - hanTra.Date).TotalDays;
-                            tienPhat = trễ * phiMoiNgay;
+                            tienPhatTre = trễ * phiMoiNgay;
                         }
+
+                        decimal tienPhatHuHong = 0;
+                        int trangThaiCuonSachMoi = 1; // 1 = Sẵn sàng
+
+                        if (tinhTrang.Contains("Hỏng nhẹ")) tienPhatHuHong = phiHongNhe;
+                        else if (tinhTrang.Contains("Hỏng nặng")) tienPhatHuHong = phiHongNang;
+                        else if (tinhTrang.Contains("Mất")) 
+                        {
+                            tienPhatHuHong = phiMatSach;
+                            trangThaiCuonSachMoi = 3; // 3 = Đã mất
+                        }
+
+                        decimal tongTienPhat = tienPhatTre + tienPhatHuHong;
 
                         // 3. Cập nhật ChiTietPhieuMuon
                         var updateCtQuery = @"
@@ -391,26 +430,30 @@ namespace QuanLyThuVien.Repositories
                             command.Parameters.AddWithValue("@PhieuMuonId", phieuMuonId);
                             command.Parameters.AddWithValue("@CuonSachId", cuonSachId);
                             command.Parameters.AddWithValue("@TinhTrang", tinhTrang);
-                            command.Parameters.AddWithValue("@TienPhat", tienPhat);
+                            command.Parameters.AddWithValue("@TienPhat", tongTienPhat);
                             await command.ExecuteNonQueryAsync();
                         }
 
-                        // 4. Cập nhật trạng thái CuonSach sang 1 (Sẵn sàng)
-                        var updateCsQuery = "UPDATE CuonSach SET TrangThaiMuon = 1 WHERE Id = @CuonSachId";
+                        // 4. Cập nhật trạng thái CuonSach
+                        var updateCsQuery = "UPDATE CuonSach SET TrangThaiMuon = @TrangThai WHERE Id = @CuonSachId";
                         using (var command = new SqlCommand(updateCsQuery, connection, transaction))
                         {
                             command.Parameters.AddWithValue("@CuonSachId", cuonSachId);
+                            command.Parameters.AddWithValue("@TrangThai", trangThaiCuonSachMoi);
                             await command.ExecuteNonQueryAsync();
                         }
 
-                        // 5. Cập nhật SoLuongTon trong DauSach
-                        var updateDsQuery = @"
-                            UPDATE DauSach SET SoLuongTon = SoLuongTon + 1 
-                            WHERE Id = (SELECT DauSachId FROM CuonSach WHERE Id = @CuonSachId)";
-                        using (var command = new SqlCommand(updateDsQuery, connection, transaction))
+                        // 5. Cập nhật SoLuongTon trong DauSach (nếu không phải mất sách thì mới cộng lại)
+                        if (trangThaiCuonSachMoi == 1)
                         {
-                            command.Parameters.AddWithValue("@CuonSachId", cuonSachId);
-                            await command.ExecuteNonQueryAsync();
+                            var updateDsQuery = @"
+                                UPDATE DauSach SET SoLuongTon = SoLuongTon + 1 
+                                WHERE Id = (SELECT DauSachId FROM CuonSach WHERE Id = @CuonSachId)";
+                            using (var command = new SqlCommand(updateDsQuery, connection, transaction))
+                            {
+                                command.Parameters.AddWithValue("@CuonSachId", cuonSachId);
+                                await command.ExecuteNonQueryAsync();
+                            }
                         }
 
                         // 6. Kiểm tra xem tất cả sách trong phiếu đã trả chưa
@@ -495,6 +538,14 @@ namespace QuanLyThuVien.Repositories
                     }
                 }
 
+                decimal phiPhat = 5000;
+                var tsQuery = "SELECT TOP 1 PhiPhatTreHanMoiNgay FROM ThamSoQuyDinh ORDER BY NgayCapNhat DESC";
+                using (var tsCommand = new SqlCommand(tsQuery, connection))
+                {
+                    var val = await tsCommand.ExecuteScalarAsync();
+                    if (val != null && val != DBNull.Value) phiPhat = Convert.ToDecimal(val);
+                }
+
                 // Lấy chi tiết cho từng phiếu
                 foreach (var pm in result)
                 {
@@ -523,15 +574,24 @@ namespace QuanLyThuVien.Repositories
                         {
                             while (await reader.ReadAsync())
                             {
+                                var ngayTra = reader.IsDBNull(reader.GetOrdinal("NgayTraThucTe")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("NgayTraThucTe"));
+                                var tienPhatDb = reader.IsDBNull(reader.GetOrdinal("TienPhat")) ? 0 : reader.GetDecimal(reader.GetOrdinal("TienPhat"));
+                                
+                                if (ngayTra == null && DateTime.Now.Date > pm.HanTra.Date)
+                                {
+                                    int trễ = (int)(DateTime.Now.Date - pm.HanTra.Date).TotalDays;
+                                    tienPhatDb = trễ * phiPhat;
+                                }
+
                                 pm.ChiTiet.Add(new ChiTietPhieuMuonDto
                                 {
                                     Id = reader.GetGuid(reader.GetOrdinal("Id")),
                                     CuonSachId = reader.GetGuid(reader.GetOrdinal("CuonSachId")),
                                     TenSach = reader.IsDBNull(reader.GetOrdinal("TenSach")) ? string.Empty : reader.GetString(reader.GetOrdinal("TenSach")),
                                     MaVach = reader.IsDBNull(reader.GetOrdinal("MaVach")) ? string.Empty : reader.GetString(reader.GetOrdinal("MaVach")),
-                                    NgayTraThucTe = reader.IsDBNull(reader.GetOrdinal("NgayTraThucTe")) ? null : reader.GetDateTime(reader.GetOrdinal("NgayTraThucTe")),
+                                    NgayTraThucTe = ngayTra,
                                     TinhTrangKhiTra = reader.IsDBNull(reader.GetOrdinal("TinhTrangKhiTra")) ? null : reader.GetString(reader.GetOrdinal("TinhTrangKhiTra")),
-                                    TienPhat = reader.IsDBNull(reader.GetOrdinal("TienPhat")) ? 0 : reader.GetDecimal(reader.GetOrdinal("TienPhat")),
+                                    TienPhat = tienPhatDb,
                                     HinhAnh = reader.IsDBNull(reader.GetOrdinal("HinhAnh")) ? string.Empty : reader.GetString(reader.GetOrdinal("HinhAnh")),
                                     TenTacGia = reader.IsDBNull(reader.GetOrdinal("TenTacGia")) ? string.Empty : reader.GetString(reader.GetOrdinal("TenTacGia"))
                                 });

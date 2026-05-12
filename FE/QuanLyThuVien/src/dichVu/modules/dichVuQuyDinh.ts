@@ -5,6 +5,9 @@ export interface ThamSoQuyDinhDto {
     soSachMuonToiDa: number;
     soNgayMuonToiDa: number;
     phiPhatTreHanMoiNgay: number;
+    phiPhatHongNhe: number;
+    phiPhatHongNang: number;
+    phiPhatMatSach: number;
     ngayCapNhat: string;
 }
 
@@ -19,6 +22,9 @@ export const getQuyDinh = async (): Promise<ThamSoQuyDinhDto> => {
             soSachMuonToiDa: 3,
             soNgayMuonToiDa: 10,
             phiPhatTreHanMoiNgay: 5000,
+            phiPhatHongNhe: 20000,
+            phiPhatHongNang: 50000,
+            phiPhatMatSach: 100000,
             ngayCapNhat: new Date().toISOString()
         };
     }

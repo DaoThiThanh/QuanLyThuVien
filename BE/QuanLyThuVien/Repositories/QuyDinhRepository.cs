@@ -25,7 +25,11 @@ namespace QuanLyThuVien.Repositories
                 await connection.OpenAsync();
 
                 var query = @"
-                    SELECT TOP 1 Id, SoSachMuonToiDa, SoNgayMuonToiDa, PhiPhatTreHanMoiNgay, NgayCapNhat
+                    SELECT TOP 1 Id, SoSachMuonToiDa, SoNgayMuonToiDa, PhiPhatTreHanMoiNgay, 
+                           ISNULL(PhiPhatHongNhe, 20000) as PhiPhatHongNhe, 
+                           ISNULL(PhiPhatHongNang, 50000) as PhiPhatHongNang, 
+                           ISNULL(PhiPhatMatSach, 100000) as PhiPhatMatSach,
+                           NgayCapNhat
                     FROM ThamSoQuyDinh
                     ORDER BY NgayCapNhat DESC";
 
@@ -41,6 +45,9 @@ namespace QuanLyThuVien.Repositories
                                 SoSachMuonToiDa = reader.GetInt32(reader.GetOrdinal("SoSachMuonToiDa")),
                                 SoNgayMuonToiDa = reader.GetInt32(reader.GetOrdinal("SoNgayMuonToiDa")),
                                 PhiPhatTreHanMoiNgay = reader.GetDecimal(reader.GetOrdinal("PhiPhatTreHanMoiNgay")),
+                                PhiPhatHongNhe = reader.GetDecimal(reader.GetOrdinal("PhiPhatHongNhe")),
+                                PhiPhatHongNang = reader.GetDecimal(reader.GetOrdinal("PhiPhatHongNang")),
+                                PhiPhatMatSach = reader.GetDecimal(reader.GetOrdinal("PhiPhatMatSach")),
                                 NgayCapNhat = reader.GetDateTime(reader.GetOrdinal("NgayCapNhat"))
                             };
                         }
@@ -56,6 +63,9 @@ namespace QuanLyThuVien.Repositories
                         SoSachMuonToiDa = 3,
                         SoNgayMuonToiDa = 10,
                         PhiPhatTreHanMoiNgay = 5000,
+                        PhiPhatHongNhe = 20000,
+                        PhiPhatHongNang = 50000,
+                        PhiPhatMatSach = 100000,
                         NgayCapNhat = DateTime.Now
                     };
                 }
@@ -75,8 +85,8 @@ namespace QuanLyThuVien.Repositories
                 // We insert a new record to keep history, but just updating the existing one is also fine.
                 // The requirements say SELECT TOP 1 ORDER BY NgayCapNhat DESC. So inserting is the intended way.
                 var query = @"
-                    INSERT INTO ThamSoQuyDinh (Id, SoSachMuonToiDa, SoNgayMuonToiDa, PhiPhatTreHanMoiNgay, NgayCapNhat)
-                    VALUES (@Id, @SoSachMuonToiDa, @SoNgayMuonToiDa, @PhiPhatTreHanMoiNgay, GETDATE())";
+                    INSERT INTO ThamSoQuyDinh (Id, SoSachMuonToiDa, SoNgayMuonToiDa, PhiPhatTreHanMoiNgay, PhiPhatHongNhe, PhiPhatHongNang, PhiPhatMatSach, NgayCapNhat)
+                    VALUES (@Id, @SoSachMuonToiDa, @SoNgayMuonToiDa, @PhiPhatTreHanMoiNgay, @PhiPhatHongNhe, @PhiPhatHongNang, @PhiPhatMatSach, GETDATE())";
 
                 using (var command = new SqlCommand(query, connection))
                 {
@@ -84,6 +94,9 @@ namespace QuanLyThuVien.Repositories
                     command.Parameters.AddWithValue("@SoSachMuonToiDa", quyDinh.SoSachMuonToiDa);
                     command.Parameters.AddWithValue("@SoNgayMuonToiDa", quyDinh.SoNgayMuonToiDa);
                     command.Parameters.AddWithValue("@PhiPhatTreHanMoiNgay", quyDinh.PhiPhatTreHanMoiNgay);
+                    command.Parameters.AddWithValue("@PhiPhatHongNhe", quyDinh.PhiPhatHongNhe);
+                    command.Parameters.AddWithValue("@PhiPhatHongNang", quyDinh.PhiPhatHongNang);
+                    command.Parameters.AddWithValue("@PhiPhatMatSach", quyDinh.PhiPhatMatSach);
 
                     int rows = await command.ExecuteNonQueryAsync();
                     return rows > 0;

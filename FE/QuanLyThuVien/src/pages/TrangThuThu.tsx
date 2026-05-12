@@ -40,6 +40,7 @@ const LibrarianPage: React.FC = () => {
   const [nhaXuatBans, setNhaXuatBans] = useState<NhaXuatBanItem[]>([]);
   const [danhMucs, setDanhMucs] = useState<CategoryItem[]>([]);
   const [showReturnModal, setShowReturnModal] = useState(false);
+  const [showLoanDetailModal, setShowLoanDetailModal] = useState(false);
   const [loanSearchTerm, setLoanSearchTerm] = useState('');
   const [loanStatusFilter, setLoanStatusFilter] = useState<'all' | 'active' | 'returned'>('active');
   const [selectedPhieuMuon, setSelectedPhieuMuon] = useState<any>(null);
@@ -1279,6 +1280,7 @@ const LibrarianPage: React.FC = () => {
                                     title="Xem chi tiết"
                                     onClick={() => {
                                       setSelectedPhieuMuon(item);
+                                      setShowLoanDetailModal(true);
                                     }}
                                   >
                                     <FiSearch size={14} />
@@ -1892,6 +1894,73 @@ const LibrarianPage: React.FC = () => {
           onClose={() => setShowCreateLoanModal(false)}
           onSuccess={fetchData}
         />
+
+        {showLoanDetailModal && selectedPhieuMuon && (
+          <div className={styles['modal-overlay']}>
+            <div className={styles['modal-content']} style={{ maxWidth: '700px' }}>
+              <div className={styles['modal-header']}>
+                <h2>Chi tiết Phiếu Mượn #{String(selectedPhieuMuon.id).substring(0, 8)}</h2>
+                <button className={styles['modal-close-btn']} onClick={() => setShowLoanDetailModal(false)}>
+                  <FiX size={24} />
+                </button>
+              </div>
+              <div className={styles['modal-body']}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '25px', padding: '15px', background: '#f8fafc', borderRadius: '12px' }}>
+                  <div>
+                    <p style={{ margin: '0 0 5px 0', fontSize: '12px', color: '#64748b', textTransform: 'uppercase', fontWeight: '700' }}>Độc giả</p>
+                    <p style={{ margin: 0, fontWeight: '600' }}>{selectedPhieuMuon.tenDocGia}</p>
+                  </div>
+                  <div>
+                    <p style={{ margin: '0 0 5px 0', fontSize: '12px', color: '#64748b', textTransform: 'uppercase', fontWeight: '700' }}>Kênh mượn</p>
+                    <p style={{ margin: 0 }}>{selectedPhieuMuon.kenhMuon === 2 ? '⚡ Online' : '🏢 Tại quầy'}</p>
+                  </div>
+                  <div>
+                    <p style={{ margin: '0 0 5px 0', fontSize: '12px', color: '#64748b', textTransform: 'uppercase', fontWeight: '700' }}>Ngày mượn</p>
+                    <p style={{ margin: 0 }}>{formatDate(selectedPhieuMuon.ngayMuon)}</p>
+                  </div>
+                  <div>
+                    <p style={{ margin: '0 0 5px 0', fontSize: '12px', color: '#64748b', textTransform: 'uppercase', fontWeight: '700' }}>Hạn trả</p>
+                    <p style={{ margin: 0, color: (selectedPhieuMuon.trangThai === 1 && new Date(selectedPhieuMuon.hanTra) < new Date()) ? '#ef4444' : 'inherit', fontWeight: '700' }}>
+                      {formatDate(selectedPhieuMuon.hanTra)}
+                    </p>
+                  </div>
+                </div>
+
+                <h3 style={{ fontSize: '16px', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <FiBook /> Danh sách sách mượn
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {selectedPhieuMuon.chiTiet && selectedPhieuMuon.chiTiet.map((ct: any) => (
+                    <div key={ct.id} style={{ display: 'flex', gap: '15px', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', alignItems: 'center' }}>
+                      <img src={ct.hinhAnh || 'https://placehold.co/400x600?text=Book'} alt={ct.tenSach} style={{ width: '50px', height: '70px', objectFit: 'cover', borderRadius: '4px' }} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: '600', fontSize: '14px' }}>{ct.tenSach}</div>
+                        <div style={{ fontSize: '12px', color: '#64748b' }}>Mã vạch: <span style={{ fontFamily: 'monospace', fontWeight: '700', color: '#3b82f6' }}>{ct.maVach}</span></div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <span className={`${styles['status-badge']} ${ct.ngayTraThucTe ? styles['status-approved'] : (new Date(selectedPhieuMuon.hanTra) < new Date() ? styles['status-rejected'] : styles['status-pending'])}`}>
+                          {ct.ngayTraThucTe ? 'Đã trả' : (new Date(selectedPhieuMuon.hanTra) < new Date() ? 'Quá hạn' : 'Đang mượn')}
+                        </span>
+                        {ct.ngayTraThucTe && (
+                          <div style={{ fontSize: '10px', color: '#10b981', marginTop: '4px' }}>Ngày trả: {formatDate(ct.ngayTraThucTe)}</div>
+                        )}
+                        {ct.tienPhat > 0 && (
+                          <div style={{ fontSize: '12px', color: '#ef4444', fontWeight: '700', marginTop: '4px' }}>Phạt: {ct.tienPhat.toLocaleString()} ₫</div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className={styles['modal-footer']}>
+                <button className={styles['btn-secondary']} onClick={() => setShowLoanDetailModal(false)}>Đóng</button>
+                {selectedPhieuMuon.trangThai === 1 && (
+                  <button className={styles['btn-primary']} onClick={() => { setShowLoanDetailModal(false); setShowReturnModal(true); }}>Trả sách</button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
         {showCopyModal && (
           <div className={styles['modal-overlay']} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div className={styles['modal-content']} style={{ maxWidth: '500px', width: '90%', background: 'white', borderRadius: '12px', overflow: 'hidden' }}>

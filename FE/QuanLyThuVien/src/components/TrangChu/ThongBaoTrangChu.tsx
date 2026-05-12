@@ -8,17 +8,20 @@ const HomeAnnouncements: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let isMounted = true;
     const fetchStats = async () => {
       try {
         const res = await GetDanhSachSach(1, 1);
-        if (res && res.totalItems) {
+        if (isMounted && res && res.totalItems) {
           setTotalBooks(res.totalItems);
         }
       } catch (err) {
-        console.error(err);
+        // Handle error silently or with a fallback
+        console.warn("Could not fetch total books count for announcements:", err);
       }
     };
     fetchStats();
+    return () => { isMounted = false; };
   }, []);
   return (
     <div className={styles['announcements-container']}>

@@ -5,8 +5,9 @@ import BorrowedTitle from "../components/MuonSach/BorrowedTitle";
 import OverdueWarningBanner from "../components/MuonSach/OverdueWarningBanner";
 import BorrowStatsSection from "../components/MuonSach/BorrowStatsSection";
 import BorrowTabs from "../components/MuonSach/BorrowTabs";
-import BorrowedBookList from "../components/MuonSach/BorrowedBookList";
-import type { BorrowedBook } from "../components/MuonSach/BorrowedBookList";
+import { BorrowedSlipList } from "../components/MuonSach/BorrowedBookList";
+import type { BorrowedSlip, BorrowedBookInSlip } from "../components/MuonSach/BorrowedBookList";
+
 import { GetYeuCauByDocGiaAsync, GetPhieuMuonByUser, TuChoiYeuCauMuon } from "../dichVu/modules/dichVuMuonSach";
 import { getUserId } from "../dichVu/modules/dichVuXacThuc";
 import { useEffect } from "react";
@@ -15,7 +16,7 @@ import { useEffect } from "react";
 function BorrowedBooksPage() {
     const [overdueCount, setOverdueCount] = useState(0);
     const [activeTab, setActiveTab] = useState<any>("all");
-    const [books, setBooks] = useState<BorrowedBook[]>([]);
+    const [slips, setSlips] = useState<BorrowedSlip[]>([]);
     const [loading, setLoading] = useState(true);
 
     const fetchData = async () => {
@@ -29,50 +30,71 @@ function BorrowedBooksPage() {
                 GetPhieuMuonByUser(userId)
             ]);
 
-            const mappedData: BorrowedBook[] = [];
+            const mappedSlips: BorrowedSlip[] = [];
 
             // Mapping Yêu cầu mượn (Online)
             if (Array.isArray(requests)) {
                 requests.forEach(yc => {
+                    // Trạng thái 3 là "Đã bàn giao" -> Không hiển thị ở đây vì đã có Phiếu mượn đại diện
+                    if (yc.trangThai === 3) return;
+
                     const status: any = yc.trangThai === 0 ? "pending" : (yc.trangThai === 2 ? "rejected" : "approved");
                     
-                    mappedData.push({
+                    const booksInSlip: BorrowedBookInSlip[] = (yc.tenCacSach || []).map((ten: string, idx: number) => ({
+                        id: `${yc.id}-${idx}`,
+                        title: ten,
+                        author: "Thư viện",
+                        coverImage: "https://placehold.co/400x600/e2e8f0/1e293b?text=Book",
+                        status: status
+                    }));
+
+                    mappedSlips.push({
                         id: yc.id, 
-                        title: yc.tenCacSach && yc.tenCacSach.length > 0 ? yc.tenCacSach.join(", ") : "Chưa rõ tên sách",
-                        author: `Số lượng: ${yc.tenCacSach ? yc.tenCacSach.length : 0} cuốn`,
                         borrowDate: new Date(yc.ngayYeuCau).toLocaleDateString('vi-VN'),
                         dueDate: yc.ngayHenNhan ? new Date(yc.ngayHenNhan).toLocaleDateString('vi-VN') : "Chưa xác định",
                         status: status,
-                        coverImage: "https://cdn-icons-png.flaticon.com/512/2232/2232688.png", // Icon tập hồ sơ/phiếu
-                        isRequest: true
+                        books: booksInSlip,
+                        isRequest: true,
+                        type: 'request'
                     });
                 });
             }
 
             // Mapping Phiếu mượn thực tế
             if (Array.isArray(loans)) {
-                let overdue = 0;
+                let overdueTotal = 0;
                 loans.forEach((pm: any) => {
-                    pm.chiTiet.forEach((ct: any) => {
+                    const booksInSlip: BorrowedBookInSlip[] = pm.chiTiet.map((ct: any) => {
                         const isOverdue = new Date(pm.hanTra) < new Date() && !ct.ngayTraThucTe;
-                        if (isOverdue) overdue++;
+                        if (isOverdue) overdueTotal++;
 
-                        mappedData.push({
+                        return {
                             id: ct.id,
                             title: ct.tenSach || "Chưa rõ tên sách",
                             author: ct.tenTacGia || "Thư viện",
-                            borrowDate: new Date(pm.ngayMuon).toLocaleDateString('vi-VN'),
-                            dueDate: new Date(pm.hanTra).toLocaleDateString('vi-VN'),
+                            coverImage: ct.hinhAnh || "https://placehold.co/400x600/e2e8f0/1e293b?text=Book",
                             returnDate: ct.ngayTraThucTe ? new Date(ct.ngayTraThucTe).toLocaleDateString('vi-VN') : undefined,
                             status: ct.ngayTraThucTe ? "returned" : (isOverdue ? "overdue" : "borrowing"),
-                            coverImage: ct.hinhAnh || "https://placehold.co/400x600/e2e8f0/1e293b?text=Book"
-                        });
+                            tienPhat: ct.tienPhat
+                        };
+                    });
+
+                    const isAnyOverdue = booksInSlip.some(b => b.status === 'overdue');
+                    const isAllReturned = booksInSlip.every(b => b.status === 'returned');
+
+                    mappedSlips.push({
+                        id: pm.id,
+                        borrowDate: new Date(pm.ngayMuon).toLocaleDateString('vi-VN'),
+                        dueDate: new Date(pm.hanTra).toLocaleDateString('vi-VN'),
+                        status: isAllReturned ? "returned" : (isAnyOverdue ? "overdue" : "borrowing"),
+                        books: booksInSlip,
+                        type: 'loan'
                     });
                 });
-                setOverdueCount(overdue);
+                setOverdueCount(overdueTotal);
             }
 
-            setBooks(mappedData);
+            setSlips(mappedSlips);
         } catch (error) {
             console.error("Lỗi khi tải lịch sử mượn:", error);
         } finally {
@@ -95,9 +117,9 @@ function BorrowedBooksPage() {
         }
     };
 
-    const filteredBooks = books.filter(book => {
+    const filteredSlips = slips.filter(slip => {
         if (activeTab === "all") return true;
-        return book.status === activeTab;
+        return slip.status === activeTab;
     });
 
     return (
@@ -139,10 +161,10 @@ function BorrowedBooksPage() {
                 }}>
                     <div style={{ marginBottom: '32px' }}>
                         <BorrowStatsSection 
-                            total={books.filter(b => !b.isRequest).length}
-                            borrowing={books.filter(b => b.status === 'borrowing').length}
-                            returned={books.filter(b => b.status === 'returned').length}
-                            overdue={overdueCount}
+                            total={slips.filter(s => !s.isRequest).reduce((acc, s) => acc + s.books.length, 0)}
+                            borrowing={slips.filter(s => s.status === 'borrowing' || s.status === 'overdue').reduce((acc, s) => acc + s.books.filter(b => b.status === 'borrowing' || b.status === 'overdue').length, 0)}
+                            returned={slips.reduce((acc, s) => acc + s.books.filter(b => b.status === 'returned').length, 0)}
+                            overdue={slips.reduce((acc, s) => acc + s.books.filter(b => b.status === 'overdue').length, 0)}
                         />
                     </div>
                     
@@ -170,7 +192,7 @@ function BorrowedBooksPage() {
                             <span style={{ color: '#64748b', fontWeight: 500 }}>Đang tải dữ liệu lịch sử...</span>
                         </div>
                     ) : (
-                        <BorrowedBookList books={filteredBooks} onCancelRequest={handleCancelRequest} />
+                        <BorrowedSlipList slips={filteredSlips} onCancelRequest={handleCancelRequest} />
                     )}
                 </div>
             </main>

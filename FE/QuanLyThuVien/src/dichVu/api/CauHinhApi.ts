@@ -39,12 +39,12 @@ CauHinhApi.interceptors.response.use(
         // Tuỳ chọn: window.location.href = '/login';
       }
     }
-    
+
     // Ưu tiên đọc message lỗi từ backend (lỗi 401 của server thường có body { message: "..." })
     const message = error.response?.data?.message ??
       error.message ??
       'Có lỗi xảy ra, vui lòng thử lại';
-      
+
     return Promise.reject(new Error(message));
   }
 );

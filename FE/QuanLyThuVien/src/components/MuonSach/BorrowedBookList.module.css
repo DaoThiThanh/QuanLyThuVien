@@ -99,12 +99,41 @@
     letter-spacing: 0.02em;
 }
 
-.status-badge.borrowing { background-color: #ecfdf5; color: #059669; border: 1px solid #d1fae5; }
-.status-badge.returned { background-color: #f8fafc; color: #64748b; border: 1px solid #f1f5f9; }
-.status-badge.overdue { background-color: #fff1f2; color: #e11d48; border: 1px solid #ffe4e6; }
-.status-badge.pending { background-color: #fffbeb; color: #d97706; border: 1px solid #fef3c7; }
-.status-badge.rejected { background-color: #fef2f2; color: #dc2626; border: 1px solid #fee2e2; }
-.status-badge.approved { background-color: #f0f9ff; color: #0284c7; border: 1px solid #e0f2fe; }
+.status-badge.borrowing {
+    background-color: #ecfdf5;
+    color: #059669;
+    border: 1px solid #d1fae5;
+}
+
+.status-badge.returned {
+    background-color: #f8fafc;
+    color: #64748b;
+    border: 1px solid #f1f5f9;
+}
+
+.status-badge.overdue {
+    background-color: #fff1f2;
+    color: #e11d48;
+    border: 1px solid #ffe4e6;
+}
+
+.status-badge.pending {
+    background-color: #fffbeb;
+    color: #d97706;
+    border: 1px solid #fef3c7;
+}
+
+.status-badge.rejected {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fee2e2;
+}
+
+.status-badge.approved {
+    background-color: #f0f9ff;
+    color: #0284c7;
+    border: 1px solid #e0f2fe;
+}
 
 .action-btn {
     padding: 8px 16px;
@@ -140,6 +169,7 @@
 }
 
 @media (max-width: 768px) {
+
     .borrowed-book-table th:nth-child(2),
     .borrowed-book-table th:nth-child(4),
     .borrowed-book-table td:nth-child(2),
