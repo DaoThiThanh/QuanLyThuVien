@@ -166,6 +166,7 @@ namespace QuanLyThuVien.Repositories
                         ds.TenSach, 
                         ds.HinhAnh, 
                         (SELECT COUNT(*) FROM CuonSach WHERE DauSachId = ds.Id AND TrangThaiMuon = 1) as SoLuongTon, 
+                        (SELECT COUNT(*) FROM CuonSach WHERE DauSachId = ds.Id) as TongSoLuong,
                         dm.TenDanhMuc,
                         tg.TenTacGia,
                         ds.NamXuatBan
@@ -194,6 +195,7 @@ namespace QuanLyThuVien.Repositories
                                 TenSach = reader.GetString(reader.GetOrdinal("TenSach")),
                                 HinhAnh = reader.IsDBNull(reader.GetOrdinal("HinhAnh")) ? null : reader.GetString(reader.GetOrdinal("HinhAnh")),
                                 SoLuongTon = reader.IsDBNull(reader.GetOrdinal("SoLuongTon")) ? 0 : reader.GetInt32(reader.GetOrdinal("SoLuongTon")),
+                                TongSoLuong = reader.IsDBNull(reader.GetOrdinal("TongSoLuong")) ? 0 : reader.GetInt32(reader.GetOrdinal("TongSoLuong")),
                                 TenDanhMuc = reader.IsDBNull(reader.GetOrdinal("TenDanhMuc")) ? string.Empty : reader.GetString(reader.GetOrdinal("TenDanhMuc")),
                                 TenTacGia = reader.IsDBNull(reader.GetOrdinal("TenTacGia")) ? string.Empty : reader.GetString(reader.GetOrdinal("TenTacGia")),
                                 NamXuatBan = reader.IsDBNull(reader.GetOrdinal("NamXuatBan")) ? 0 : reader.GetInt32(reader.GetOrdinal("NamXuatBan"))

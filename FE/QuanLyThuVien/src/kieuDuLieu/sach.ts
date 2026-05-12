@@ -29,6 +29,7 @@ export interface PaginatedBookItem {
     tenSach: string;
     hinhAnh: string;
     soLuongTon: number;
+    tongSoLuong: number;
     tenDanhMuc: string;
     tenTacGia: string;
     namXuatBan?: number;

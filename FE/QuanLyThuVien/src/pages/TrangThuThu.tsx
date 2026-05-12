@@ -230,9 +230,21 @@ const LibrarianPage: React.FC = () => {
   // Hàm tổng hợp để làm mới toàn bộ dữ liệu (được gọi từ nút Refresh hoặc sau khi CRUD)
   const fetchData = async () => {
     await fetchInitialData();
+    
+    // Nếu đang xem chi tiết một phiếu mượn, cập nhật lại thông tin phiếu đó
+    if (selectedPhieuMuon) {
+      try {
+        const updatedPm = await GetPhieuMuonById(selectedPhieuMuon.id);
+        setSelectedPhieuMuon(updatedPm);
+      } catch (e) {
+        console.error("Không thể cập nhật chi tiết phiếu mượn:", e);
+      }
+    }
+
     // Tải thêm dữ liệu cho tab hiện tại
     switch (activeTab) {
       case 'dashboard': fetchRequests(); break;
+      case 'requests': fetchRequests(); break;
       case 'books': fetchBooks(); break;
       case 'copies': fetchCopies(); break;
       case 'borrow': fetchLoans(); break;
@@ -311,7 +323,7 @@ const LibrarianPage: React.FC = () => {
   }, [loanSearchTerm]);
 
   useEffect(() => {
-    if (activeTab === 'dashboard') {
+    if (activeTab === 'dashboard' || activeTab === 'requests') {
       fetchRequests();
     }
   }, [activeTab, requestPage]);
@@ -950,10 +962,17 @@ const LibrarianPage: React.FC = () => {
                           <td style={{ fontWeight: '600' }}>{book.tenSach}</td>
                           <td>{book.tenTacGia}</td>
                           <td>{book.tenDanhMuc}</td>
-                          <td>{book.soLuongTon}</td>
                           <td>
-                            <span className={`${styles['status-badge']} ${book.soLuongTon > 0 ? styles['status-active'] : styles['status-pending']}`}>
-                              {book.soLuongTon > 0 ? 'Sẵn sàng' : 'Đã hết'}
+                            <div style={{ fontWeight: '700', color: '#1e293b' }}>
+                              <span style={{ color: book.soLuongTon > 0 ? '#10b981' : '#ef4444' }}>{book.soLuongTon}</span>
+                              <span style={{ color: '#94a3b8', margin: '0 2px' }}>/</span>
+                              <span>{book.tongSoLuong}</span>
+                            </div>
+                            <div style={{ fontSize: '10px', color: '#64748b' }}>Sẵn có / Tổng</div>
+                          </td>
+                          <td>
+                            <span className={`${styles['status-badge']} ${book.soLuongTon > 0 ? styles['status-active'] : styles['status-rejected']}`}>
+                              {book.soLuongTon > 0 ? 'Sẵn sàng' : (book.tongSoLuong > 0 ? 'Đã cho mượn hết' : 'Hết hàng')}
                             </span>
                           </td>
                           <td>
@@ -1064,8 +1083,20 @@ const LibrarianPage: React.FC = () => {
                               fontSize: '12px',
                               padding: '2px 8px',
                               borderRadius: '4px',
-                              background: item.tinhTrang === 'Bình thường' ? '#f1f5f9' : '#fff1f2',
-                              color: item.tinhTrang === 'Bình thường' ? '#475569' : '#e11d48'
+                              fontWeight: '600',
+                              background: 
+                                item.tinhTrang === 'Bình thường' ? '#f0fdf4' : 
+                                item.tinhTrang.includes('Hỏng') ? '#fff1f2' : 
+                                item.tinhTrang.includes('Mất') ? '#fef2f2' : '#fffbeb',
+                              color: 
+                                item.tinhTrang === 'Bình thường' ? '#16a34a' : 
+                                item.tinhTrang.includes('Hỏng') ? '#e11d48' : 
+                                item.tinhTrang.includes('Mất') ? '#b91c1c' : '#d97706',
+                              border: `1px solid ${
+                                item.tinhTrang === 'Bình thường' ? '#d1fae5' : 
+                                item.tinhTrang.includes('Hỏng') ? '#ffe4e6' : 
+                                item.tinhTrang.includes('Mất') ? '#fee2e2' : '#fef3c7'
+                              }`
                             }}>
                               {item.tinhTrang}
                             </span>
@@ -1875,7 +1906,7 @@ const LibrarianPage: React.FC = () => {
             isOpen={showCheckStockModal}
             onClose={() => setShowCheckStockModal(false)}
             yeuCau={selectedYeuCau}
-            onSuccess={fetchData}
+            onSuccess={() => { fetchRequests(); fetchInitialData(); }}
           />
         )}
 
@@ -1885,7 +1916,7 @@ const LibrarianPage: React.FC = () => {
             isOpen={showApproveModal}
             onClose={() => setShowApproveModal(false)}
             yeuCau={selectedYeuCau}
-            onSuccess={fetchData}
+            onSuccess={() => { fetchRequests(); fetchInitialData(); }}
           />
         )}
 

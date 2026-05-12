@@ -414,7 +414,11 @@ namespace QuanLyThuVien.Repositories
                         int trangThaiCuonSachMoi = 1; // 1 = Sẵn sàng
 
                         if (tinhTrang.Contains("Hỏng nhẹ")) tienPhatHuHong = phiHongNhe;
-                        else if (tinhTrang.Contains("Hỏng nặng")) tienPhatHuHong = phiHongNang;
+                        else if (tinhTrang.Contains("Hỏng nặng")) 
+                        {
+                            tienPhatHuHong = phiHongNang;
+                            trangThaiCuonSachMoi = 3; // 3 = Bảo trì/Hỏng nặng
+                        }
                         else if (tinhTrang.Contains("Mất")) 
                         {
                             tienPhatHuHong = phiMatSach;
@@ -440,12 +444,13 @@ namespace QuanLyThuVien.Repositories
                             await command.ExecuteNonQueryAsync();
                         }
 
-                        // 4. Cập nhật trạng thái CuonSach
-                        var updateCsQuery = "UPDATE CuonSach SET TrangThaiMuon = @TrangThai WHERE Id = @CuonSachId";
+                        // 4. Cập nhật trạng thái và tình trạng vật lý CuonSach
+                        var updateCsQuery = "UPDATE CuonSach SET TrangThaiMuon = @TrangThai, TinhTrangVatLy = @TinhTrang WHERE Id = @CuonSachId";
                         using (var command = new SqlCommand(updateCsQuery, connection, transaction))
                         {
                             command.Parameters.AddWithValue("@CuonSachId", cuonSachId);
                             command.Parameters.AddWithValue("@TrangThai", trangThaiCuonSachMoi);
+                            command.Parameters.AddWithValue("@TinhTrang", tinhTrang);
                             await command.ExecuteNonQueryAsync();
                         }
 
