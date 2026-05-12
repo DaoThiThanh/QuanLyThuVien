@@ -3,7 +3,6 @@ import Header from '../components/GiaoDienChinh/DauTrang';
 import LibraryHero from '../components/GiaoDienChinh/BannerThuVien';
 import HomeAnnouncements from '../components/TrangChu/ThongBaoTrangChu';
 import PopularBooks from '../components/TrangChu/SachPhoBien';
-import BookCategories from '../components/TrangChu/DanhMucSach';
 import NewBooks from '../components/TrangChu/SachMoi';
 import PromotionProgram from '../components/TrangChu/ChuongTrinhKhuyenMai';
 import BrowseBooks from '../components/TrangChu/DuyetSach';
@@ -18,7 +17,6 @@ const HomePage: React.FC = () => {
       <main>
         <HomeAnnouncements />
         <PopularBooks />
-        <BookCategories />
         <NewBooks />
         <PromotionProgram />
         <BrowseBooks />
