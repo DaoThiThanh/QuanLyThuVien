@@ -134,7 +134,8 @@
 .book-card {
   background: white;
   border-radius: 20px;
-  border: 1px solid #7b7b7b;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
@@ -144,7 +145,7 @@
 .book-card:hover {
   transform: translateY(-8px);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  border-color: #e2e8f0;
+  border-color: #3b82f6;
 }
 
 .card-media {

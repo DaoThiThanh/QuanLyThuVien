@@ -49,7 +49,19 @@ VALUES
 (N'Chính trị luận', (SELECT Id FROM DanhMucSach WHERE TenDanhMuc = N'Lịch sử & Chính trị'), (SELECT Id FROM TacGia WHERE TenTacGia = N'Adam Smith'), (SELECT Id FROM NhaXuatBan WHERE TenNXB = N'NXB Chính trị Quốc gia Sự thật'), 2020, 'https://hoc247.net/fckeditorimg/upload/images/2019-05-11_104122.png?enablejsapi=1', 3),
 (N'Tâm lý học đám đông', (SELECT Id FROM DanhMucSach WHERE TenDanhMuc = N'Tâm lý học & Giáo dục'), (SELECT Id FROM TacGia WHERE TenTacGia = N'Daniel Kahneman'), (SELECT Id FROM NhaXuatBan WHERE TenNXB = N'NXB Thế Giới'), 2019, 'https://cdn.luatminhkhue.vn/lmk/article/Sach-luat/Giao-trinh-Triet-hoc-Mac-Lenin.jpg', 11);
 GO
-
+-----Insert  thêm nxb----------
+INSERT INTO NhaXuatBan (TenNXB)
+VALUES
+(N'Nhà xuất bản Giáo dục Việt Nam'),
+(N'Nhà xuất bản Trẻ'),
+(N'Nhà xuất bản Kim Đồng'),
+(N'Nhà xuất bản Lao Động'),
+(N'Nhà xuất bản Đại học Quốc gia Hà Nội'),
+(N'Nhà xuất bản Thống Kê'),
+(N'Nhà xuất bản Khoa học và Kỹ thuật'),
+(N'Nhà xuất bản Tổng hợp Thành phố Hồ Chí Minh'),
+(N'Nhà xuất bản Văn Học'),
+(N'Nhà xuất bản Chính trị Quốc gia Sự Thật');
 -- ==========================================
 -- 3. TẠO CUỐN SÁCH VẬT LÝ TƯƠNG ỨNG
 -- (Tự động tạo mỗi đầu sách 2 bản sao để sinh viên mượn)

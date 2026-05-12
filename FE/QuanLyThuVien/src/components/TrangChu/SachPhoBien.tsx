@@ -74,9 +74,6 @@ const PopularBooks: React.FC = () => {
 
                 <div className={styles['book-info']}>
                   <h3 className={styles['book-title']}>{book.tenSach}</h3>
-                  <div className={styles['book-rating']}>
-                    <span className={styles['star']}>⭐</span> {book.soLuongMuon} lượt mượn
-                  </div>
                 </div>
               </div>
             </div>

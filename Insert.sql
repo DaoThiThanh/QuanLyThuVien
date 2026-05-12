@@ -33,6 +33,35 @@ VALUES
 (N'Ngô Tất Tố', N'Nhà văn, nhà báo, học giả hàng đầu'),
 (N'Nguyễn Nhật Ánh', N'Nhà văn chuyên viết cho tuổi thơ');
 GO
+INSERT INTO TacGia (TenTacGia, TieuSu)
+VALUES
+(N'Thomas H. Cormen',
+ N'Nhà khoa học máy tính và giáo sư người Mỹ, nổi tiếng với vai trò đồng tác giả cuốn sách Introduction to Algorithms (CLRS) — một trong những giáo trình thuật toán kinh điển trong lĩnh vực công nghệ thông tin và khoa học máy tính.'),
+ (N'Aristotle',
+ N'Triết gia và nhà khoa học Hy Lạp cổ đại, học trò của Plato và là thầy của Alexander Đại Đế. Ông có ảnh hưởng lớn đến nhiều lĩnh vực như triết học, logic học, đạo đức học, chính trị học và khoa học tự nhiên.'),
+ (N'Nguyễn Đình Trí',
+ N'Giáo sư và tác giả nổi tiếng trong lĩnh vực toán học tại Việt Nam, được biết đến qua bộ giáo trình Giải tích 1 và Giải tích 2 được sử dụng rộng rãi tại các trường đại học kỹ thuật.'),
+ (N'Martin Fowler',
+ N'Nhà phát triển phần mềm, tác giả và chuyên gia kiến trúc phần mềm người Anh, nổi tiếng với các sách về thiết kế phần mềm, refactoring và mô hình phát triển Agile.'),
+ (N'Erich Gamma',
+ N'Nhà khoa học máy tính người Thụy Sĩ, nổi tiếng là một trong bốn tác giả của cuốn Design Patterns: Elements of Reusable Object-Oriented Software và có nhiều đóng góp trong lĩnh vực lập trình hướng đối tượng.'),
+ (N'Charles Darwin',
+ N'Nhà tự nhiên học và sinh học người Anh, nổi tiếng với thuyết tiến hóa và cuốn sách On the Origin of Species, đặt nền móng cho sinh học hiện đại.'),
+ (N'Nguyễn Văn Ánh',
+ N'Tác giả và nhà nghiên cứu người Việt Nam, có nhiều đóng góp trong lĩnh vực giáo dục và biên soạn tài liệu học tập.'),
+ (N'Yuval Noah Harari',
+ N'Nhà sử học và tác giả người Israel, nổi tiếng với các cuốn sách Sapiens, Homo Deus và 21 Lessons for the 21st Century về lịch sử, công nghệ và tương lai nhân loại.'),
+ (N'Andrew Hunt',
+ N'Nhà phát triển phần mềm và tác giả người Mỹ, nổi tiếng là đồng tác giả của cuốn The Pragmatic Programmer, một trong những cuốn sách kinh điển về lập trình và phát triển phần mềm hiện đại.'),
+ (N'Nguyễn Như Ý',
+ N'Tiến sĩ và giảng viên trong lĩnh vực kinh tế học tại Việt Nam, tham gia biên soạn giáo trình Kinh tế vi mô - Nguyên lý và ứng dụng phục vụ cho sinh viên đại học.'),
+ (N'Cao Minh Nhân',
+ N'Giảng viên và tác giả trong lĩnh vực vật lý tại Việt Nam, nổi tiếng với các giáo trình Vật lý đại cương dành cho sinh viên khối kỹ thuật và khoa học tự nhiên.'),
+ (N'Steve McConnell',
+ N'Kỹ sư phần mềm, tác giả và chuyên gia quản lý dự án người Mỹ, nổi tiếng với cuốn sách Code Complete — một trong những tài liệu kinh điển về kỹ thuật lập trình và phát triển phần mềm.'),
+ (N'Phan Kiều Trang',
+ N'Giảng viên và tác giả trong lĩnh vực tiếng Anh tại Việt Nam, chuyên biên soạn các giáo trình tiếng Anh cơ bản phục vụ học sinh và sinh viên.');
+
 
 -- ==========================================
 -- 4. BẢNG NHÀ XUẤT BẢN
@@ -42,12 +71,22 @@ VALUES
 (N'NXB Trẻ'), (N'NXB Kim Đồng'), (N'NXB Văn Học'), (N'NXB Hội Nhà Văn');
 GO
 
+
 -- ==========================================
 -- 5. BẢNG DANH MỤC SÁCH
 -- ==========================================
 INSERT INTO DanhMucSach (TenDanhMuc)
 VALUES 
 (N'Văn học Việt Nam'), (N'Tiểu thuyết'), (N'Truyện ngắn'), (N'Truyện thiếu nhi');
+INSERT INTO DanhMucSach (TenDanhMuc)
+VALUES 
+(N'Tâm lý học')
+INSERT INTO DanhMucSach (TenDanhMuc)
+VALUES 
+(N'Triết học'), (N'Vật lý');
+INSERT INTO DanhMucSach (TenDanhMuc)
+VALUES 
+(N'Hóa học')
 GO
 
 -- ==========================================
