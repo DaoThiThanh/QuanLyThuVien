@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { FiX, FiSearch, FiBook, FiPlus, FiTrash2, FiCalendar, FiCheck } from 'react-icons/fi';
 import styles from './DuyetYeuCauModal.module.css';
 import { getAllUsers, type UserItem } from '../../dichVu/modules/dichVuNguoiDung';
-import { GetDanhSachSach, GetCuonSachByBarcode } from '../../dichVu/modules/dichVuSach';
+import { GetDanhSachSach, GetCuonSachByBarcode, GetAvailableCopies } from '../../dichVu/modules/dichVuSach';
 import { CreatePhieuMuon, CheckBorrowingLimit } from '../../dichVu/modules/dichVuMuonSach';
 import { getUserId } from '../../dichVu/modules/dichVuXacThuc';
 import { getQuyDinh, type ThamSoQuyDinhDto } from '../../dichVu/modules/dichVuQuyDinh';
@@ -42,6 +42,8 @@ const TaoPhieuMuonModal: React.FC<TaoPhieuMuonModalProps> = ({ isOpen, onClose, 
     const [searchingUser, setSearchingUser] = useState(false);
     const [searchingBook, setSearchingBook] = useState(false);
     const [quyDinh, setQuyDinh] = useState<ThamSoQuyDinhDto | null>(null);
+    const [availableCopiesMap, setAvailableCopiesMap] = useState<{ [key: string]: any[] }>({});
+    const [fetchingCopies, setFetchingCopies] = useState<{ [key: string]: boolean }>({});
 
     useEffect(() => {
         const fetchQuyDinh = async () => {
@@ -53,20 +55,22 @@ const TaoPhieuMuonModal: React.FC<TaoPhieuMuonModalProps> = ({ isOpen, onClose, 
 
     // Search Users
     useEffect(() => {
-        if (searchTermUser.length >= 1) {
+        if (searchTermUser.trim().length >= 1) {
             setSearchingUser(true);
             const delayDebounceFn = setTimeout(async () => {
                 try {
-                    const users = await getAllUsers(3); // Role Độc giả
-                    const filtered = (users || []).filter(u =>
-                        u.hoTen.toLowerCase().includes(searchTermUser.toLowerCase()) ||
-                        u.email.toLowerCase().includes(searchTermUser.toLowerCase())
-                    );
-                    setUserResults(filtered.slice(0, 5));
+                    // Sử dụng trực tiếp tham số searchTerm của API
+                    const usersData = await getAllUsers(3, 1, 10, searchTermUser);
+                    // getAllUsers trả về response.data.data từ service
+                    const items = usersData?.items || [];
+                    setUserResults(items.slice(0, 5));
+                } catch (error) {
+                    console.error("Lỗi tìm độc giả:", error);
+                    setUserResults([]);
                 } finally {
                     setSearchingUser(false);
                 }
-            }, 300);
+            }, 400);
             return () => clearTimeout(delayDebounceFn);
         } else {
             setUserResults([]);
@@ -76,19 +80,22 @@ const TaoPhieuMuonModal: React.FC<TaoPhieuMuonModalProps> = ({ isOpen, onClose, 
 
     // Search Books
     useEffect(() => {
-        if (searchTermBook.length >= 1) {
+        if (searchTermBook.trim().length >= 1) {
             setSearchingBook(true);
             const delayDebounceFn = setTimeout(async () => {
                 try {
-                    const booksData = await GetDanhSachSach(1, 50); // Lấy nhiều hơn để lọc chính xác
-                    const filtered = (booksData?.items || []).filter((b: any) =>
-                        b.tenSach.toLowerCase().includes(searchTermBook.toLowerCase())
-                    );
-                    setBookResults(filtered.slice(0, 5));
+                    // Sử dụng trực tiếp tham số searchTerm của API
+                    const booksData = await GetDanhSachSach(1, 10, searchTermBook);
+                    // GetDanhSachSach trả về response.data (PaginatedResponse)
+                    const items = booksData?.items || [];
+                    setBookResults(items.slice(0, 5));
+                } catch (error) {
+                    console.error("Lỗi tìm sách:", error);
+                    setBookResults([]);
                 } finally {
                     setSearchingBook(false);
                 }
-            }, 300);
+            }, 400);
             return () => clearTimeout(delayDebounceFn);
         } else {
             setBookResults([]);
@@ -96,7 +103,7 @@ const TaoPhieuMuonModal: React.FC<TaoPhieuMuonModalProps> = ({ isOpen, onClose, 
         }
     }, [searchTermBook]);
 
-    const handleAddBook = (book: any) => {
+    const handleAddBook = async (book: any) => {
         if (borrowLimit?.hasOverdue) {
             alert('Độc giả đang nợ sách quá hạn. Phải trả hết sách quá hạn mới có thể mượn tiếp.');
             return;
@@ -123,6 +130,18 @@ const TaoPhieuMuonModal: React.FC<TaoPhieuMuonModalProps> = ({ isOpen, onClose, 
             alert('Sách này đã có trong danh sách chọn.');
             return;
         }
+
+        // Tải danh sách các cuốn sách (mã vạch) sẵn có ngay khi chọn đầu sách
+        setFetchingCopies(prev => ({ ...prev, [book.id]: true }));
+        try {
+            const copies = await GetAvailableCopies(book.id);
+            setAvailableCopiesMap(prev => ({ ...prev, [book.id]: copies || [] }));
+        } catch (e) {
+            console.error("Lỗi lấy danh sách cuốn sách:", e);
+        } finally {
+            setFetchingCopies(prev => ({ ...prev, [book.id]: false }));
+        }
+
         setSelectedBooks([...selectedBooks, {
             id: book.id,
             tenSach: book.tenSach,
@@ -131,6 +150,58 @@ const TaoPhieuMuonModal: React.FC<TaoPhieuMuonModalProps> = ({ isOpen, onClose, 
         }]);
         setSearchTermBook('');
         setBookResults([]);
+    };
+
+    const handleScanBook = async (barcode: string) => {
+        if (!barcode.trim()) return;
+        try {
+            const copy = await GetCuonSachByBarcode(barcode);
+            if (!copy) return;
+
+            if (copy.trangThaiMuon !== 1) {
+                alert(`Cuốn sách này hiện không sẵn sàng (Trạng thái: ${copy.trangThaiMuon === 2 ? 'Đang mượn' : 'Bảo trì/Mất'}).`);
+                return;
+            }
+
+            // 1. Kiểm tra xem đầu sách này đã có trong danh sách nhưng chưa gán mã vạch không
+            const pendingIndex = selectedBooks.findIndex(b => b.id === copy.dauSachId && !b.cuonSachId);
+            if (pendingIndex !== -1) {
+                const newBooks = [...selectedBooks];
+                newBooks[pendingIndex].cuonSachId = copy.id;
+                newBooks[pendingIndex].maVach = copy.maVach;
+                setSelectedBooks(newBooks);
+                setSearchTermBook('');
+                return;
+            }
+
+            // 2. Nếu chưa có, tiến hành thêm mới như handleAddBook
+            if (borrowLimit?.hasOverdue) {
+                alert('Độc giả đang nợ sách quá hạn.');
+                return;
+            }
+            if (borrowLimit && borrowLimit.canBorrowMore <= selectedBooks.length) {
+                alert(`Đạt giới hạn mượn (${borrowLimit.maxLimit} cuốn).`);
+                return;
+            }
+            if (selectedBooks.length >= (quyDinh?.soSachMuonToiDa || 3)) {
+                alert(`Tối đa ${(quyDinh?.soSachMuonToiDa || 3)} cuốn.`);
+                return;
+            }
+            if (selectedBooks.find(b => b.id === copy.dauSachId)) {
+                alert('Đầu sách này đã có trong danh sách chọn.');
+                return;
+            }
+
+            setSelectedBooks([...selectedBooks, {
+                id: copy.dauSachId,
+                tenSach: copy.tenSach,
+                cuonSachId: copy.id,
+                maVach: copy.maVach
+            }]);
+            setSearchTermBook('');
+        } catch (error) {
+            console.error("Lỗi quét mã vạch:", error);
+        }
     };
 
     const handleRemoveBook = (id: string) => {
@@ -215,7 +286,7 @@ const TaoPhieuMuonModal: React.FC<TaoPhieuMuonModalProps> = ({ isOpen, onClose, 
                                         <input
                                             type="text"
                                             className={styles.inputField}
-                                            placeholder="Tìm độc giả theo tên hoặc email..."
+                                            placeholder="Tìm độc giả theo tên, email hoặc số điện thoại..."
                                             style={{ border: 'none' }}
                                             value={searchTermUser}
                                             onChange={(e) => setSearchTermUser(e.target.value)}
@@ -250,7 +321,9 @@ const TaoPhieuMuonModal: React.FC<TaoPhieuMuonModalProps> = ({ isOpen, onClose, 
                                                             {u.hoTen}
                                                             {u.trangThai !== 1 && <span style={{ fontSize: '10px', background: '#fee2e2', color: '#ef4444', padding: '2px 6px', borderRadius: '4px' }}>ĐÃ KHÓA</span>}
                                                         </div>
-                                                        <div style={{ fontSize: '12px', color: '#64748b' }}>{u.email}</div>
+                                                        <div style={{ fontSize: '12px', color: '#64748b' }}>
+                                                            {u.email} {u.soDienThoai && ` • ${u.soDienThoai}`}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             ))}
@@ -327,10 +400,15 @@ const TaoPhieuMuonModal: React.FC<TaoPhieuMuonModalProps> = ({ isOpen, onClose, 
                                     <input
                                         type="text"
                                         className={styles.inputField}
-                                        placeholder="Tìm tên sách..."
+                                        placeholder="Tìm tên sách hoặc quét mã vạch trực tiếp..."
                                         style={{ border: 'none' }}
                                         value={searchTermBook}
                                         onChange={(e) => setSearchTermBook(e.target.value)}
+                                        onKeyPress={(e) => {
+                                            if (e.key === 'Enter') {
+                                                handleScanBook(searchTermBook);
+                                            }
+                                        }}
                                     />
                                 </div>
                                 {(searchingBook || (searchTermBook.length >= 1 && bookResults.length === 0)) && (
@@ -372,41 +450,144 @@ const TaoPhieuMuonModal: React.FC<TaoPhieuMuonModalProps> = ({ isOpen, onClose, 
 
                         <div className={styles.bookList}>
                             {selectedBooks.length === 0 ? (
-                                <div style={{ textAlign: 'center', padding: '30px', border: '2px dashed #e2e8f0', borderRadius: '12px', color: '#94a3b8' }}>
-                                    Chưa có sách nào được chọn
+                                <div style={{ 
+                                    textAlign: 'center', 
+                                    padding: '40px 20px', 
+                                    border: '2px dashed #e2e8f0', 
+                                    borderRadius: '16px', 
+                                    color: '#94a3b8',
+                                    background: '#f8fafc'
+                                }}>
+                                    <FiBook size={40} style={{ marginBottom: '12px', opacity: 0.5 }} />
+                                    <div>Chưa có sách nào được chọn</div>
+                                    <div style={{ fontSize: '12px', marginTop: '4px' }}>Hãy tìm tên sách hoặc quét mã vạch vật lý để bắt đầu</div>
                                 </div>
                             ) : (
-                                selectedBooks.map((book, index) => (
-                                    <div key={book.id} className={styles.bookRow}>
-                                        <div className={styles.bookHeader} style={{ justifyContent: 'space-between' }}>
-                                            <div style={{ display: 'flex', gap: '12px' }}>
-                                                <div style={{ color: '#3b82f6' }}><FiBook size={20} /></div>
-                                                <div className={styles.bookTitle}>{book.tenSach}</div>
-                                            </div>
-                                            <button onClick={() => handleRemoveBook(book.id)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><FiTrash2 /></button>
-                                        </div>
-                                        <div className={styles.assignmentArea}>
-                                            <div className={styles.searchGroup}>
-                                                <input
-                                                    type="text"
-                                                    className={styles.inputField}
-                                                    placeholder="Quét mã vạch cho cuốn sách này..."
-                                                    value={barcodeInputs[index] || ''}
-                                                    onChange={(e) => setBarcodeInputs({ ...barcodeInputs, [index]: e.target.value })}
-                                                    onKeyPress={(e) => e.key === 'Enter' && handleBarcodeSearch(index)}
-                                                />
-                                                <button className={styles.scanBtn} onClick={() => handleBarcodeSearch(index)}>Xác nhận</button>
-                                            </div>
-                                            {book.cuonSachId ? (
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#10b981', fontSize: '13px', fontWeight: '700', background: '#f0fdf4', padding: '6px 12px', borderRadius: '6px', width: 'fit-content' }}>
-                                                    <FiCheck /> Đã gán: {book.maVach}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {selectedBooks.map((book, index) => (
+                                        <div key={book.id} style={{ 
+                                            background: 'white', 
+                                            borderRadius: '12px', 
+                                            border: `1px solid ${book.cuonSachId ? '#bbf7d0' : '#e2e8f0'}`,
+                                            padding: '12px',
+                                            boxShadow: book.cuonSachId ? '0 2px 10px rgba(34, 197, 94, 0.05)' : 'none',
+                                            transition: 'all 0.2s ease'
+                                        }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: book.cuonSachId ? '0' : '12px' }}>
+                                                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                                    <div style={{ 
+                                                        width: '32px', 
+                                                        height: '32px', 
+                                                        borderRadius: '8px', 
+                                                        background: book.cuonSachId ? '#dcfce7' : '#f1f5f9', 
+                                                        color: book.cuonSachId ? '#16a34a' : '#3b82f6',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center'
+                                                    }}>
+                                                        {book.cuonSachId ? <FiCheck size={18} /> : <FiBook size={18} />}
+                                                    </div>
+                                                    <div>
+                                                        <div style={{ fontWeight: '700', fontSize: '14px', color: '#1e293b' }}>{book.tenSach}</div>
+                                                        {book.cuonSachId && (
+                                                            <div style={{ fontSize: '12px', color: '#16a34a', fontWeight: '600' }}>
+                                                                Đã gán mã: {book.maVach}
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            ) : (
-                                                <div style={{ color: '#ef4444', fontSize: '12px', fontWeight: '600' }}>Vui lòng quét mã vạch vật lý</div>
+                                                <button 
+                                                    onClick={() => handleRemoveBook(book.id)} 
+                                                    style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px', borderRadius: '4px' }}
+                                                    onMouseEnter={(e) => e.currentTarget.style.color = '#ef4444'}
+                                                    onMouseLeave={(e) => e.currentTarget.style.color = '#94a3b8'}
+                                                >
+                                                    <FiTrash2 size={16} />
+                                                </button>
+                                            </div>
+                                            
+                                            {!book.cuonSachId && (
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                    <div style={{ fontSize: '12px', color: '#64748b', fontWeight: '600' }}>
+                                                        Chọn mã sách vật lý:
+                                                    </div>
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                                        {fetchingCopies[book.id] ? (
+                                                            <div style={{ fontSize: '12px', color: '#94a3b8' }}>Đang tải danh sách mã sách...</div>
+                                                        ) : (
+                                                            (availableCopiesMap[book.id] || []).length > 0 ? (
+                                                                (availableCopiesMap[book.id] || []).map(copy => (
+                                                                    <button
+                                                                        key={copy.id}
+                                                                        onClick={() => {
+                                                                            const newBooks = [...selectedBooks];
+                                                                            newBooks[index].cuonSachId = copy.id;
+                                                                            newBooks[index].maVach = copy.maVach;
+                                                                            setSelectedBooks(newBooks);
+                                                                        }}
+                                                                        style={{
+                                                                            padding: '4px 10px',
+                                                                            background: '#f1f5f9',
+                                                                            border: '1px solid #e2e8f0',
+                                                                            borderRadius: '6px',
+                                                                            fontSize: '12px',
+                                                                            cursor: 'pointer',
+                                                                            fontWeight: '600',
+                                                                            color: '#475569'
+                                                                        }}
+                                                                        onMouseEnter={(e) => {
+                                                                            e.currentTarget.style.background = '#e2e8f0';
+                                                                            e.currentTarget.style.borderColor = '#cbd5e1';
+                                                                        }}
+                                                                        onMouseLeave={(e) => {
+                                                                            e.currentTarget.style.background = '#f1f5f9';
+                                                                            e.currentTarget.style.borderColor = '#e2e8f0';
+                                                                        }}
+                                                                    >
+                                                                        {copy.maVach}
+                                                                    </button>
+                                                                ))
+                                                            ) : (
+                                                                <div style={{ fontSize: '12px', color: '#ef4444' }}>Không còn cuốn sách nào sẵn sàng.</div>
+                                                            )
+                                                        )}
+                                                    </div>
+                                                    <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Hoặc quét mã vạch..."
+                                                            style={{ 
+                                                                flex: 1,
+                                                                padding: '8px 12px', 
+                                                                borderRadius: '8px', 
+                                                                border: '1px solid #cbd5e1',
+                                                                fontSize: '13px'
+                                                            }}
+                                                            value={barcodeInputs[index] || ''}
+                                                            onChange={(e) => setBarcodeInputs({ ...barcodeInputs, [index]: e.target.value })}
+                                                            onKeyPress={(e) => e.key === 'Enter' && handleBarcodeSearch(index)}
+                                                        />
+                                                        <button 
+                                                            onClick={() => handleBarcodeSearch(index)}
+                                                            style={{ 
+                                                                padding: '0 16px', 
+                                                                background: '#3b82f6', 
+                                                                color: 'white', 
+                                                                border: 'none', 
+                                                                borderRadius: '8px',
+                                                                fontSize: '13px',
+                                                                fontWeight: '600',
+                                                                cursor: 'pointer'
+                                                            }}
+                                                        >
+                                                            Xác nhận
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             )}
                                         </div>
-                                    </div>
-                                ))
+                                    ))}
+                                </div>
                             )}
                         </div>
                     </div>

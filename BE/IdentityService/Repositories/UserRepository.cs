@@ -134,7 +134,7 @@ namespace IdentityService.Repositories
             {
                 await conn.OpenAsync();
 
-                var whereClause = "WHERE (@SearchTerm = '' OR HoTen LIKE @SearchPattern OR Email LIKE @SearchPattern) ";
+                var whereClause = "WHERE (@SearchTerm = '' OR HoTen LIKE @SearchPattern OR Email LIKE @SearchPattern OR SoDienThoai LIKE @SearchPattern) ";
                 if (role.HasValue)
                 {
                     whereClause += "AND VaiTro = @Role ";
