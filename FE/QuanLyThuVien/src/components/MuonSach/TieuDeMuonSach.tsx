@@ -1,4 +1,4 @@
-import styles from "./BorrowedTitle.module.css";
+import styles from "./TieuDeMuonSach.module.css";
 type BorrowedTitleProps = {
     title: string;
     subtitle: string;

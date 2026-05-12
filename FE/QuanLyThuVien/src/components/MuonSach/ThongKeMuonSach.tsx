@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./BorrowStatsSection.module.css";
+import styles from "./ThongKeMuonSach.module.css";
 
 import { FiBook, FiClock, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
 
@@ -32,29 +32,29 @@ type BorrowStatsSectionProps = {
 function BorrowStatsSection({ total = 0, borrowing = 0, returned = 0, overdue = 0 }: BorrowStatsSectionProps) {
     return (
         <div className={styles['borrow-stats-section']}>
-            <StatItem 
-                icon={<FiBook size={20} />} 
-                label="Tổng số sách" 
-                value={total} 
-                color="#3b82f6" 
+            <StatItem
+                icon={<FiBook size={20} />}
+                label="Tổng số sách"
+                value={total}
+                color="#3b82f6"
             />
-            <StatItem 
-                icon={<FiClock size={20} />} 
-                label="Đang mượn" 
-                value={borrowing} 
-                color="#f59e0b" 
+            <StatItem
+                icon={<FiClock size={20} />}
+                label="Đang mượn"
+                value={borrowing}
+                color="#f59e0b"
             />
-            <StatItem 
-                icon={<FiCheckCircle size={20} />} 
-                label="Đã trả" 
-                value={returned} 
-                color="#10b981" 
+            <StatItem
+                icon={<FiCheckCircle size={20} />}
+                label="Đã trả"
+                value={returned}
+                color="#10b981"
             />
-            <StatItem 
-                icon={<FiAlertCircle size={20} />} 
-                label="Quá hạn" 
-                value={overdue} 
-                color="#ef4444" 
+            <StatItem
+                icon={<FiAlertCircle size={20} />}
+                label="Quá hạn"
+                value={overdue}
+                color="#ef4444"
             />
         </div>
     );

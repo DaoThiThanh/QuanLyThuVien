@@ -4,8 +4,6 @@ import { FiBookOpen, FiArrowRight, FiEye } from 'react-icons/fi';
 import { GetDanhSachSach, GetCategories } from '../../dichVu/modules/dichVuSach';
 import type { PaginatedBookItem, CategoryItem } from '../../kieuDuLieu/sach';
 import { useNavigate } from 'react-router-dom';
-import { getToken } from '../../dichVu/modules/dichVuXacThuc';
-
 
 const BrowseBooks: React.FC = () => {
   const navigate = useNavigate();
@@ -24,11 +22,11 @@ const BrowseBooks: React.FC = () => {
           GetDanhSachSach(1, 100), // Lấy một lượng đủ dùng cho trang chủ
           GetCategories()
         ]);
-        
+
         if (booksResponse && booksResponse.items) {
           setAllBooks(booksResponse.items);
         }
-        
+
         if (Array.isArray(categoriesResponse)) {
           setCategories(categoriesResponse);
         } else if (categoriesResponse && (categoriesResponse as any).data) {
@@ -73,8 +71,8 @@ const BrowseBooks: React.FC = () => {
 
       <div className={styles['category-navigation']}>
         <div className={styles['category-tabs']}>
-          <button 
-            className={`${styles['tab-btn']} ${activeTab === 'all' ? styles['active'] : ''}`} 
+          <button
+            className={`${styles['tab-btn']} ${activeTab === 'all' ? styles['active'] : ''}`}
             onClick={() => setActiveTab('all')}
           >
             Tất cả sách <span className={styles['count-badge']}>{allBooks.length}</span>
@@ -82,9 +80,9 @@ const BrowseBooks: React.FC = () => {
           {categories.map(cat => {
             const count = allBooks.filter(b => b.tenDanhMuc === cat.tenDanhMuc).length;
             return (
-              <button 
-                key={cat.id} 
-                className={`${styles['tab-btn']} ${activeTab === cat.tenDanhMuc ? styles['active'] : ''}`} 
+              <button
+                key={cat.id}
+                className={`${styles['tab-btn']} ${activeTab === cat.tenDanhMuc ? styles['active'] : ''}`}
                 onClick={() => setActiveTab(cat.tenDanhMuc)}
               >
                 {cat.tenDanhMuc} <span className={styles['count-badge']}>{count}</span>
@@ -104,10 +102,10 @@ const BrowseBooks: React.FC = () => {
             {displayedBooks.map((book) => (
               <div className={styles['book-card']} key={book.id}>
                 <div className={styles['card-media']}>
-                  <img 
-                    src={book.hinhAnh || 'https://via.placeholder.com/150?text=No+Image'} 
-                    alt={book.tenSach} 
-                    className={styles['book-image']} 
+                  <img
+                    src={book.hinhAnh || 'https://via.placeholder.com/150?text=No+Image'}
+                    alt={book.tenSach}
+                    className={styles['book-image']}
                   />
                   {book.soLuongTon > 0 && (
                     <span className={styles['availability-tag']}>Có sẵn</span>
@@ -122,12 +120,12 @@ const BrowseBooks: React.FC = () => {
                   <span className={styles['category-tag']}>{book.tenDanhMuc}</span>
                   <h3 className={styles['book-name']} title={book.tenSach}>{book.tenSach}</h3>
                   <p className={styles['author-name']}>{book.tenTacGia}</p>
-                  
+
                   <div className={styles['card-footer']}>
                     <div className={styles['stock-info']}>
                       Còn {book.soLuongTon} cuốn
                     </div>
-                    <button 
+                    <button
                       className={styles['action-btn']}
                       onClick={() => navigate(`/book-detail/${book.id}`)}
                     >

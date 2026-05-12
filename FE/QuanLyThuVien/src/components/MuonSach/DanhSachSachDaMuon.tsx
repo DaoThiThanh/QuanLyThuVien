@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import styles from "./BorrowedBookList.module.css";
+import styles from "./DanhSachSachDaMuon.module.css";
 
 // ===== INTERFACES =====
 export interface BorrowedBookInSlip {
@@ -49,11 +49,11 @@ const getStatusLabel = (status: BorrowedBookInSlip["status"]) => {
 
 const STATUS_COLORS: Record<string, { bg: string; color: string; border: string }> = {
     borrowing: { bg: "#ecfdf5", color: "#059669", border: "#d1fae5" },
-    returned:  { bg: "#f8fafc", color: "#64748b", border: "#f1f5f9" },
-    overdue:   { bg: "#fff1f2", color: "#e11d48", border: "#ffe4e6" },
-    pending:   { bg: "#fffbeb", color: "#d97706", border: "#fef3c7" },
-    rejected:  { bg: "#fef2f2", color: "#dc2626", border: "#fee2e2" },
-    approved:  { bg: "#f0f9ff", color: "#0284c7", border: "#e0f2fe" },
+    returned: { bg: "#f8fafc", color: "#64748b", border: "#f1f5f9" },
+    overdue: { bg: "#fff1f2", color: "#e11d48", border: "#ffe4e6" },
+    pending: { bg: "#fffbeb", color: "#d97706", border: "#fef3c7" },
+    rejected: { bg: "#fef2f2", color: "#dc2626", border: "#fee2e2" },
+    approved: { bg: "#f0f9ff", color: "#0284c7", border: "#e0f2fe" },
 };
 
 function StatusBadge({ status }: { status: BorrowedBookInSlip["status"] }) {

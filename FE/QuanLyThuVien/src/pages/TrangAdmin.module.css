@@ -133,28 +133,28 @@
 }
 
 .header-left-group {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .header-breadcrumb {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    color: var(--text);
-    opacity: 0.6;
-    font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text);
+  opacity: 0.6;
+  font-weight: 500;
 }
 
 .breadcrumb-separator {
-    font-size: 10px;
+  font-size: 10px;
 }
 
 .breadcrumb-active {
-    color: var(--accent);
-    opacity: 1;
+  color: var(--accent);
+  opacity: 1;
 }
 
 .admin-header-actions {
@@ -210,32 +210,32 @@
 }
 
 .header-clock-box {
-    display: flex;
-    align-items: center;
-    padding-right: 20px;
-    border-right: 1px solid var(--border);
-    margin-right: 4px;
+  display: flex;
+  align-items: center;
+  padding-right: 20px;
+  border-right: 1px solid var(--border);
+  margin-right: 4px;
 }
 
 .clock-date {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text);
-    opacity: 0.8;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  opacity: 0.8;
 }
 
 .profile-info-mini {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.2;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
 }
 
 .admin-role-badge {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-weight: 700;
-    opacity: 0.5;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+  opacity: 0.5;
 }
 
 .admin-profile-btn:hover {
@@ -327,11 +327,11 @@
 }
 
 .librarian-card::before {
-    background: #10b981 !important;
+  background: #10b981 !important;
 }
 
 .librarian-card:hover {
-    box-shadow: 0 15px 35px rgba(16, 185, 129, 0.15) !important;
+  box-shadow: 0 15px 35px rgba(16, 185, 129, 0.15) !important;
 }
 
 
@@ -485,7 +485,8 @@
   letter-spacing: 0.3px;
 }
 
-.status-active, .status-approved {
+.status-active,
+.status-approved {
   background-color: rgba(16, 185, 129, 0.15);
   color: #10b981;
 }
@@ -500,7 +501,8 @@
   color: #3b82f6;
 }
 
-.status-rejected, .status-overdue {
+.status-rejected,
+.status-overdue {
   background-color: rgba(239, 68, 68, 0.15);
   color: #ef4444;
 }
@@ -712,7 +714,7 @@
   justify-content: center;
   font-size: 32px;
   transition: all 0.3s ease;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .category-card:hover .category-icon-wrapper {
@@ -795,6 +797,7 @@
   font-weight: 600;
   color: #1e293b;
 }
+
 .placeholder-content {
   display: flex;
   flex-direction: column;
@@ -1067,7 +1070,6 @@
   font-weight: 700;
   color: #1e293b;
   background: linear-gradient(90deg, var(--accent), #8b5cf6);
-  -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   padding-right: 4px;
 }
@@ -1107,6 +1109,7 @@
   opacity: 1;
   box-shadow: 0 0 8px var(--accent);
 }
+
 /* Search Box & Header Tools */
 .header-tools {
   display: flex;
@@ -1220,18 +1223,18 @@
 }
 
 .view-all-link {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--accent);
-    text-decoration: none;
-    padding: 6px 12px;
-    border-radius: 8px;
-    transition: all 0.2s ease;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
 }
 
 .view-all-link:hover {
-    background-color: var(--accent-bg);
-    text-decoration: underline;
+  background-color: var(--accent-bg);
+  text-decoration: underline;
 }
 
 /* Dashboard Grid Layout */
@@ -1351,7 +1354,7 @@
 
 .author-item:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
   border-color: var(--accent);
 }
 
@@ -1390,10 +1393,17 @@
 
 /* Modal Enhancements */
 .metadata-modal-content {
-    animation: slideIn 0.3s ease-out;
+  animation: slideIn 0.3s ease-out;
 }
 
 @keyframes slideIn {
-    from { transform: translateY(-20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }

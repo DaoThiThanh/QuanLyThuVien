@@ -1,4 +1,4 @@
-import styles from "./OverdueWarningBanner.module.css";
+import styles from "./BannerCanhBaoQuaHan.module.css";
 import { FiAlertTriangle } from "react-icons/fi";
 type OverdueWarningBannerProps = {
     overdueCount: number;
