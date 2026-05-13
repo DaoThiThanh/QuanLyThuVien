@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiTrash2, FiShoppingBag, FiArrowLeft, FiCalendar, FiInfo } from 'react-icons/fi';
+import { FiTrash2, FiShoppingBag, FiArrowLeft, FiCalendar, FiAlertTriangle } from 'react-icons/fi';
 import Header from '../components/GiaoDienChinh/DauTrang';
 import Footer from '../components/GiaoDienChinh/CuoiTrang';
 import styles from './GioSach.module.css';
@@ -125,7 +125,7 @@ const CartPage: React.FC = () => {
 
                             <div className={styles.dateInputGroup}>
                                 <label className={styles.dateLabel}>
-                                    <FiCalendar style={{ marginRight: '8px' }} /> Ngày hẹn đến nhận sách
+                                    <FiCalendar className={styles.calendarIcon} /> Ngày hẹn đến nhận sách
                                 </label>
                                 <input
                                     type="date"
@@ -134,8 +134,8 @@ const CartPage: React.FC = () => {
                                     min={new Date().toISOString().split('T')[0]}
                                     onChange={(e) => setHenNhan(e.target.value)}
                                 />
-                                <p style={{ fontSize: '12px', color: '#64748b', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <FiInfo /> Thư viện sẽ giữ sách cho bạn trong 2 ngày kể từ ngày hẹn.
+                                <p className={styles.infoText}>
+                                    <FiAlertTriangle className={styles.infoIcon} /> Thư viện sẽ giữ sách cho bạn trong 2 ngày kể từ ngày hẹn.
                                 </p>
                             </div>
 

@@ -7,8 +7,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import BookGrid from "../components/Sach/BookGrid";
 import { GetDanhSachSach, GetCategories } from "../dichVu/modules/dichVuSach";
 import styles from "./DanhSachSach.module.css";
-import { 
-    FiGrid, FiLayers, FiSearch, FiChevronLeft, FiChevronRight, FiFilter 
+import {
+    FiGrid, FiLayers, FiSearch, FiChevronLeft, FiChevronRight, FiFilter
 } from "react-icons/fi";
 import type { CategoryItem } from "../kieuDuLieu/sach";
 import type { BookItem } from "../components/Sach/BookGrid";
@@ -37,14 +37,14 @@ function BooksPage() {
                 } else if (res && (res as any).data) {
                     fetchedCats = (res as any).data;
                 }
-                
+
                 const allCategory: CategoryItem = {
                     id: "all",
                     tenDanhMuc: "Tất cả",
                     icon: "📚",
                     soLuongSach: 0
                 };
-                
+
                 setCategories([allCategory, ...fetchedCats]);
             } catch (err) {
                 console.error(err);
@@ -63,7 +63,7 @@ function BooksPage() {
         const fetchBooks = async () => {
             setLoading(true);
             try {
-                const response = await GetDanhSachSach(1, 100); 
+                const response = await GetDanhSachSach(1, 100);
                 if (response && response.items) {
                     const mappedBooks: BookItem[] = response.items.map(item => ({
                         id: item.id,
@@ -106,7 +106,7 @@ function BooksPage() {
     const totalPages = Math.ceil(filteredBooks.length / pageSize);
     const startIndex = (currentPage - 1) * pageSize;
     const paginatedBooks = filteredBooks.slice(startIndex, startIndex + pageSize);
-    
+
     const handleViewDetail = (book: BookItem) => {
         navigate(`/book-detail/${book.id}`);
     }
@@ -164,12 +164,12 @@ function BooksPage() {
                             <p style={{ fontSize: '14px', opacity: 0.9, marginBottom: '16px' }}>
                                 Mượn sách miễn phí hoàn toàn khi là thành viên của thư viện.
                             </p>
-                            <button style={{ 
-                                background: 'white', 
-                                color: '#3b82f6', 
-                                border: 'none', 
-                                padding: '10px 20px', 
-                                borderRadius: '10px', 
+                            <button style={{
+                                background: 'white',
+                                color: '#3b82f6',
+                                border: 'none',
+                                padding: '10px 20px',
+                                borderRadius: '10px',
                                 fontWeight: '700',
                                 width: '100%',
                                 cursor: 'pointer'

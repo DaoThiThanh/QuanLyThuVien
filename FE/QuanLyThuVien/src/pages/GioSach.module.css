@@ -14,15 +14,16 @@
 }
 
 .title {
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 36px;
+  font-weight: 800;
   color: #1e293b;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .subtitle {
   color: #64748b;
-  margin-bottom: 32px;
+  margin-bottom: 40px;
+  font-size: 18px;
 }
 
 .cartGrid {
@@ -80,15 +81,16 @@
 }
 
 .bookTitle {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 700;
   color: #1e293b;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .bookAuthor {
   color: #64748b;
-  font-size: 14px;
+  font-size: 17px;
+  font-weight: 500;
 }
 
 .removeBtn {
@@ -120,8 +122,8 @@
 }
 
 .summaryTitle {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 800;
   color: #1e293b;
   margin-bottom: 24px;
   padding-bottom: 16px;
@@ -130,18 +132,22 @@
 
 .summaryRow {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 16px;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 20px;
   color: #475569;
+  font-size: 18px;
 }
 
 .summaryLabel {
-  font-weight: 500;
+  font-weight: 600;
+  min-width: 130px;
 }
 
 .summaryValue {
-  font-weight: 600;
+  font-weight: 700;
   color: #1e293b;
+  flex: 1;
 }
 
 .dateInputGroup {
@@ -149,20 +155,29 @@
 }
 
 .dateLabel {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 500;
   color: #475569;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+.calendarIcon {
+  color: #64748b;
+  font-size: 20px;
 }
 
 .dateInput {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   border: 1px solid #cbd5e1;
-  border-radius: 8px;
+  border-radius: 10px;
   font-family: inherit;
   color: #1e293b;
+  box-sizing: border-box;
+  font-size: 16px;
 }
 
 .submitBtn {
@@ -170,10 +185,10 @@
   background: linear-gradient(135deg, #3b82f6, #2563eb);
   color: white;
   border: none;
-  padding: 16px;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
+  padding: 18px;
+  border-radius: 14px;
+  font-size: 18px;
+  font-weight: 700;
   margin-top: 32px;
   cursor: pointer;
   transition: all 0.3s;
@@ -198,4 +213,21 @@
   text-decoration: none;
   font-weight: 600;
   margin-top: 24px;
+}
+
+.infoText {
+  font-size: 15px;
+  color: #e11d48;
+  margin-top: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.infoIcon {
+  margin-top: 4px;
+  flex-shrink: 0;
+  color: #e11d48;
 }

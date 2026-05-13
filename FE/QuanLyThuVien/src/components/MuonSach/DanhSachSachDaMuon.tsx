@@ -116,7 +116,7 @@ function SlipDetailDialog({ slip, onClose, onCancel }: {
                     <div>
                         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
                             <span style={{
-                                fontSize: "11px", fontWeight: 800, letterSpacing: "0.08em",
+                                fontSize: "15px", fontWeight: 800, letterSpacing: "0.08em",
                                 padding: "3px 10px", borderRadius: "20px",
                                 background: isRequest ? "#dbeafe" : "#d1fae5",
                                 color: isRequest ? "#1d4ed8" : "#065f46",
@@ -153,7 +153,7 @@ function SlipDetailDialog({ slip, onClose, onCancel }: {
 
                 {/* Body – scrollable */}
                 <div style={{ overflowY: "auto", flex: 1, padding: "20px 28px" }}>
-                    <p style={{ fontSize: "13px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 14px" }}>
+                    <p style={{ fontSize: "18px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 14px" }}>
                         Danh sách sách ({slip.books.length})
                     </p>
                     <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -178,16 +178,16 @@ function SlipDetailDialog({ slip, onClose, onCancel }: {
                                     />
                                 </div>
                                 <div style={{ flex: 1, minWidth: 0 }}>
-                                    <p style={{ margin: 0, fontWeight: 700, fontSize: "14px", color: "#1e293b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{book.title}</p>
-                                    <p style={{ margin: "3px 0 8px", fontSize: "12px", color: "#64748b" }}>{book.author}</p>
+                                    <p style={{ margin: 0, fontWeight: 700, fontSize: "20px", color: "#1e293b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{book.title}</p>
+                                    <p style={{ margin: "3px 0 8px", fontSize: "17px", color: "#64748b" }}>{book.author}</p>
                                     <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
                                         <StatusBadge status={book.status} />
                                         {book.returnDate && (
-                                            <span style={{ fontSize: "12px", color: "#64748b" }}>Trả: <strong>{book.returnDate}</strong></span>
+                                            <span style={{ fontSize: "17px", color: "#64748b" }}>Trả: <strong>{book.returnDate}</strong></span>
                                         )}
                                         {book.tienPhat && book.tienPhat > 0 && (
                                             <span style={{
-                                                fontSize: "12px", fontWeight: 700, color: "#e11d48",
+                                                fontSize: "17px", fontWeight: 700, color: "#e11d48",
                                                 padding: "2px 8px", borderRadius: "8px", background: "#fff1f2",
                                             }}>
                                                 Phạt: {book.tienPhat.toLocaleString("vi-VN")} đ
@@ -212,7 +212,7 @@ function SlipDetailDialog({ slip, onClose, onCancel }: {
                             style={{
                                 padding: "9px 20px", borderRadius: "10px",
                                 border: "1px solid #ffe4e6", background: "#fff1f2",
-                                color: "#e11d48", fontWeight: 700, fontSize: "13px",
+                                color: "#e11d48", fontWeight: 700, fontSize: "17px",
                                 cursor: "pointer", transition: "all 0.2s",
                             }}
                             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "#ffe4e6"; }}
@@ -226,7 +226,7 @@ function SlipDetailDialog({ slip, onClose, onCancel }: {
                         style={{
                             padding: "9px 24px", borderRadius: "10px",
                             border: "1px solid #e2e8f0", background: "white",
-                            color: "#475569", fontWeight: 700, fontSize: "13px",
+                            color: "#475569", fontWeight: 700, fontSize: "17px",
                             cursor: "pointer", transition: "all 0.2s",
                         }}
                         onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "#f8fafc"; }}
@@ -248,8 +248,8 @@ function SlipDetailDialog({ slip, onClose, onCancel }: {
 function InfoItem({ label, value, color }: { label: string; value: string; color?: string }) {
     return (
         <div>
-            <span style={{ fontSize: "11px", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</span>
-            <p style={{ margin: "2px 0 0", fontSize: "14px", fontWeight: 700, color: color ?? "#1e293b" }}>{value}</p>
+            <span style={{ fontSize: "15px", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</span>
+            <p style={{ margin: "2px 0 0", fontSize: "20px", fontWeight: 700, color: color ?? "#1e293b" }}>{value}</p>
         </div>
     );
 }
@@ -394,20 +394,20 @@ export function BorrowedSlipList({ slips, onCancelRequest }: BorrowedSlipListPro
                             }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
                                     <span style={{
-                                        fontSize: "11px", fontWeight: 800, letterSpacing: "0.08em",
+                                        fontSize: "15px", fontWeight: 800, letterSpacing: "0.08em",
                                         padding: "3px 10px", borderRadius: "20px", textTransform: "uppercase",
                                         background: isRequest ? "#dbeafe" : "#d1fae5",
                                         color: isRequest ? "#1d4ed8" : "#065f46",
                                     }}>
                                         {isRequest ? "Yêu cầu" : "Phiếu mượn"}
                                     </span>
-                                    <span style={{ fontSize: "13px", color: "#475569" }}>
+                                    <span style={{ fontSize: "19px", color: "#475569" }}>
                                         {isRequest ? "Đặt ngày" : "Mượn ngày"}: <strong>{slip.borrowDate}</strong>
                                     </span>
-                                    <span style={{ fontSize: "13px", color: "#475569" }}>
+                                    <span style={{ fontSize: "19px", color: "#475569" }}>
                                         {isRequest ? "Hẹn ngày" : "Hạn trả"}: <strong>{slip.dueDate}</strong>
                                     </span>
-                                    <span style={{ fontSize: "13px", color: "#94a3b8" }}>
+                                    <span style={{ fontSize: "18px", color: "#94a3b8" }}>
                                         {slip.books.length} cuốn sách
                                     </span>
                                 </div>
@@ -415,14 +415,14 @@ export function BorrowedSlipList({ slips, onCancelRequest }: BorrowedSlipListPro
                                     <span style={{
                                         display: "inline-flex", alignItems: "center",
                                         padding: "4px 12px", borderRadius: "20px",
-                                        fontSize: "12px", fontWeight: 700,
+                                        fontSize: "16px", fontWeight: 700,
                                         background: c.bg, color: c.color, border: `1px solid ${c.border}`,
                                     }}>
                                         {getStatusLabel(slip.status)}
                                     </span>
                                     {totalFine > 0 && (
                                         <span style={{
-                                            fontSize: "12px", fontWeight: 700, color: "#e11d48",
+                                            fontSize: "16px", fontWeight: 700, color: "#e11d48",
                                             padding: "4px 10px", borderRadius: "20px",
                                             background: "#fff1f2", border: "1px solid #ffe4e6",
                                         }}>
@@ -450,11 +450,11 @@ export function BorrowedSlipList({ slips, onCancelRequest }: BorrowedSlipListPro
                                                     onError={e => { (e.target as HTMLImageElement).src = "https://placehold.co/36x50/e2e8f0/94a3b8?text=📖"; }}
                                                 />
                                                 <div style={{ flex: 1, minWidth: 0 }}>
-                                                    <p style={{ margin: 0, fontSize: "13px", fontWeight: 700, color: "#1e293b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{book.title}</p>
-                                                    <p style={{ margin: "2px 0 0", fontSize: "12px", color: "#94a3b8" }}>{book.author}</p>
+                                                    <p style={{ margin: 0, fontSize: "19px", fontWeight: 700, color: "#1e293b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{book.title}</p>
+                                                    <p style={{ margin: "2px 0 0", fontSize: "16px", color: "#64748b" }}>{book.author}</p>
                                                 </div>
                                                 <span style={{
-                                                    fontSize: "11px", fontWeight: 700,
+                                                    fontSize: "15px", fontWeight: 700,
                                                     padding: "3px 8px", borderRadius: "8px", flexShrink: 0,
                                                     background: bc.bg, color: bc.color, border: `1px solid ${bc.border}`,
                                                 }}>
@@ -464,7 +464,7 @@ export function BorrowedSlipList({ slips, onCancelRequest }: BorrowedSlipListPro
                                         );
                                     })}
                                     {slip.books.length > 2 && (
-                                        <p style={{ margin: 0, fontSize: "12px", color: "#94a3b8", paddingLeft: "12px" }}>
+                                        <p style={{ margin: 0, fontSize: "16px", color: "#94a3b8", paddingLeft: "12px" }}>
                                             +{slip.books.length - 2} cuốn khác...
                                         </p>
                                     )}
@@ -483,7 +483,7 @@ export function BorrowedSlipList({ slips, onCancelRequest }: BorrowedSlipListPro
                                         style={{
                                             padding: "7px 16px", borderRadius: "9px",
                                             border: "1px solid #ffe4e6", background: "#fff1f2",
-                                            color: "#e11d48", fontWeight: 700, fontSize: "12px",
+                                            color: "#e11d48", fontWeight: 700, fontSize: "16px",
                                             cursor: "pointer", transition: "all 0.2s",
                                         }}
                                         onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "#ffe4e6"; }}
@@ -497,7 +497,7 @@ export function BorrowedSlipList({ slips, onCancelRequest }: BorrowedSlipListPro
                                     style={{
                                         padding: "7px 18px", borderRadius: "9px",
                                         border: "1px solid #e2e8f0", background: "white",
-                                        color: "#475569", fontWeight: 700, fontSize: "12px",
+                                        color: "#475569", fontWeight: 700, fontSize: "16px",
                                         cursor: "pointer", transition: "all 0.2s",
                                         display: "inline-flex", alignItems: "center", gap: "5px",
                                     }}

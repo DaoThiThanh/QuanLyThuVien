@@ -44,19 +44,19 @@
 }
 
 .stat-value {
-    font-size: 26px;
+    font-size: 32px;
     font-weight: 800;
     color: #1e293b;
     line-height: 1;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
 
 .stat-label {
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 700;
     color: #64748b;
     text-transform: uppercase;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.04em;
 }
 
 @media (max-width: 1024px) {

@@ -1296,7 +1296,7 @@ const LibrarianPage: React.FC = () => {
                                   {item.trangThai === 1 && (
                                     <button
                                       className={`${styles['status-badge']} ${styles['status-active']}`}
-                                      style={{ border: 'none', cursor: 'pointer', padding: '6px 12px', background: '#3b82f6' }}
+                                      style={{ border: 'none', cursor: 'pointer', padding: '6px 12px', background: '#3b82f6', color: '#fff' }}
                                       onClick={() => handleReturnClick(item.id)}
                                     >
                                       Trả sách

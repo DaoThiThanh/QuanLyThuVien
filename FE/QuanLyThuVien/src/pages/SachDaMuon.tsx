@@ -1,12 +1,12 @@
 import { useState } from "react";
 import Header from "../components/GiaoDienChinh/DauTrang";
 import Footer from "../components/GiaoDienChinh/CuoiTrang";
-import BorrowedTitle from "../components/MuonSach/BorrowedTitle";
-import OverdueWarningBanner from "../components/MuonSach/OverdueWarningBanner";
-import BorrowStatsSection from "../components/MuonSach/BorrowStatsSection";
-import BorrowTabs from "../components/MuonSach/BorrowTabs";
-import { BorrowedSlipList } from "../components/MuonSach/BorrowedBookList";
-import type { BorrowedSlip, BorrowedBookInSlip } from "../components/MuonSach/BorrowedBookList";
+import BorrowedTitle from "../components/MuonSach/TieuDeMuonSach";
+import OverdueWarningBanner from "../components/MuonSach/BannerCanhBaoQuaHan";
+import BorrowStatsSection from "../components/MuonSach/ThongKeMuonSach";
+import BorrowTabs from "../components/MuonSach/ThanhTabMuonSach";
+import { BorrowedSlipList } from "../components/MuonSach/DanhSachSachDaMuon";
+import type { BorrowedSlip, BorrowedBookInSlip } from "../components/MuonSach/DanhSachSachDaMuon";
 
 import { GetYeuCauByDocGiaAsync, GetPhieuMuonByUser, TuChoiYeuCauMuon } from "../dichVu/modules/dichVuMuonSach";
 import { getUserId } from "../dichVu/modules/dichVuXacThuc";
