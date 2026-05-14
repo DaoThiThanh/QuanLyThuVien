@@ -1070,6 +1070,8 @@
   font-weight: 700;
   color: #1e293b;
   background: linear-gradient(90deg, var(--accent), #8b5cf6);
+  -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   padding-right: 4px;
 }
