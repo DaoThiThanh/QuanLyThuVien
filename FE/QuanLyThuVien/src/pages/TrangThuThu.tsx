@@ -47,7 +47,7 @@ const LibrarianPage: React.FC = () => {
   const [selectedPhieuMuon, setSelectedPhieuMuon] = useState<any>(null);
   const [showCreateLoanModal, setShowCreateLoanModal] = useState(false);
 
-  // Phân trang & Tìm kiếm cho Kho sách
+  // Phân trang & Tìm kiếm cho Đầu sách
   const [bookPage, setBookPage] = useState(1);
   const [bookTotalPages, setBookTotalPages] = useState(1);
   const [bookSearchTerm, setBookSearchTerm] = useState('');
@@ -714,7 +714,7 @@ const LibrarianPage: React.FC = () => {
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1" /><rect width="7" height="5" x="14" y="3" rx="1" /><rect width="7" height="9" x="14" y="12" rx="1" /><rect width="7" height="5" x="3" y="16" rx="1" /></svg> },
-    { id: 'books', label: 'Quản lý Kho Sách', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" /></svg> },
+    { id: 'books', label: 'Quản lý Đầu Sách', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" /></svg> },
     { id: 'copies', label: 'Quản lý Cuốn Sách', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" /></svg> },
     { id: 'borrow', label: 'Quản lý Mượn/Trả', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><path d="M12 18v-6" /><path d="m9 15 3 3 3-3" /></svg> },
     { id: 'requests', label: 'Yêu Cầu Mượn', icon: <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" /><path d="M12 6v6l4 2" /></svg> },
@@ -806,7 +806,7 @@ const LibrarianPage: React.FC = () => {
 
                 <div className={`${styles['stat-card']} ${styles['librarian-card']}`}>
                   <div className={styles['stat-header']}>
-                    <span>Tổng Kho Sách</span>
+                    <span>Tổng Đầu Sách</span>
                     <div className={styles['stat-icon']} style={{ color: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)' }}>
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" /></svg>
                     </div>
@@ -907,7 +907,7 @@ const LibrarianPage: React.FC = () => {
             <div className={styles['admin-section']}>
               <div className={styles['section-header']}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flex: 1 }}>
-                  <h2 className={styles['section-title']}>Kho Sách Thư Viện</h2>
+                  <h2 className={styles['section-title']}>Đầu Sách Thư Viện</h2>
                   <div className={styles['header-search']}>
                     <input
                       type="text"
@@ -940,7 +940,7 @@ const LibrarianPage: React.FC = () => {
                   </thead>
                   <tbody>
                     {inventoryBooks.length === 0 ? (
-                      <tr><td colSpan={7} style={{ textAlign: 'center', padding: '20px' }}>Kho sách trống</td></tr>
+                      <tr><td colSpan={7} style={{ textAlign: 'center', padding: '20px' }}>Danh sách đầu sách trống</td></tr>
                     ) : (
                       inventoryBooks.map(book => (
                         <tr key={book.id}>
